@@ -8,8 +8,9 @@ import { ProductsTab } from '@/components/ProductsTab';
 import { CicdTab } from '@/components/CicdTab';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { GithubModal } from '@/components/GithubModal';
+import { CreatePilarModal } from '@/components/CreatePilarModal';
 import { DEFAULT_TASKS, PHASES, SKILLS_MATRIX } from '@/data/constants';
-import { Task, NewTaskForm, GithubConfig } from '@/types';
+import { Task, NewTaskForm, GithubConfig, Phase } from '@/types';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<string>('roadmap');
@@ -18,6 +19,10 @@ export default function HomePage() {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showGithubModal, setShowGithubModal] = useState<boolean>(false);
+  const [showPilarModal, setShowPilarModal] = useState<boolean>(false);
+
+  // Dynamic Phases State
+  const [phases, setPhases] = useState<Phase[]>(PHASES);
 
   // Accordion state
   const [openPhases, setOpenPhases] = useState<number[]>([1, 2, 3, 4]);
@@ -35,7 +40,7 @@ export default function HomePage() {
     token: '',
   });
 
-  // Load state on mount
+  // Load state on mount & fetch Pillars from Supabase API
   useEffect(() => {
     try {
       const savedTasks = localStorage.getItem('amaro_dev_checklist_v2');
@@ -49,6 +54,31 @@ export default function HomePage() {
       if (savedGithub) {
         setGithubConfig((prev) => ({ ...prev, ...JSON.parse(savedGithub) }));
       }
+
+      const savedPillars = localStorage.getItem('amaro_custom_pillars_v1');
+      if (savedPillars) {
+        const parsedCustomPillars: Phase[] = JSON.parse(savedPillars);
+        setPhases((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const filteredNew = parsedCustomPillars.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...filteredNew];
+        });
+      }
+
+      // Sync with Supabase API
+      fetch('/api/pillars')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.pillars && data.pillars.length > 0) {
+            setPhases((prev) => {
+              const existingIds = new Set(prev.map((p) => p.id));
+              const remoteNew = data.pillars.filter((p: Phase) => !existingIds.has(p.id));
+              const updatedList = [...prev, ...remoteNew];
+              return updatedList;
+            });
+          }
+        })
+        .catch((err) => console.warn('Aviso ao carregar pilares do Supabase:', err));
     } catch (e) {
       setTasks(DEFAULT_TASKS);
     } finally {
@@ -85,11 +115,23 @@ export default function HomePage() {
 
   const expandAllCards = () => {
     setExpandedCards(tasks.map((t) => t.id));
-    setOpenPhases(PHASES.map((p) => p.id));
+    setOpenPhases(phases.map((p) => p.id));
   };
 
   const collapseAllCards = () => {
     setExpandedCards([]);
+  };
+
+  // Pillar actions
+  const handlePillarCreated = (newPillar: Phase) => {
+    setPhases((prev) => {
+      const exists = prev.some((p) => p.id === newPillar.id);
+      if (exists) return prev;
+      const updated = [...prev, newPillar];
+      localStorage.setItem('amaro_custom_pillars_v1', JSON.stringify(updated.slice(4)));
+      return updated;
+    });
+    setOpenPhases((prev) => [...prev, newPillar.id]);
   };
 
   // Task actions
@@ -136,9 +178,11 @@ export default function HomePage() {
   const resetChecklist = () => {
     if (window.confirm('Deseja restaurar a lista padrão de projetos e requisitos?')) {
       setTasks(DEFAULT_TASKS);
+      setPhases(PHASES);
       setExpandedCards([1, 6, 10]);
       setOpenPhases([1, 2, 3, 4]);
       localStorage.removeItem('amaro_dev_checklist_v2');
+      localStorage.removeItem('amaro_custom_pillars_v1');
     }
   };
 
@@ -153,7 +197,7 @@ export default function HomePage() {
       {/* Main Tab Rendering */}
       {activeTab === 'home' && (
         <HomeTab
-          phases={PHASES}
+          phases={phases}
           tasks={tasks}
           setActiveTab={setActiveTab}
           setSelectedPhaseFilter={setSelectedPhaseFilter}
@@ -162,7 +206,7 @@ export default function HomePage() {
 
       {(activeTab === 'roadmap' || activeTab === 'checklist') && (
         <RoadmapTab
-          phases={PHASES}
+          phases={phases}
           tasks={tasks}
           openPhases={openPhases}
           expandedCards={expandedCards}
@@ -182,6 +226,7 @@ export default function HomePage() {
           resetChecklist={resetChecklist}
           setShowAddModal={setShowAddModal}
           setShowGithubModal={setShowGithubModal}
+          setShowPilarModal={setShowPilarModal}
         />
       )}
 
@@ -194,6 +239,13 @@ export default function HomePage() {
         show={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddNewTask}
+        phases={phases}
+      />
+
+      <CreatePilarModal
+        show={showPilarModal}
+        onClose={() => setShowPilarModal(false)}
+        onPillarCreated={handlePillarCreated}
       />
 
       <GithubModal

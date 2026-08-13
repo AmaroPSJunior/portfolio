@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { NewTaskForm } from '@/types';
+import { NewTaskForm, Phase } from '@/types';
 
 interface AddTaskModalProps {
   show: boolean;
   onClose: () => void;
   onAdd: (newTask: NewTaskForm) => void;
+  phases?: Phase[];
 }
 
-export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd }) => {
+export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd, phases }) => {
   const [form, setForm] = useState<NewTaskForm>({
     phase: 1,
     title: '',
@@ -54,10 +55,20 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
               onChange={(e) => setForm({ ...form, phase: Number(e.target.value) })}
               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             >
-              <option value={1}>Fase 1: Roadmap & Evolução do Portfólio</option>
-              <option value={2}>Fase 2: Projetos, Produtos e Serviços</option>
-              <option value={3}>Fase 3: Tech Lab & Experimentos</option>
-              <option value={4}>Fase 4: QA & Testes de Habilidade (Skills Lab)</option>
+              {phases && phases.length > 0 ? (
+                phases.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.icon} {p.title}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value={1}>Fase 1: Roadmap & Evolução do Portfólio</option>
+                  <option value={2}>Fase 2: Projetos, Produtos e Serviços</option>
+                  <option value={3}>Fase 3: Tech Lab & Experimentos</option>
+                  <option value={4}>Fase 4: QA & Testes de Habilidade (Skills Lab)</option>
+                </>
+              )}
             </select>
           </div>
 

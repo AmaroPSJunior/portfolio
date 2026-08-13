@@ -24,6 +24,7 @@ interface RoadmapTabProps {
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   setShowGithubModal: (show: boolean) => void;
+  setShowPilarModal: (show: boolean) => void;
 }
 
 export const RoadmapTab: React.FC<RoadmapTabProps> = ({
@@ -47,6 +48,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   resetChecklist,
   setShowAddModal,
   setShowGithubModal,
+  setShowPilarModal,
 }) => {
   const totalTasksCount = tasks.length;
   const completedTasksCount = tasks.filter((t) => t.completed).length;
@@ -210,10 +212,11 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             >
               <option value="all">Todas as Fases / Pilares</option>
-              <option value="1">Fase 1: Roadmap & Evolução</option>
-              <option value="2">Fase 2: Produtos e Serviços</option>
-              <option value="3">Fase 3: Tech Lab & Experimentos</option>
-              <option value="4">Fase 4: QA & Skills Lab</option>
+              {phases.map((p) => (
+                <option key={p.id} value={String(p.id)}>
+                  {p.icon} {p.title}
+                </option>
+              ))}
             </select>
 
             {/* Status Filter */}
@@ -246,6 +249,14 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
             </div>
 
             {/* Action Buttons */}
+            <button
+              onClick={() => setShowPilarModal(true)}
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow"
+              title="Cadastrar novo pilar no Supabase"
+            >
+              <span>🏛️</span> Novo Pilar
+            </button>
+
             <button
               onClick={() => setShowAddModal(true)}
               className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-semibold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow"

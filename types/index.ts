@@ -22,6 +22,15 @@ export interface Phase {
   icon: string;
   title: string;
   subtitle: string;
+  order?: number;
+  uuid?: string;
+  created_at?: string;
+}
+
+export interface NewPilarForm {
+  title: string;
+  subtitle?: string;
+  emoji: string;
 }
 
 export interface Skill {
