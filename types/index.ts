@@ -7,6 +7,8 @@ export interface Task {
   badges: string[];
   completed: boolean;
   isCustom?: boolean;
+  uuid?: string;
+  created_at?: string;
 }
 
 export interface NewTaskForm {

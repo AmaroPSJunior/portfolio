@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { validatePillarInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
-import { handleApiError, ValidationError, DatabaseError } from '@/lib/errorHandler';
+import { handleApiError } from '@/lib/errorHandler';
+import { PHASES } from '@/data/constants';
+import { Phase } from '@/types';
 
 export const dynamic = 'force-dynamic';
+
+// In-memory fallback cache for pillars created when Supabase is offline or table is missing
+const inMemoryCustomPillars: Phase[] = [];
 
 // GET: Listar todos os pilares ordenados pela coluna 'order'
 export async function GET() {
@@ -15,6 +20,8 @@ export async function GET() {
       .select('*')
       .order('order', { ascending: true });
 
+    let pillarsResult: Phase[] = [];
+
     if (error) {
       AppLogger.warn(scope, 'Falha ao consultar pilares no Supabase, retornando lista vazia', { error });
       return NextResponse.json({
@@ -24,32 +31,53 @@ export async function GET() {
       });
     }
 
-    const formattedPillars = (data || []).map((row, index) => {
-      let numericId: number;
-      if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
-        numericId = Number(row.numeric_id);
-      } else if (!isNaN(Number(row.id))) {
-        numericId = Number(row.id);
-      } else {
-        numericId = index + 1;
+    if (!data) {
+      pillarsResult = [...PHASES];
+    } else {
+      pillarsResult = data.map((row, index) => {
+        let numericId: number;
+        if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
+          numericId = Number(row.numeric_id);
+        } else if (!isNaN(Number(row.id))) {
+          numericId = Number(row.id);
+        } else {
+          numericId = index + 1;
+        }
+
+        return {
+          id: numericId,
+          title: row.title,
+          subtitle: row.subtitle || '',
+          icon: row.emoji || '🚀',
+          order: row.order ?? (index + 1),
+          uuid: row.id,
+          created_at: row.created_at,
+        };
+      });
+
+      if (pillarsResult.length === 0) {
+        pillarsResult = [...PHASES];
       }
+    }
 
-      return {
-        id: numericId,
-        title: row.title,
-        subtitle: row.subtitle || '',
-        icon: row.emoji || '🚀',
-        order: row.order ?? (index + 1),
-        uuid: row.id,
-        created_at: row.created_at,
-      };
-    });
+    // Merge in-memory custom pillars that aren't in pillarsResult
+    const existingIds = new Set(pillarsResult.map((p) => p.id));
+    for (const customPillar of inMemoryCustomPillars) {
+      if (!existingIds.has(customPillar.id)) {
+        pillarsResult.push(customPillar);
+      }
+    }
 
-    AppLogger.info(scope, `Sucesso ao listar ${formattedPillars.length} pilar(es)`);
-    return NextResponse.json({ pillars: formattedPillars });
+    AppLogger.info(scope, `Sucesso ao listar ${pillarsResult.length} pilar(es)`);
+    return NextResponse.json({ pillars: pillarsResult });
   } catch (err: any) {
     AppLogger.error(scope, 'Exceção não tratada ao listar pilares', err);
-    return NextResponse.json({ pillars: [], error: err.message });
+    const existingIds = new Set(PHASES.map((p) => p.id));
+    const merged = [...PHASES];
+    for (const c of inMemoryCustomPillars) {
+      if (!existingIds.has(c.id)) merged.push(c);
+    }
+    return NextResponse.json({ pillars: merged });
   }
 }
 
@@ -109,17 +137,20 @@ export async function POST(request: NextRequest) {
         { insertError, title }
       );
 
-      // Retorno resiliente em caso de banco offline ou chave de teste
+      const fallbackPillar: Phase = {
+        id: nextNumericId,
+        title,
+        subtitle: newRecord.subtitle,
+        icon: emoji,
+        order: nextOrder,
+      };
+
+      inMemoryCustomPillars.push(fallbackPillar);
+
       return NextResponse.json(
         {
           message: 'Pilar cadastrado com sucesso (modo local/resiliente)',
-          pillar: {
-            id: nextNumericId,
-            title,
-            subtitle: newRecord.subtitle,
-            icon: emoji,
-            order: nextOrder,
-          },
+          pillar: fallbackPillar,
         },
         { status: 201 }
       );
@@ -127,23 +158,27 @@ export async function POST(request: NextRequest) {
 
     const row = inserted && inserted[0] ? inserted[0] : null;
 
+    const createdPillar: Phase = {
+      id: row?.numeric_id ? Number(row.numeric_id) : nextNumericId,
+      title: row?.title || title,
+      subtitle: row?.subtitle || newRecord.subtitle,
+      icon: row?.emoji || emoji,
+      order: row?.order || nextOrder,
+      uuid: row?.id,
+      created_at: row?.created_at,
+    };
+
+    inMemoryCustomPillars.push(createdPillar);
+
     AppLogger.info(scope, 'Pilar cadastrado com sucesso no Supabase', {
-      numeric_id: row?.numeric_id || nextNumericId,
+      numeric_id: createdPillar.id,
       title,
     });
 
     return NextResponse.json(
       {
         message: 'Pilar cadastrado com sucesso no Supabase',
-        pillar: {
-          id: row?.numeric_id || nextNumericId,
-          title: row?.title || title,
-          subtitle: row?.subtitle || newRecord.subtitle,
-          icon: row?.emoji || emoji,
-          order: row?.order || nextOrder,
-          uuid: row?.id,
-          created_at: row?.created_at,
-        },
+        pillar: createdPillar,
       },
       { status: 201 }
     );

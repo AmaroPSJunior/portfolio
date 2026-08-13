@@ -11,7 +11,7 @@ import { GithubModal } from '@/components/GithubModal';
 import { CreatePilarModal } from '@/components/CreatePilarModal';
 import { DiagnosticsModal } from '@/components/DiagnosticsModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SKILLS_MATRIX } from '@/data/constants';
+import { SKILLS_MATRIX, DEFAULT_TASKS, PHASES } from '@/data/constants';
 import { Task, NewTaskForm, GithubConfig, Phase } from '@/types';
 import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
@@ -65,10 +65,21 @@ export default function HomePage() {
       ]);
 
       if (resPillars && Array.isArray(resPillars.pillars)) {
-        setPhases(resPillars.pillars);
+        setPhases((prevPhases) => {
+          const serverList = resPillars.pillars.length > 0 ? resPillars.pillars : PHASES;
+          const serverIds = new Set(serverList.map((p: Phase) => p.id));
+          const localOnly = prevPhases.filter((p) => !serverIds.has(p.id));
+          return [...serverList, ...localOnly];
+        });
       }
+
       if (resProjects && Array.isArray(resProjects.projects)) {
-        setTasks(resProjects.projects);
+        setTasks((prevTasks) => {
+          const serverList = resProjects.projects.length > 0 ? resProjects.projects : DEFAULT_TASKS;
+          const serverIds = new Set(serverList.map((t: Task) => t.id));
+          const localOnlyCustom = prevTasks.filter((t) => t.isCustom && !serverIds.has(t.id));
+          return [...serverList, ...localOnlyCustom];
+        });
       }
     } catch (e: any) {
       AppLogger.error('UI:fetchDatabaseData', 'Exceção geral na sincronização com Supabase', e);
@@ -228,7 +239,7 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phase: newForm.phase,
+          phase: Number(newForm.phase),
           title: newForm.title,
           description: newForm.description,
           requirementsInput: newForm.requirementsInput,
@@ -238,10 +249,30 @@ export default function HomePage() {
 
       const data = await response.json();
       if ((response.ok || response.status === 201) && data.project) {
-        setTasks((prev) => [data.project, ...prev]);
-        setExpandedCards((prev) => [...prev, data.project.id]);
-        setOpenPhases((prev) => (prev.includes(newForm.phase) ? prev : [...prev, newForm.phase]));
-        fetchDatabaseData();
+        const createdProject: Task = data.project;
+
+        setTasks((prev) => {
+          const exists = prev.some((t) => t.id === createdProject.id);
+          if (exists) return prev;
+          return [createdProject, ...prev];
+        });
+
+        const phaseNum = Number(createdProject.phase);
+        setExpandedCards((prev) => (prev.includes(createdProject.id) ? prev : [...prev, createdProject.id]));
+        setOpenPhases((prev) => (prev.includes(phaseNum) ? prev : [...prev, phaseNum]));
+
+        // Clear active filters to ensure the newly created project is immediately visible
+        setSearchQuery('');
+        setSelectedStatusFilter('all');
+        setSelectedPhaseFilter('all');
+
+        // Switch to roadmap tab if not already active so user sees the new card
+        if (activeTab !== 'roadmap' && activeTab !== 'checklist') {
+          setActiveTab('roadmap');
+        }
+
+        setShowAddModal(false);
+        AppLogger.info('UI:handleAddNewTask', `Projeto "${createdProject.title}" criado com sucesso`, { id: createdProject.id });
       } else {
         throw new Error(data.error || 'Erro ao cadastrar projeto');
       }
@@ -251,7 +282,6 @@ export default function HomePage() {
         message: `Falha ao criar o projeto: ${err.message}`,
         action: () => handleAddNewTask(newForm),
       });
-      fetchDatabaseData();
     }
   };
 

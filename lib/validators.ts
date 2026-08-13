@@ -52,6 +52,69 @@ export function validatePillarInput(data: any): ValidationResult {
   };
 }
 
+export interface ProjectValidationResult {
+  valid: boolean;
+  errors: string[];
+  sanitized: {
+    title: string;
+    phaseId: number;
+    description: string;
+    requirements: string[];
+    badges: string[];
+  };
+}
+
+export function validateProjectInput(data: any): ProjectValidationResult {
+  const errors: string[] = [];
+
+  if (!data || typeof data !== 'object') {
+    return {
+      valid: false,
+      errors: ['O corpo da requisição é inválido.'],
+      sanitized: { title: '', phaseId: 1, description: '', requirements: [], badges: [] },
+    };
+  }
+
+  const title = typeof data.title === 'string' ? data.title.trim() : '';
+  const phaseId = Number(data.phase || data.phase_id);
+
+  if (!title || isNaN(phaseId) || phaseId <= 0) {
+    errors.push('Título e Fase/Pilar são obrigatórios');
+  }
+
+  const description = typeof data.description === 'string' ? data.description.trim() : '';
+
+  const requirements = data.requirementsInput
+    ? String(data.requirementsInput)
+        .split(';')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : Array.isArray(data.requirements)
+    ? data.requirements.map((r: any) => String(r).trim()).filter(Boolean)
+    : [];
+
+  const badges = data.badgesInput
+    ? String(data.badgesInput)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : Array.isArray(data.badges)
+    ? data.badges.map((b: any) => String(b).trim()).filter(Boolean)
+    : [];
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    sanitized: {
+      title,
+      phaseId: !isNaN(phaseId) && phaseId > 0 ? phaseId : 1,
+      description,
+      requirements: requirements.length > 0 ? requirements : ['Requisito padrão'],
+      badges: badges.length > 0 ? badges : ['Novo Projeto'],
+    },
+  };
+}
+
 export function calculateNextOrder(existingPillarsOrder: number[]): number {
   if (!existingPillarsOrder || existingPillarsOrder.length === 0) {
     return 1;
@@ -59,3 +122,4 @@ export function calculateNextOrder(existingPillarsOrder: number[]): number {
   const maxOrder = Math.max(...existingPillarsOrder);
   return maxOrder + 1;
 }
+
