@@ -1,66 +1,83 @@
-# 👨‍💻 Painel de Homologação & Evolução do Projeto
+# 👨‍💻 Painel de Homologação, Portfólio & Evolução do Projeto (Next.js 15 & Supabase)
 
 ![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue?style=for-the-badge&logo=githubactions)
-![Build & Test](https://img.shields.io/badge/Tests-Vitest%20Passed-emerald?style=for-the-badge&logo=vitest)
-![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-cyan?style=for-the-badge&logo=github)
-![Vue.js 3](https://img.shields.io/badge/Vue.js-3.x-green?style=for-the-badge&logo=vuedotjs)
+![Build & Test](https://img.shields.io/badge/Tests-24%20Passed-emerald?style=for-the-badge&logo=vitest)
+![Next.js](https://img.shields.io/badge/Framework-Next.js%2015-black?style=for-the-badge&logo=nextdotjs)
+![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-emerald?style=for-the-badge&logo=supabase)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
 **Desenvolvedor:** Amaro Pedro da Silva Junior | *Full Stack & DevOps Engineer*  
-**Stack Principal:** Java • Spring Boot • Node.js • Vue.js 3 • React • TypeScript • C# .NET • SQL • CI/CD
+**Stack Principal:** Java • Spring Boot • Node.js • Next.js 15 • React • TypeScript • PostgreSQL • Supabase • Vitest • CI/CD
 
 ---
 
 ## 🚀 Sobre o Projeto
 
-Este repositório contém o **Painel de Homologação e Checklist de Evolução do Projeto**, uma aplicação SPA reativa moderna desenvolvida em Vue.js 3 e Tailwind CSS, configurada para entrega contínua (CI/CD) via GitHub Actions e hospedagem no GitHub Pages.
+Este repositório contém o **Painel de Homologação e Checklist de Evolução do Projeto**, uma aplicação Web reativa desenvolvida com **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS** e **Supabase (PostgreSQL)**, configurada para integração contínua (CI/CD) via GitHub Actions e deploy na Vercel.
 
 ### 🌟 Funcionalidades Principais
 
-- **📋 Matriz de Homologação de 4 Fases:** Acompanhamento dinâmico do ciclo de vida do software com salvamento no `localStorage`.
-- **⚙️ Automação de CI/CD:** Pipeline em `.github/workflows/ci-cd.yml` para testes unitários com Vitest e publicação no GitHub Pages.
-- **💼 Portfólio & Tech Lab (PoCs):** Demonstração de arquiteturas B2B/B2C, ERP Industrial e provas de conceito em Web3/Pix.
-- **🎯 Matriz de Habilidades Unitárias:** Mapeamento visual das competências técnicas do desenvolvedor.
-- **🐙 Sincronização em Tempo Real com GitHub:** Conexão com a API REST do GitHub para status do repositório, commits e status da pipeline de testes.
+- **📋 Sincronização em Tempo Real com Supabase**: Persistência bidirecional de Pilares (`pillars`) e Projetos/Requisitos (`projects`) diretamente em banco PostgreSQL.
+- **🛡️ Suíte Completa de QA & Testes de Integração**: 24 testes unitários e de integração cobrindo componentes React, validadores e o fluxo CRUD completo das API Routes do Supabase.
+- **⚙️ Automação de CI/CD**: Workflows em `.github/workflows/` para linting (`tsc --noEmit`), execução do Vitest e automação de migrações de banco.
+- **💼 Portfólio & Tech Lab (PoCs)**: Projetos e aplicações completas (E-commerce, ERP Industrial, Web3, Pix e WebSockets).
+- **🐙 Integração com GitHub**: Consulta dinâmica de status de repositório, commits e pipelines.
 
 ---
 
-## 🛠️ Como Sincronizar e Rodar o Repositório
+## 🧪 Suíte de Testes & QA (Vitest)
+
+O projeto possui duas suítes de testes automatizadas no diretório raiz e em `tests/`:
+
+1. **`app.spec.jsx`**: Testes unitários para cálculo de progresso geral, cálculo por pilar e comportamentos da UI/Accordions (12 testes).
+2. **`tests/crud-supabase.spec.tsx`**: Testes de integração e validação do contrato do banco de dados Supabase/PostgreSQL cobrindo o ciclo de vida CRUD completo (12 testes):
+   - **READ (Fetch)**: Formatação das respostas das API Routes de Pilares e Projetos.
+   - **INSERT (POST)**: Criação de novos pilares e projetos com validação de schemas e cálculo de ordenação.
+   - **UPDATE (PATCH)**: Atualização reativa de status `completed` e metadados.
+   - **DELETE**: Exclusão de itens no Supabase (`numeric_id = 4`, pilares) e atualização da interface.
+   - **Tratamento de Erros**: Resiliência contra queda de conexão ou violações de integridade.
+
+### Executando os Testes Localmente
+
+```bash
+# Executar a suíte completa de testes
+npm test
+
+# Executar os testes em modo watch (desenvolvimento)
+npx vitest
+```
+
+---
+
+## 🛠️ Como Executar o Projeto
 
 ### 1. Clonar e Instalar Dependências
 
 ```bash
-git clone https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
-cd SEU-REPOSITORIO
+git clone https://github.com/amaropedro/painel-homologacao.git
+cd painel-homologacao
 npm install
 ```
 
-### 2. Executar os Testes Unitários (Vitest)
+### 2. Configurar Variáveis de Ambiente
 
-```bash
-npm test
+Crie o arquivo `.env.local` na raiz com suas credenciais do Supabase:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://SUO_PROJETO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_ANONIMA
 ```
 
-### 3. Conectar Remote Git e Enviar para o GitHub
+### 3. Executar o Servidor de Desenvolvimento
 
 ```bash
-git remote add origin https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
-git branch -M main
-git push -u origin main
+npm run dev
 ```
 
----
-
-## ⚙️ Pipeline CI/CD (.github/workflows/ci-cd.yml)
-
-O repositório está pré-configurado com uma Action de integração e entrega contínua:
-
-1. **Checkout & Cache:** Clona o repositório e configura o ambiente Node.js 20.
-2. **Testes Unitários:** Executa a suíte de testes em `app.spec.js` via Vitest.
-3. **Deploy no GitHub Pages:** Publica a aplicação web automaticamente na branch `gh-pages` ou no ambiente do GitHub Pages.
+Acesse `http://localhost:3000` para visualizar o painel.
 
 ---
 
 ## 📄 Licença
 
-Desenvolvido por **Amaro Pedro da Silva Junior** — 2024. Licenciado sob a [MIT License](LICENSE).
+Desenvolvido por **Amaro Pedro da Silva Junior** — 2026. Licenciado sob a [MIT License](LICENSE).
