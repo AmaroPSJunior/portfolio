@@ -461,7 +461,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const body = await response.json();
 
       expect(response.status).toBe(500);
-      expect(body.error).toBe('Foreign Key Constraint Violation');
+      const errorMessage = typeof body.error === 'string' ? body.error : body.error?.message || body.error?.details?.message;
+      expect(errorMessage).toBe('Foreign Key Constraint Violation');
     });
   });
 

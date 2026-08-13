@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { AppLogger } from '@/lib/logger';
+import { handleApiError, ValidationError, DatabaseError } from '@/lib/errorHandler';
 
-// GET: Listar todos os projetos cadastrados no Supabase
+// GET: Listar todos os projetos ordenados pelo numeric_id
 export async function GET() {
+  const scope = 'projects:GET';
   try {
     const { data, error } = await supabase
       .from('projects')
@@ -10,7 +13,8 @@ export async function GET() {
       .order('numeric_id', { ascending: true });
 
     if (error) {
-      return NextResponse.json({ projects: [] });
+      AppLogger.warn(scope, 'Erro ao buscar projetos do Supabase, retornando coleção vazia', { error });
+      return NextResponse.json({ projects: [], error: error.message });
     }
 
     const formattedProjects = (data || []).map((row) => ({
@@ -26,35 +30,54 @@ export async function GET() {
       created_at: row.created_at,
     }));
 
+    AppLogger.info(scope, `Sucesso ao listar ${formattedProjects.length} projeto(s)`);
     return NextResponse.json({ projects: formattedProjects });
   } catch (err: any) {
-    return NextResponse.json({ projects: [] });
+    AppLogger.error(scope, 'Exceção ao listar projetos', err);
+    return NextResponse.json({ projects: [], error: err.message });
   }
 }
 
-// POST: Criar novo projeto no Supabase
+// POST: Cadastrar novo projeto vinculado a uma Fase/Pilar
 export async function POST(request: NextRequest) {
+  const scope = 'projects:POST';
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
 
-    if (!body.title || !body.phase) {
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { error: 'Corpo da requisição inválido' },
+        { status: 400 }
+      );
+    }
+
+    const phaseId = Number(body.phase || body.phase_id);
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+
+    if (!title || isNaN(phaseId) || phaseId <= 0) {
+      AppLogger.warn(scope, 'Validação de criação de projeto falhou', { title, phaseId });
       return NextResponse.json(
         { error: 'Título e Fase/Pilar são obrigatórios' },
         { status: 400 }
       );
     }
 
-    const phaseId = Number(body.phase);
-    const requirements = Array.isArray(body.requirements)
+    const requirements = body.requirementsInput
+      ? String(body.requirementsInput)
+          .split(';')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : Array.isArray(body.requirements)
       ? body.requirements
-      : body.requirementsInput
-      ? body.requirementsInput.split(';').map((s: string) => s.trim()).filter(Boolean)
-      : [];
+      : ['Requisito padrão'];
 
-    const badges = Array.isArray(body.badges)
+    const badges = body.badgesInput
+      ? String(body.badgesInput)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : Array.isArray(body.badges)
       ? body.badges
-      : body.badgesInput
-      ? body.badgesInput.split(',').map((s: string) => s.trim()).filter(Boolean)
       : ['Novo Projeto'];
 
     // Obter o maior numeric_id existente para evitar conflito de chave única ou erro de sequência SERIAL
@@ -78,7 +101,7 @@ export async function POST(request: NextRequest) {
     const newProject = {
       numeric_id: nextNumericId,
       phase_id: phaseId,
-      title: body.title,
+      title,
       description: body.description || '',
       requirements,
       badges,
@@ -86,17 +109,19 @@ export async function POST(request: NextRequest) {
       is_custom: true,
     };
 
-    const { data, error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('projects')
       .insert([newProject])
       .select();
 
     if (error) {
+      AppLogger.warn(scope, 'Erro no Supabase ao criar projeto, ativando fallback local', { error });
+
       // Retorno resiliente para ambiente local/desconectado ou credenciais de teste
       const fallbackProject = {
         id: nextNumericId,
         phase: phaseId,
-        title: body.title,
+        title,
         description: body.description || '',
         requirements,
         badges,
@@ -111,29 +136,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const insertedRow = data && data[0] ? data[0] : null;
+    const row = inserted && inserted[0] ? inserted[0] : null;
 
-    const formatted = {
-      id: insertedRow?.numeric_id || Date.now(),
-      phase: insertedRow?.phase_id || phaseId,
-      title: insertedRow?.title || body.title,
-      description: insertedRow?.description || body.description || '',
-      requirements: insertedRow?.requirements || requirements,
-      badges: insertedRow?.badges || badges,
-      completed: Boolean(insertedRow?.completed || false),
-      isCustom: Boolean(insertedRow?.is_custom || true),
-      uuid: insertedRow?.id,
-      created_at: insertedRow?.created_at,
-    };
+    AppLogger.info(scope, `Projeto "${title}" criado com sucesso`, { numeric_id: row?.numeric_id || nextNumericId });
 
     return NextResponse.json(
-      { message: 'Projeto criado com sucesso no Supabase', project: formatted },
+      {
+        message: 'Projeto cadastrado com sucesso no Supabase',
+        project: {
+          id: row?.numeric_id || nextNumericId,
+          phase: row?.phase_id || phaseId,
+          title: row?.title || title,
+          description: row?.description || body.description || '',
+          requirements: row?.requirements || requirements,
+          badges: row?.badges || badges,
+          completed: Boolean(row?.completed),
+          isCustom: true,
+          uuid: row?.id,
+          created_at: row?.created_at,
+        },
+      },
       { status: 201 }
     );
   } catch (err: any) {
-    return NextResponse.json(
-      { error: 'Erro ao processar criação de projeto', details: err.message },
-      { status: 500 }
-    );
+    return handleApiError(err, scope);
   }
 }

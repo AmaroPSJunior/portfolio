@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { validatePillarInput } from '@/lib/validators';
+import { AppLogger } from '@/lib/logger';
+import { handleApiError, ValidationError, DatabaseError } from '@/lib/errorHandler';
 
 // GET: Listar todos os pilares ordenados pela coluna 'order'
 export async function GET() {
+  const scope = 'pillars:GET';
   try {
     const { data, error } = await supabase
       .from('pillars')
@@ -11,7 +14,12 @@ export async function GET() {
       .order('order', { ascending: true });
 
     if (error) {
-      return NextResponse.json({ pillars: [] });
+      AppLogger.warn(scope, 'Falha ao consultar pilares no Supabase, retornando lista vazia', { error });
+      return NextResponse.json({
+        pillars: [],
+        warning: 'Não foi possível carregar do banco de dados.',
+        error: error.message,
+      });
     }
 
     const formattedPillars = (data || []).map((row) => ({
@@ -24,19 +32,25 @@ export async function GET() {
       created_at: row.created_at,
     }));
 
+    AppLogger.info(scope, `Sucesso ao listar ${formattedPillars.length} pilar(es)`);
     return NextResponse.json({ pillars: formattedPillars });
   } catch (err: any) {
-    return NextResponse.json({ pillars: [] });
+    AppLogger.error(scope, 'Exceção não tratada ao listar pilares', err);
+    return NextResponse.json({ pillars: [], error: err.message });
   }
 }
 
 // POST: Cadastrar novo Pilar no Supabase garantindo ordenação ao final
 export async function POST(request: NextRequest) {
+  const scope = 'pillars:POST';
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const validation = validatePillarInput(body);
 
     if (!validation.valid) {
+      AppLogger.warn(scope, 'Tentativa de cadastro de pilar com dados inválidos', {
+        errors: validation.errors,
+      });
       return NextResponse.json(
         { error: 'Dados inválidos', details: validation.errors },
         { status: 400 }
@@ -74,6 +88,12 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (insertError) {
+      AppLogger.warn(
+        scope,
+        'Erro ao inserir no Supabase, ativando modo resiliente/local',
+        { insertError, title }
+      );
+
       // Retorno resiliente em caso de banco offline ou chave de teste
       return NextResponse.json(
         {
@@ -92,6 +112,11 @@ export async function POST(request: NextRequest) {
 
     const row = inserted && inserted[0] ? inserted[0] : null;
 
+    AppLogger.info(scope, 'Pilar cadastrado com sucesso no Supabase', {
+      numeric_id: row?.numeric_id || nextNumericId,
+      title,
+    });
+
     return NextResponse.json(
       {
         message: 'Pilar cadastrado com sucesso no Supabase',
@@ -108,9 +133,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err: any) {
-    return NextResponse.json(
-      { error: 'Erro ao processar cadastro de pilar', message: err.message },
-      { status: 500 }
-    );
+    return handleApiError(err, scope, { action: 'create_pillar' });
   }
 }

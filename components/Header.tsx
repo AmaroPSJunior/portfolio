@@ -1,17 +1,20 @@
 'use client';
 
 import React from 'react';
+import { Activity } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   setShowGithubModal: (show: boolean) => void;
+  onOpenDiagnostics?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   setShowGithubModal,
+  onOpenDiagnostics,
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
@@ -78,6 +81,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span>💼</span> Produtos & Tech Lab
             </button>
           </nav>
+
+          {onOpenDiagnostics && (
+            <button
+              id="btn-open-diagnostics"
+              onClick={onOpenDiagnostics}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Abrir Painel de Diagnóstico de Erros e Saúde do Sistema"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Diagnóstico</span>
+            </button>
+          )}
 
           <button
             onClick={() => setShowGithubModal(true)}
