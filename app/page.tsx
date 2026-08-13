@@ -79,7 +79,7 @@ export default function HomePage() {
             });
           }
         })
-        .catch((err) => console.warn('Aviso ao carregar pilares do Supabase:', err));
+        .catch(() => {});
     } catch (e) {
       setTasks(DEFAULT_TASKS);
     } finally {

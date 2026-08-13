@@ -11,7 +11,6 @@ export async function GET() {
       .order('order', { ascending: true });
 
     if (error) {
-      console.warn('Supabase GET pillars notice:', error.message);
       return NextResponse.json({ pillars: [] });
     }
 
@@ -27,7 +26,7 @@ export async function GET() {
 
     return NextResponse.json({ pillars: formattedPillars });
   } catch (err: any) {
-    return NextResponse.json({ pillars: [], error: err.message });
+    return NextResponse.json({ pillars: [] });
   }
 }
 
@@ -75,7 +74,6 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (insertError) {
-      console.warn('Supabase POST insert warning, returning fallback:', insertError.message);
       // Retorno resiliente em caso de banco offline ou chave de teste
       return NextResponse.json(
         {
