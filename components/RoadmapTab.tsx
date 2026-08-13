@@ -23,6 +23,7 @@ interface RoadmapTabProps {
   deleteTask: (taskId: number) => void;
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
+  onOpenAddTaskModal?: (phaseId?: number) => void;
   setShowGithubModal: (show: boolean) => void;
   setShowPilarModal: (show: boolean) => void;
 }
@@ -47,6 +48,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   deleteTask,
   resetChecklist,
   setShowAddModal,
+  onOpenAddTaskModal,
   setShowGithubModal,
   setShowPilarModal,
 }) => {
@@ -258,13 +260,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
             </button>
 
             <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-semibold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow"
-            >
-              <span>➕</span> Novo Projeto
-            </button>
-
-            <button
               onClick={resetChecklist}
               className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 border border-slate-700"
               title="Restaurar lista padrão"
@@ -317,7 +312,28 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 
                 {/* Phase Body: Grid de Cards Sanfonados Minimalistas */}
                 {isPhaseOpen && (
-                  <div className="p-4 sm:p-5">
+                  <div className="p-4 sm:p-5 space-y-4">
+                    {/* Header do Pilar Expandido com o Botão Novo Projeto */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-300">
+                          Projetos e Entregáveis do Pilar {phase.id}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">
+                          ({getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} concluídos)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() =>
+                          onOpenAddTaskModal ? onOpenAddTaskModal(phase.id) : setShowAddModal(true)
+                        }
+                        className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow self-start sm:self-auto"
+                        title={`Adicionar novo projeto diretamente ao Pilar ${phase.id}`}
+                      >
+                        <span>➕</span> Novo Projeto
+                      </button>
+                    </div>
+
                     {phaseTasks.length === 0 ? (
                       <div className="text-center py-6 text-xs text-slate-500 italic bg-slate-950/40 rounded-xl border border-slate-800">
                         Nenhum projeto ou ideia encontrada neste pilar para os filtros aplicados.

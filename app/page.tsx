@@ -20,12 +20,13 @@ export default function HomePage() {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showGithubModal, setShowGithubModal] = useState<boolean>(false);
   const [showPilarModal, setShowPilarModal] = useState<boolean>(false);
+  const [selectedPillarForModal, setSelectedPillarForModal] = useState<number | undefined>(undefined);
 
   // Dynamic Phases State
   const [phases, setPhases] = useState<Phase[]>(PHASES);
 
-  // Accordion state
-  const [openPhases, setOpenPhases] = useState<number[]>([1, 2, 3, 4]);
+  // Accordion state (All pillars start collapsed by default)
+  const [openPhases, setOpenPhases] = useState<number[]>([]);
   const [expandedCards, setExpandedCards] = useState<number[]>([1, 6, 10]);
 
   // Tasks state
@@ -175,12 +176,17 @@ export default function HomePage() {
     setExpandedCards((prev) => [...prev, newTaskItem.id]);
   };
 
+  const handleOpenAddTaskModal = (phaseId?: number) => {
+    setSelectedPillarForModal(phaseId);
+    setShowAddModal(true);
+  };
+
   const resetChecklist = () => {
     if (window.confirm('Deseja restaurar a lista padrão de projetos e requisitos?')) {
       setTasks(DEFAULT_TASKS);
       setPhases(PHASES);
       setExpandedCards([1, 6, 10]);
-      setOpenPhases([1, 2, 3, 4]);
+      setOpenPhases([]);
       localStorage.removeItem('amaro_dev_checklist_v2');
       localStorage.removeItem('amaro_custom_pillars_v1');
     }
@@ -225,6 +231,7 @@ export default function HomePage() {
           deleteTask={deleteTask}
           resetChecklist={resetChecklist}
           setShowAddModal={setShowAddModal}
+          onOpenAddTaskModal={handleOpenAddTaskModal}
           setShowGithubModal={setShowGithubModal}
           setShowPilarModal={setShowPilarModal}
         />
@@ -240,6 +247,7 @@ export default function HomePage() {
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddNewTask}
         phases={phases}
+        initialPhaseId={selectedPillarForModal}
       />
 
       <CreatePilarModal

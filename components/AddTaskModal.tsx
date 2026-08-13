@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NewTaskForm, Phase } from '@/types';
 
 interface AddTaskModalProps {
@@ -8,9 +8,10 @@ interface AddTaskModalProps {
   onClose: () => void;
   onAdd: (newTask: NewTaskForm) => void;
   phases?: Phase[];
+  initialPhaseId?: number;
 }
 
-export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd, phases }) => {
+export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd, phases, initialPhaseId }) => {
   const [form, setForm] = useState<NewTaskForm>({
     phase: 1,
     title: '',
@@ -18,6 +19,15 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
     requirementsInput: '',
     badgesInput: '',
   });
+
+  useEffect(() => {
+    if (show) {
+      setForm((prev) => ({
+        ...prev,
+        phase: initialPhaseId !== undefined ? initialPhaseId : (phases && phases[0]?.id) || 1,
+      }));
+    }
+  }, [show, initialPhaseId, phases]);
 
   if (!show) return null;
 
