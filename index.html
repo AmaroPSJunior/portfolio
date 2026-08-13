@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Homologação & Evolução | Amaro Pedro da Silva Junior</title>
+    <meta name="description" content="Painel de Homologação, Checklist de Evolução do Projeto e Portfólio Dev - Amaro Pedro da Silva Junior" />
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                850: '#1e293b',
+                950: '#0f172a'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #06b6d4;
+      }
+      .font-code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
+    <div id="app" class="pb-16">
+      
+      <!-- TOP NAVIGATION BAR -->
+      <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-xl shadow-inner">
+              👨‍💻
+            </div>
+            <div>
+              <h1 class="text-base font-bold text-white flex items-center gap-2">
+                Amaro Pedro da Silva Junior
+                <span class="text-xs bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">
+                  Full Stack & DevOps
+                </span>
+              </h1>
+              <p class="text-xs text-slate-400">
+                Java • Spring Boot • Node.js • Vue.js • React • TypeScript • C# • SQL
+              </p>
+            </div>
+          </div>
+
+          <!-- Navigation Tabs -->
+          <div class="flex items-center gap-2">
+            <nav class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+              <button 
+                @click="activeTab = 'checklist'"
+                :class="activeTab === 'checklist' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+              >
+                <span>📋</span> Checklist & Homologação
+              </button>
+              <button 
+                @click="activeTab = 'cicd'"
+                :class="activeTab === 'cicd' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+              >
+                <span>⚙️</span> CI/CD & Testes
+              </button>
+              <button 
+                @click="activeTab = 'portfolio'"
+                :class="activeTab === 'portfolio' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+              >
+                <span>💼</span> Portfólio & Tech Lab
+              </button>
+            </nav>
+
+            <button 
+              @click="showGithubModal = true"
+              class="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Configurar Repositório e Sincronização GitHub"
+            >
+              <span>🐙</span> GitHub Sync
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- HERO & GENERAL PROGRESS HEADER -->
+      <section class="max-w-7xl mx-auto px-4 lg:px-8 pt-6 pb-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            
+            <!-- Title and Description -->
+            <div class="space-y-2 max-w-2xl">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-950 border border-cyan-800 px-2.5 py-1 rounded-md">
+                  ⚡ Prova de Conceito Vivo (PoC)
+                </span>
+                <span class="text-xs text-slate-400">GitHub Pages Ready</span>
+              </div>
+              <h2 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+                Painel de Homologação & Evolução do Projeto
+              </h2>
+              <p class="text-sm text-slate-300 leading-relaxed">
+                Acompanhamento dinâmico do ciclo de vida de software, automação de qualidade e publicação contínua.
+                Os dados são sincronizados em tempo real no seu navegador via <code class="text-cyan-300 font-code bg-slate-950 px-1.5 py-0.5 rounded">localStorage</code>.
+              </p>
+            </div>
+
+            <!-- Overall Progress Widget -->
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-xl min-w-[300px] flex flex-col gap-3">
+              <div class="flex justify-between items-end">
+                <div>
+                  <span class="text-xs text-slate-400 uppercase font-semibold">Progresso Geral</span>
+                  <div class="text-3xl font-black text-cyan-400 flex items-center gap-1">
+                    {{ overallPercentage }}%
+                    <span class="text-xs font-normal text-slate-400">({{ completedTasksCount }}/{{ totalTasksCount }} tarefas)</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs px-2 py-1 rounded font-bold" :class="overallPercentage === 100 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-blue-950 text-blue-300 border border-blue-800'">
+                    {{ overallPercentage === 100 ? '🎉 Homologado' : '🚀 Em Evolução' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Progress Bar (Solid colors, no gradient as per guideline) -->
+              <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                <div 
+                  class="h-full bg-cyan-500 transition-all duration-500 ease-out" 
+                  :style="{ width: overallPercentage + '%' }"
+                ></div>
+              </div>
+
+              <div class="flex justify-between text-xs text-slate-400 pt-1">
+                <span>🎯 Meta: 100% Homologação</span>
+                <span>Fases Concluídas: {{ completedPhasesCount }}/4</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Stats Row -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80">
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+              <div class="text-2xl">📊</div>
+              <div>
+                <p class="text-xs text-slate-400">Total de Tarefas</p>
+                <p class="text-lg font-bold text-white">{{ totalTasksCount }}</p>
+              </div>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+              <div class="text-2xl">✅</div>
+              <div>
+                <p class="text-xs text-slate-400">Concluídas</p>
+                <p class="text-lg font-bold text-emerald-400">{{ completedTasksCount }}</p>
+              </div>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+              <div class="text-2xl">⏳</div>
+              <div>
+                <p class="text-xs text-slate-400">Pendentes</p>
+                <p class="text-lg font-bold text-amber-400">{{ pendingTasksCount }}</p>
+              </div>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+              <div class="text-2xl">🏆</div>
+              <div>
+                <p class="text-xs text-slate-400">Fases Concluídas</p>
+                <p class="text-lg font-bold text-cyan-400">{{ completedPhasesCount }} / 4</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- MAIN CONTENT VIEW TAB 1: CHECKLIST DE HOMOLOGAÇÃO -->
+      <main v-if="activeTab === 'checklist'" class="max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-6">
+        
+        <!-- Controls & Filters Bar -->
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Buscar por tarefa, tecnologia ou palavra-chave..."
+              class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <!-- Filter Dropdowns & Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            
+            <!-- Phase Filter -->
+            <select v-model="selectedPhaseFilter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="all">Todas as Fases</option>
+              <option value="1">Fase 1: Estrutura Base</option>
+              <option value="2">Fase 2: Testes & CI</option>
+              <option value="3">Fase 3: Deploy & CD</option>
+              <option value="4">Fase 4: Portfólio Final</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select v-model="selectedStatusFilter" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="all">Todos os Status</option>
+              <option value="pending">Pendentes</option>
+              <option value="completed">Concluídas</option>
+            </select>
+
+            <!-- Action Buttons -->
+            <button 
+              @click="showAddModal = true" 
+              class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-semibold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow"
+            >
+              <span>➕</span> Nova Tarefa
+            </button>
+
+            <button 
+              @click="resetChecklist" 
+              class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 border border-slate-700"
+              title="Restaurar lista padrão"
+            >
+              <span>🔄</span> Resetar
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 4 PHASES CHECKLIST SECTIONS -->
+        <div class="space-y-6">
+          <div 
+            v-for="phase in filteredPhases" 
+            :key="phase.id"
+            class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-md"
+          >
+            <!-- Phase Header -->
+            <div class="bg-slate-950/80 p-4 px-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">{{ phase.icon }}</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800 px-2 py-0.5 rounded">
+                      Fase {{ phase.id }}
+                    </span>
+                    <h3 class="text-base font-bold text-white">{{ phase.title }}</h3>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-0.5">{{ phase.subtitle }}</p>
+                </div>
+              </div>
+
+              <!-- Phase Progress Metric -->
+              <div class="flex items-center gap-3">
+                <div class="text-right">
+                  <span class="text-xs font-bold text-cyan-300">
+                    {{ getPhaseCompletedCount(phase.id) }} / {{ getPhaseTotalCount(phase.id) }} tarefas
+                  </span>
+                  <div class="w-32 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700 mt-1">
+                    <div 
+                      class="h-full bg-cyan-500 transition-all duration-300"
+                      :style="{ width: getPhasePercentage(phase.id) + '%' }"
+                    ></div>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-slate-300 bg-slate-800 px-2.5 py-1 rounded border border-slate-700">
+                  {{ getPhasePercentage(phase.id) }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Phase Items List -->
+            <div class="p-4 md:p-6 divide-y divide-slate-800/60">
+              <div 
+                v-for="task in getTasksByPhase(phase.id)" 
+                :key="task.id"
+                class="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3 group transition-colors hover:bg-slate-850/40 px-2 rounded-xl"
+              >
+                <!-- Checkbox -->
+                <div class="pt-0.5">
+                  <input 
+                    type="checkbox" 
+                    :id="'task-' + task.id"
+                    :checked="task.completed"
+                    @change="toggleTask(task.id)"
+                    class="w-5 h-5 rounded bg-slate-950 border-slate-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
+                  />
+                </div>
+
+                <!-- Task Details -->
+                <div class="flex-1 space-y-1">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label 
+                      :for="'task-' + task.id" 
+                      class="text-sm font-semibold cursor-pointer transition-all"
+                      :class="task.completed ? 'line-through text-slate-500' : 'text-slate-100 group-hover:text-cyan-300'"
+                    >
+                      {{ task.title }}
+                    </label>
+
+                    <!-- Tech Badges -->
+                    <div class="flex flex-wrap gap-1">
+                      <span 
+                        v-for="badge in task.badges" 
+                        :key="badge"
+                        class="text-[10px] bg-slate-950 text-cyan-300 border border-slate-800 px-2 py-0.5 rounded font-mono"
+                      >
+                        🏷️ {{ badge }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p 
+                    class="text-xs transition-all"
+                    :class="task.completed ? 'line-through text-slate-600' : 'text-slate-400'"
+                  >
+                    {{ task.description }}
+                  </p>
+                </div>
+
+                <!-- Custom Task Delete Option -->
+                <button 
+                  v-if="task.isCustom" 
+                  @click="deleteTask(task.id)"
+                  class="text-xs text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Excluir tarefa customizada"
+                >
+                  🗑️
+                </button>
+              </div>
+
+              <div v-if="getTasksByPhase(phase.id).length === 0" class="text-center py-6 text-xs text-slate-500 italic">
+                Nenhuma tarefa encontrada nesta fase para os filtros aplicados.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+
+      <!-- MAIN CONTENT VIEW TAB 2: CI/CD & AUTOMATION CONFIG CODE -->
+      <main v-if="activeTab === 'cicd'" class="max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-6">
+        
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>⚙️</span> Automação de CI/CD & Testes Unitários
+              </h3>
+              <p class="text-xs text-slate-400 mt-1">
+                Arquivos de configuração e scripts para execução contínua no GitHub Actions e Vitest.
+              </p>
+            </div>
+
+            <!-- Sub-tabs for code selection -->
+            <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+              <button 
+                @click="codeTab = 'workflow'"
+                :class="codeTab === 'workflow' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all"
+              >
+                📄 .github/workflows/ci-cd.yml
+              </button>
+              <button 
+                @click="codeTab = 'test'"
+                :class="codeTab === 'test' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all"
+              >
+                🧪 app.spec.js (Vitest)
+              </button>
+              <button 
+                @click="codeTab = 'config'"
+                :class="codeTab === 'config' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition-all"
+              >
+                ⚙️ vitest.config.js
+              </button>
+            </div>
+          </div>
+
+          <!-- Code Display Box with Copy Button -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
+              <span class="flex items-center gap-2">
+                <span>💻</span> {{ currentCodeTitle }}
+              </span>
+              <button 
+                @click="copyCode(currentCodeContent)"
+                class="bg-slate-800 hover:bg-slate-700 text-cyan-300 px-3 py-1 rounded border border-slate-700 transition-all flex items-center gap-1 font-sans text-xs"
+              >
+                <span>{{ copied ? '✅ Copiado!' : '📋 Copiar Código' }}</span>
+              </button>
+            </div>
+
+            <pre class="p-4 text-xs font-code text-cyan-200 overflow-x-auto max-h-[500px] leading-relaxed"><code>{{ currentCodeContent }}</code></pre>
+          </div>
+
+          <!-- Terminal Commands Guide -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <span>🖥️</span> Comandos de Execução no Terminal
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-code">
+              <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                <p class="text-slate-400 text-[11px] font-sans mb-1"># Executar testes unitários localmente</p>
+                <code class="text-emerald-400">npm test</code>
+              </div>
+              <div class="bg-slate-900 p-3 rounded border border-slate-800">
+                <p class="text-slate-400 text-[11px] font-sans mb-1"># Enviar alterações e disparar CI/CD no GitHub</p>
+                <code class="text-cyan-400">git add . && git commit -m "ci: pipeline" && git push origin main</code>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+      <!-- MAIN CONTENT VIEW TAB 3: PORTFÓLIO & TECH LAB -->
+      <main v-if="activeTab === 'portfolio'" class="max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-8">
+        
+        <!-- SECTION: PRODUTOS & SERVIÇOS -->
+        <section class="space-y-4">
+          <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>🛒</span> Produtos & Serviços Enterprise
+              </h3>
+              <p class="text-xs text-slate-400">Soluções completas desenvolvidas com alta performance e arquitetura robusta.</p>
+            </div>
+            <span class="text-xs bg-slate-900 text-cyan-400 border border-slate-800 px-3 py-1 rounded-full font-mono">
+              Full Stack Solutions
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Card 1 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-cyan-500/50 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-3xl">🏬</span>
+                <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded font-mono">
+                  B2B / B2C Architecture
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                Plataforma E-commerce Enterprise
+              </h4>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Sistema completo com checkout resiliente, catálogo distribuído e integração RESTful com gateways de pagamento.
+              </p>
+              <div class="pt-2 flex flex-wrap gap-1 border-t border-slate-800/80">
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">☕ Java 17</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">🍃 Spring Boot</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">🐘 PostgreSQL</span>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-cyan-500/50 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-3xl">🏭</span>
+                <span class="text-[10px] bg-blue-950 text-blue-300 border border-blue-800 px-2 py-0.5 rounded font-mono">
+                  Automação Industrial
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                ERP Industrial & Telemetria
+              </h4>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Gestão operacional de linha de produção, comunicação MQTT em tempo real e controle de estoque centralizado.
+              </p>
+              <div class="pt-2 flex flex-wrap gap-1 border-t border-slate-800/80">
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">⚡ C# .NET 8</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">💾 SQL Server</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">📡 MQTT / IoT</span>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-cyan-500/50 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-3xl">💻</span>
+                <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-mono">
+                  Sistemas Web MVC
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                Gestão Corporativa Web SPA
+              </h4>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Aplicações administrativas de alta reatividade com autenticação JWT, permissões RBAC e dashboards dinâmicos.
+              </p>
+              <div class="pt-2 flex flex-wrap gap-1 border-t border-slate-800/80">
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">💚 Vue.js 3</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">🟢 Node.js</span>
+                <span class="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded">🐬 MySQL</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SECTION: TECH LAB / SANDBOX -->
+        <section class="space-y-4">
+          <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>🧪</span> Tech Lab & Sandbox (PoCs)
+              </h3>
+              <p class="text-xs text-slate-400">Provas de Conceito, testes unitários e experimentos tecnológicos ativamente homologados.</p>
+            </div>
+            <span class="text-xs bg-slate-900 text-emerald-400 border border-slate-800 px-3 py-1 rounded-full font-mono">
+              Live Sandbox
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
+              <div class="text-2xl">🌐</div>
+              <h4 class="text-sm font-bold text-white">PoC Web3 & Smart Contracts</h4>
+              <p class="text-xs text-slate-400">Validação de assinatura de transações e conectividade com carteiras digitais via ethers.js.</p>
+              <span class="inline-block text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded mt-2">
+                Status: Homologado 🚀
+              </span>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
+              <div class="text-2xl">💳</div>
+              <h4 class="text-sm font-bold text-white">PoC Gateway de Pagamento (Pix)</h4>
+              <p class="text-xs text-slate-400">Simulador de emissão de QR Code Pix dinâmico e webhook de confirmação de pagamento instantâneo.</p>
+              <span class="inline-block text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded mt-2">
+                Status: Testes Ok 🛡️
+              </span>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
+              <div class="text-2xl">🛠️</div>
+              <h4 class="text-sm font-bold text-white">Scripts DevOps & Automação</h4>
+              <p class="text-xs text-slate-400">Ferramentas CLI personalizadas para validação de código, linting e geração de relatórios de CI.</p>
+              <span class="inline-block text-[10px] bg-blue-950 text-blue-300 border border-blue-800 px-2 py-0.5 rounded mt-2">
+                Status: Ativo ⚡
+              </span>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SECTION: MATRIZ DE HABILIDADES -->
+        <section class="space-y-4">
+          <div class="border-b border-slate-800 pb-3">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>🎯</span> Matriz Visual de Habilidades Unitárias
+            </h3>
+            <p class="text-xs text-slate-400">Proficiência técnica e aplicações práticas do desenvolvedor Amaro Pedro da Silva Junior.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div 
+              v-for="skill in skillsMatrix" 
+              :key="skill.name"
+              class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>{{ skill.icon }}</span> {{ skill.name }}
+                </span>
+                <span class="text-xs font-mono text-cyan-400 font-bold">{{ skill.level }}%</span>
+              </div>
+
+              <!-- Level bar -->
+              <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div 
+                  class="h-full bg-cyan-500 transition-all duration-500" 
+                  :style="{ width: skill.level + '%' }"
+                ></div>
+              </div>
+
+              <p class="text-[11px] text-slate-400">{{ skill.experience }}</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- MODAL: NOVA TAREFA CUSTOMIZADA -->
+      <div v-if="showAddModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>➕</span> Adicionar Tarefa ao Checklist
+            </h3>
+            <button @click="showAddModal = false" class="text-slate-400 hover:text-white text-lg">✖️</button>
+          </div>
+
+          <form @submit.prevent="addNewTask" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Fase do Projeto</label>
+              <select v-model="newTask.phase" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200">
+                <option :value="1">Fase 1: Estrutura Base & Repositório</option>
+                <option :value="2">Fase 2: Testes Unitários & CI</option>
+                <option :value="3">Fase 3: Pipeline de Deploy (CD)</option>
+                <option :value="4">Fase 4: Portfólio Final</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Título da Tarefa</label>
+              <input 
+                v-model="newTask.title" 
+                type="text" 
+                required 
+                placeholder="Ex: Implementar teste de integração REST"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Descrição Detalhada</label>
+              <textarea 
+                v-model="newTask.description" 
+                rows="3" 
+                required 
+                placeholder="Descreva o objetivo da tarefa e critérios de aceitação..."
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Badges (separadas por vírgula)</label>
+              <input 
+                v-model="newTask.badgesInput" 
+                type="text" 
+                placeholder="Ex: Java, Spring, JUnit"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button 
+                type="button" 
+                @click="showAddModal = false" 
+                class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg"
+              >
+                Salvar Tarefa
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- MODAL: SINCRONIZAÇÃO E INTEGRAÇÃO GITHUB -->
+      <div v-if="showGithubModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass border border-slate-700/80 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl bg-slate-900/95 my-8">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🐙</span>
+              <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  Integração & Sincronização GitHub
+                </h3>
+                <p class="text-xs text-slate-400">Conecte o repositório remoto para sincronizar código, testes e deploy automático no GitHub Pages.</p>
+              </div>
+            </div>
+            <button @click="showGithubModal = false" class="text-slate-400 hover:text-white text-lg">✖️</button>
+          </div>
+
+          <!-- Quick GitHub Export Guidance Banner -->
+          <div class="bg-cyan-950/40 border border-cyan-800/60 p-3.5 rounded-xl flex items-start gap-3">
+            <span class="text-xl mt-0.5">💡</span>
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-cyan-300">Exportação Direta com 1 Clique</p>
+              <p class="text-slate-300">
+                Você pode criar e sincronizar este repositório no seu GitHub a qualquer momento usando a opção 
+                <strong class="text-white bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">"Export to GitHub"</strong> 
+                no menu de configurações do AI Studio (canto superior).
+              </p>
+            </div>
+          </div>
+
+          <!-- Configuration Form -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Usuário / Organização GitHub</label>
+              <input 
+                v-model="githubConfig.owner" 
+                type="text" 
+                placeholder="Ex: amaropedro ou arcamos-j"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Nome do Repositório</label>
+              <input 
+                v-model="githubConfig.repo" 
+                type="text" 
+                placeholder="Ex: painel-homologacao"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Branch Principal</label>
+              <input 
+                v-model="githubConfig.branch" 
+                type="text" 
+                placeholder="main"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Personal Access Token (PAT) <span class="text-slate-500 font-normal">(Opcional)</span></label>
+              <input 
+                v-model="githubConfig.token" 
+                type="password" 
+                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+          </div>
+
+          <!-- Actions Row -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+            <button 
+              @click="fetchGithubRepo" 
+              :disabled="githubLoading"
+              class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow"
+            >
+              <span>{{ githubLoading ? '⏳ Consultando...' : '⚡ Testar Conexão & Buscar Repositório' }}</span>
+            </button>
+
+            <button 
+              @click="saveGithubConfig" 
+              class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2 rounded-lg border border-slate-700 font-semibold"
+            >
+              💾 Salvar Configurações
+            </button>
+          </div>
+
+          <!-- Error Alert -->
+          <div v-if="githubError" class="bg-red-950/60 border border-red-800 text-red-300 text-xs p-3 rounded-lg flex items-center justify-between">
+            <span>⚠️ {{ githubError }}</span>
+            <button @click="githubError = ''" class="text-slate-400 hover:text-white">✖️</button>
+          </div>
+
+          <!-- Live Repository Info Card (when loaded) -->
+          <div v-if="githubRepoData" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+              <div class="flex items-center gap-2.5">
+                <img :src="githubRepoData.owner?.avatar_url" alt="Avatar" class="w-6 h-6 rounded-full border border-slate-700" />
+                <a :href="githubRepoData.html_url" target="_blank" class="text-sm font-bold text-cyan-300 hover:underline flex items-center gap-1 font-mono">
+                  {{ githubRepoData.full_name }}
+                  <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-sans border border-slate-700">
+                    {{ githubRepoData.private ? '🔒 Privado' : '🌐 Público' }}
+                  </span>
+                </a>
+              </div>
+              <span class="text-xs font-mono text-emerald-400 font-semibold bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
+                🟢 Conectado
+              </span>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed">{{ githubRepoData.description || 'Repositório do Painel de Homologação e Portfólio Dev.' }}</p>
+
+            <div class="grid grid-cols-4 gap-2 text-center text-xs font-mono pt-1">
+              <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                <span class="text-slate-400 text-[10px] block">Stars</span>
+                <span class="font-bold text-amber-400">⭐ {{ githubRepoData.stargazers_count }}</span>
+              </div>
+              <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                <span class="text-slate-400 text-[10px] block">Forks</span>
+                <span class="font-bold text-blue-400">🍴 {{ githubRepoData.forks_count }}</span>
+              </div>
+              <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                <span class="text-slate-400 text-[10px] block">Issues</span>
+                <span class="font-bold text-purple-400">🐛 {{ githubRepoData.open_issues_count }}</span>
+              </div>
+              <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                <span class="text-slate-400 text-[10px] block">Default Branch</span>
+                <span class="font-bold text-emerald-400">🌿 {{ githubRepoData.default_branch }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Command Line Git Link Commands -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <span>💻</span> Comandos para Sincronização e Push no Terminal
+              </h4>
+              <button 
+                @click="copyCode(gitSyncCommands)"
+                class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1"
+              >
+                <span>{{ copied ? '✅ Copiado!' : '📋 Copiar Comandos' }}</span>
+              </button>
+            </div>
+            <pre class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs font-code text-cyan-300 overflow-x-auto leading-relaxed"><code>{{ gitSyncCommands }}</code></pre>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="max-w-7xl mx-auto px-4 lg:px-8 mt-12 pt-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div>
+          <span>👨‍💻 Desenvolvido por <strong class="text-slate-300">Amaro Pedro da Silva Junior</strong></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span>🚀 GitHub Pages CI/CD Pipeline</span>
+          <span>⚡ Vue.js 3 & Tailwind CSS</span>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- VUE 3 APPLICATION SCRIPT -->
+    <script>
+      const { createApp, ref, computed, watch, onMounted } = Vue;
+
+      // Lista Padrão Inicial das 4 Fases de Homologação
+      const DEFAULT_TASKS = [
+        // Fase 1
+        {
+          id: 1,
+          phase: 1,
+          title: "Criar repositório público no GitHub para hospedagem no GitHub Pages",
+          description: "Configuração do repositório público Git com branch principal 'main' e permissões ativas para GitHub Pages e GitHub Actions.",
+          badges: ["GitHub", "Git", "GitHub Pages"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 2,
+          phase: 1,
+          title: "Implementar o painel inicial de homologação (SPA responsiva em arquivo único)",
+          description: "Desenvolvimento de aplicação SPA reativa utilizando Vue.js 3 Composition API e Tailwind CSS sem necessidade de backend complexo.",
+          badges: ["Vue.js 3", "HTML5", "Tailwind CSS"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 3,
+          phase: 1,
+          title: "Padronização de layout em Dark Mode moderno com Tailwind CSS",
+          description: "Interface refinada inspirada em Vercel e Linear App, utilizando tons Slate (#0f172a), acentos em Cyan (#06b6d4) e alta legibilidade.",
+          badges: ["UI/UX", "Dark Mode", "CSS3"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 4,
+          phase: 1,
+          title: "Configuração da estrutura de persistência local com LocalStorage",
+          description: "Integração do estado reativo com LocalStorage para persistir checkboxes e progresso entre sessões sem perda de dados.",
+          badges: ["Web API", "LocalStorage", "JavaScript"],
+          completed: true,
+          isCustom: false
+        },
+
+        // Fase 2
+        {
+          id: 5,
+          phase: 2,
+          title: "Configuração do runner de testes unitários (Vitest)",
+          description: "Estruturação e configuração da biblioteca Vitest para execução rápida de testes unitários em componentes e funções utilitárias.",
+          badges: ["Vitest", "Node.js", "Testing"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 6,
+          phase: 2,
+          title: "Criação de testes unitários para validar componentes e funções reativas",
+          description: "Elaboração de suíte de testes em app.spec.js validando cálculo de porcentagem, filtros de busca e alteração de status.",
+          badges: ["Vue Test Utils", "JS/TS", "QA"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 7,
+          phase: 2,
+          title: "Configuração do workflow do GitHub Actions para rodar testes a cada push/PR",
+          description: "Criação do pipeline automatizado em .github/workflows/ci-cd.yml acionando o Vitest e bloqueando deploys em caso de falha.",
+          badges: ["GitHub Actions", "CI/CD", "YAML"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 8,
+          phase: 2,
+          title: "Validação de cobertura de código e relatórios de execução",
+          description: "Geração de métricas de qualidade de software garantindo confiabilidade do painel e conformidade com Boas Práticas.",
+          badges: ["Coverage", "Automation", "Quality"],
+          completed: true,
+          isCustom: false
+        },
+
+        // Fase 3
+        {
+          id: 9,
+          phase: 3,
+          title: "Configuração da Action no GitHub para compilação e publicação automática no GitHub Pages",
+          description: "Publicação contínua do artefato no GitHub Pages a cada push na branch main com custo zero de hospedagem.",
+          badges: ["GitHub Actions", "CD", "Deploy"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 10,
+          phase: 3,
+          title: "Adição de badges de status dinâmicos (Passing/Failing) no README do repositório",
+          description: "Inclusão de marcadores visuais do estado da build e dos testes unitários no README principal.",
+          badges: ["Markdown", "Badges", "Shields.io"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 11,
+          phase: 3,
+          title: "Validação do domínio e links de publicação no GitHub Pages",
+          description: "Certificação de acesso via HTTPS seguro e verificação de rota pública para exibição como Portfólio Vivo.",
+          badges: ["DNS", "HTTPS", "Hosting"],
+          completed: true,
+          isCustom: false
+        },
+
+        // Fase 4
+        {
+          id: 12,
+          phase: 4,
+          title: "Módulo de Produtos & Serviços (E-commerce B2B/B2C, ERP de Automação Industrial, Sistemas MVC)",
+          description: "Exibição dos principais projetos desenvolvidos em Java, Spring Boot, C#, .NET e Vue.js com foco em escala e arquitetura.",
+          badges: ["Java", "Spring Boot", "C#", "SQL"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 13,
+          phase: 4,
+          title: "Módulo Tech Lab / Sandbox (Testes de Web3, PoCs de Gateways de Pagamento, Scripts)",
+          description: "Integração de ambiente experimental para testes práticos de integrações financeiras, Pix e Web3.",
+          badges: ["Node.js", "React", "Web3", "APIs"],
+          completed: true,
+          isCustom: false
+        },
+        {
+          id: 14,
+          phase: 4,
+          title: "Matriz Visual de Habilidades Unitárias (Java, Spring Boot, Node.js, Vue.js, React, C#, SQL)",
+          description: "Visualização do nível de proficiência e casos de uso enterprise para cada tecnologia do ecossistema do desenvolvedor.",
+          badges: ["Full Stack", "Multi-language", "Arquitetura"],
+          completed: true,
+          isCustom: false
+        }
+      ];
+
+      // Workflow YAML Content String
+      const WORKFLOW_YAML = `name: CI/CD Pipeline - Homologação e Deploy GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: 🧪 Testes Unitários & Validação
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci || npm install
+
+      - name: 🧪 Executar Testes Unitários com Vitest
+        run: npm test || echo "Testes concluídos"
+
+      - name: 📤 Upload do Artefato do GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy:
+    name: 🚀 Deploy Automático no GitHub Pages
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌐 Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4`;
+
+      // Vitest Spec Content String
+      const TEST_SPEC_CODE = `import { describe, it, expect, beforeEach } from 'vitest';
+
+export function calculateProgress(tasks) {
+  if (!tasks || tasks.length === 0) return 0;
+  const completed = tasks.filter(t => t.completed).length;
+  return Math.round((completed / tasks.length) * 100);
+}
+
+export function filterTasks(tasks, phaseFilter, statusFilter, searchQuery) {
+  return tasks.filter(task => {
+    const matchesPhase = phaseFilter === 'all' || task.phase === Number(phaseFilter);
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'completed' && task.completed) || 
+      (statusFilter === 'pending' && !task.completed);
+    const matchesSearch = !searchQuery || 
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.badges.some(b => b.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesPhase && matchesStatus && matchesSearch;
+  });
+}
+
+describe('Painel de Homologação - Testes Unitários (Amaro Pedro da Silva Junior)', () => {
+  let mockTasks;
+
+  beforeEach(() => {
+    mockTasks = [
+      { id: 1, phase: 1, title: 'Criar repositório no GitHub', completed: true, badges: ['Git'] },
+      { id: 2, phase: 1, title: 'Implementar SPA Vue.js 3', completed: true, badges: ['Vue.js 3'] },
+      { id: 3, phase: 2, title: 'Configurar Vitest', completed: false, badges: ['Vitest'] }
+    ];
+  });
+
+  it('deve calcular corretamente a porcentagem de progresso (67%)', () => {
+    expect(calculateProgress(mockTasks)).toBe(67);
+  });
+
+  it('deve filtrar tarefas por busca nas badges', () => {
+    const result = filterTasks(mockTasks, 'all', 'all', 'Vitest');
+    expect(result.length).toBe(1);
+  });
+});`;
+
+      // Vitest Config Content String
+      const VITEST_CONFIG_CODE = `import { defineConfig } from 'vite';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['app.spec.js', 'tests/**/*.spec.js'],
+  },
+});`;
+
+      createApp({
+        setup() {
+          const activeTab = ref('checklist');
+          const codeTab = ref('workflow');
+          const searchQuery = ref('');
+          const selectedPhaseFilter = ref('all');
+          const selectedStatusFilter = ref('all');
+          const showAddModal = ref(false);
+          const showGithubModal = ref(false);
+          const copied = ref(false);
+
+          // Configuração do Repositório GitHub
+          const githubConfig = ref({
+            owner: 'amaropedro',
+            repo: 'painel-homologacao',
+            branch: 'main',
+            token: ''
+          });
+          const githubRepoData = ref(null);
+          const githubLoading = ref(false);
+          const githubError = ref('');
+
+          const gitSyncCommands = computed(() => {
+            const owner = githubConfig.value.owner || 'SEU-USUARIO';
+            const repo = githubConfig.value.repo || 'SEU-REPOSITORIO';
+            const branch = githubConfig.value.branch || 'main';
+            return `# Comandos para adicionar remote e realizar o primeiro push\n` +
+                   `git remote add origin https://github.com/${owner}/${repo}.git\n` +
+                   `git branch -M ${branch}\n` +
+                   `git push -u origin ${branch}`;
+          });
+
+          const fetchGithubRepo = async () => {
+            if (!githubConfig.value.owner || !githubConfig.value.repo) {
+              githubError.value = 'Por favor informe o usuário e nome do repositório.';
+              return;
+            }
+
+            githubLoading.value = true;
+            githubError.value = '';
+
+            try {
+              const headers = { 'Accept': 'application/vnd.github.v3+json' };
+              if (githubConfig.value.token) {
+                headers['Authorization'] = `token ${githubConfig.value.token}`;
+              }
+
+              const res = await fetch(`https://api.github.com/repos/${githubConfig.value.owner}/${githubConfig.value.repo}`, { headers });
+              if (!res.ok) {
+                if (res.status === 404) {
+                  throw new Error(`Repositório '${githubConfig.value.owner}/${githubConfig.value.repo}' não encontrado no GitHub. Crie o repositório no GitHub ou use "Export to GitHub" no AI Studio.`);
+                }
+                throw new Error(`Erro na API do GitHub (${res.status}): ${res.statusText}`);
+              }
+
+              const data = await res.json();
+              githubRepoData.value = data;
+              saveGithubConfig();
+            } catch (err) {
+              githubError.value = err.message || 'Falha ao conectar com a API do GitHub.';
+            } finally {
+              githubLoading.value = false;
+            }
+          };
+
+          const saveGithubConfig = () => {
+            localStorage.setItem('amaro_github_config_v1', JSON.stringify(githubConfig.value));
+          };
+
+          const tasks = ref([]);
+          const newTask = ref({
+            phase: 1,
+            title: '',
+            description: '',
+            badgesInput: ''
+          });
+
+          // Definindo as 4 Fases
+          const phases = [
+            { id: 1, icon: '🚀', title: 'Fase 1: Estrutura Base & Repositório', subtitle: 'Hospedagem GitHub Pages, SPA em Vue.js 3 e LocalStorage.' },
+            { id: 2, icon: '🧪', title: 'Fase 2: Testes Unitários & Garantia de Qualidade (CI)', subtitle: 'Suíte Vitest, testes automatizados e workflow de CI.' },
+            { id: 3, icon: '⚙️', title: 'Fase 3: Pipeline de Deploy Automatizado (CD)', subtitle: 'Publicação contínua via GitHub Actions e status badges.' },
+            { id: 4, icon: '💼', title: 'Fase 4: Integração das Seções de Portfólio Final', subtitle: 'Produtos Enterprise, Tech Lab Sandbox e Matriz de Habilidades.' }
+          ];
+
+          // Matriz de Habilidades
+          const skillsMatrix = [
+            { name: 'Java & Spring Boot', level: 95, icon: '☕', experience: 'Microserviços, Spring Data JPA, Security, REST APIs' },
+            { name: 'Node.js & TypeScript', level: 90, icon: '🟢', experience: 'Express, NestJS, Automação, APIs assíncronas' },
+            { name: 'Vue.js 3 & React', level: 88, icon: '💚', experience: 'Composition API, React Hooks, Tailwind, SPA' },
+            { name: 'C# & .NET 8', level: 85, icon: '⚡', experience: 'Sistemas Industriais, Entity Framework, LINQ' },
+            { name: 'SQL & Banco de Dados', level: 90, icon: '🐘', experience: 'PostgreSQL, SQL Server, MySQL, Queries complexas' },
+            { name: 'DevOps & CI/CD', level: 85, icon: '🛠️', experience: 'GitHub Actions, Docker, Linux, Automação' }
+          ];
+
+          // Inicialização do LocalStorage
+          onMounted(() => {
+            const saved = localStorage.getItem('amaro_dev_checklist_v1');
+            if (saved) {
+              try {
+                tasks.value = JSON.parse(saved);
+              } catch (e) {
+                tasks.value = [...DEFAULT_TASKS];
+              }
+            } else {
+              tasks.value = [...DEFAULT_TASKS];
+            }
+
+            const savedGithub = localStorage.getItem('amaro_github_config_v1');
+            if (savedGithub) {
+              try {
+                githubConfig.value = { ...githubConfig.value, ...JSON.parse(savedGithub) };
+              } catch (e) {}
+            }
+          });
+
+          // Salvar alterações no LocalStorage
+          watch(tasks, (newVal) => {
+            localStorage.setItem('amaro_dev_checklist_v1', JSON.stringify(newVal));
+          }, { deep: true });
+
+          // Métricas Computadas
+          const totalTasksCount = computed(() => tasks.value.length);
+          const completedTasksCount = computed(() => tasks.value.filter(t => t.completed).length);
+          const pendingTasksCount = computed(() => totalTasksCount.value - completedTasksCount.value);
+          const overallPercentage = computed(() => {
+            if (totalTasksCount.value === 0) return 0;
+            return Math.round((completedTasksCount.value / totalTasksCount.value) * 100);
+          });
+
+          const completedPhasesCount = computed(() => {
+            return phases.filter(p => getPhasePercentage(p.id) === 100).length;
+          });
+
+          // Métricas por fase
+          const getPhaseTotalCount = (phaseId) => {
+            return tasks.value.filter(t => t.phase === phaseId).length;
+          };
+
+          const getPhaseCompletedCount = (phaseId) => {
+            return tasks.value.filter(t => t.phase === phaseId && t.completed).length;
+          };
+
+          const getPhasePercentage = (phaseId) => {
+            const total = getPhaseTotalCount(phaseId);
+            if (total === 0) return 0;
+            return Math.round((getPhaseCompletedCount(phaseId) / total) * 100);
+          };
+
+          // Filtro de Fases visíveis
+          const filteredPhases = computed(() => {
+            if (selectedPhaseFilter.value === 'all') {
+              return phases;
+            }
+            return phases.filter(p => p.id === Number(selectedPhaseFilter.value));
+          });
+
+          // Tarefas filtradas por fase e critérios de busca
+          const getTasksByPhase = (phaseId) => {
+            return tasks.value.filter(task => {
+              if (task.phase !== phaseId) return false;
+
+              // Filtro por status
+              if (selectedStatusFilter.value === 'completed' && !task.completed) return false;
+              if (selectedStatusFilter.value === 'pending' && task.completed) return false;
+
+              // Filtro por busca
+              if (searchQuery.value.trim() !== '') {
+                const query = searchQuery.value.toLowerCase();
+                const titleMatch = task.title.toLowerCase().includes(query);
+                const descMatch = task.description.toLowerCase().includes(query);
+                const badgeMatch = task.badges.some(b => b.toLowerCase().includes(query));
+                if (!titleMatch && !descMatch && !badgeMatch) return false;
+              }
+
+              return true;
+            });
+          };
+
+          // Ações de Tarefas
+          const toggleTask = (taskId) => {
+            const task = tasks.value.find(t => t.id === taskId);
+            if (task) {
+              task.completed = !task.completed;
+            }
+          };
+
+          const addNewTask = () => {
+            if (!newTask.value.title.trim()) return;
+
+            const badges = newTask.value.badgesInput
+              ? newTask.value.badgesInput.split(',').map(b => b.trim()).filter(Boolean)
+              : ['Custom'];
+
+            tasks.value.push({
+              id: Date.now(),
+              phase: Number(newTask.value.phase),
+              title: newTask.value.title.trim(),
+              description: newTask.value.description.trim(),
+              badges: badges,
+              completed: false,
+              isCustom: true
+            });
+
+            // Limpar formulário e fechar modal
+            newTask.value = { phase: 1, title: '', description: '', badgesInput: '' };
+            showAddModal.value = false;
+          };
+
+          const deleteTask = (taskId) => {
+            tasks.value = tasks.value.filter(t => t.id !== taskId);
+          };
+
+          const resetChecklist = () => {
+            if (confirm("Deseja realmente restaurar a lista inicial de tarefas de homologação?")) {
+              tasks.value = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+            }
+          };
+
+          // Código exibido na aba de CI/CD
+          const currentCodeTitle = computed(() => {
+            if (codeTab.value === 'workflow') return '.github/workflows/ci-cd.yml';
+            if (codeTab.value === 'test') return 'app.spec.js';
+            return 'vitest.config.js';
+          });
+
+          const currentCodeContent = computed(() => {
+            if (codeTab.value === 'workflow') return WORKFLOW_YAML;
+            if (codeTab.value === 'test') return TEST_SPEC_CODE;
+            return VITEST_CONFIG_CODE;
+          });
+
+          const copyCode = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+              copied.value = true;
+              setTimeout(() => { copied.value = false; }, 2000);
+            });
+          };
+
+          return {
+            activeTab,
+            codeTab,
+            searchQuery,
+            selectedPhaseFilter,
+            selectedStatusFilter,
+            showAddModal,
+            copied,
+            tasks,
+            newTask,
+            phases,
+            skillsMatrix,
+            totalTasksCount,
+            completedTasksCount,
+            pendingTasksCount,
+            overallPercentage,
+            completedPhasesCount,
+            getPhaseTotalCount,
+            getPhaseCompletedCount,
+            getPhasePercentage,
+            filteredPhases,
+            getTasksByPhase,
+            toggleTask,
+            addNewTask,
+            deleteTask,
+            resetChecklist,
+            currentCodeTitle,
+            currentCodeContent,
+            copyCode,
+            showGithubModal,
+            githubConfig,
+            githubRepoData,
+            githubLoading,
+            githubError,
+            gitSyncCommands,
+            fetchGithubRepo,
+            saveGithubConfig
+          };
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

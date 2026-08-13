@@ -1,0 +1,6 @@
+{
+  "name": "Painel de Homologação & Evolução",
+  "description": "Painel de Homologação, Checklist de Evolução do Projeto e Portfólio Dev para Amaro Pedro da Silva Junior.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
