@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, DatabaseError } from '@/lib/errorHandler';
 
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const scope = 'health:GET';
   let dbStatus = 'disconnected';

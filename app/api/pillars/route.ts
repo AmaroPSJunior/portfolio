@@ -4,6 +4,8 @@ import { validatePillarInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, ValidationError, DatabaseError } from '@/lib/errorHandler';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Listar todos os pilares ordenados pela coluna 'order'
 export async function GET() {
   const scope = 'pillars:GET';

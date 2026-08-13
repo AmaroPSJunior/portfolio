@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, NetworkError } from '@/lib/errorHandler';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const scope = 'github:GET';
   const { searchParams } = new URL(request.url);

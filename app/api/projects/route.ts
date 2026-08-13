@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, ValidationError, DatabaseError } from '@/lib/errorHandler';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Listar todos os projetos ordenados pelo numeric_id
 export async function GET() {
   const scope = 'projects:GET';
