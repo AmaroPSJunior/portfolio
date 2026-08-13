@@ -22,9 +22,16 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
 
   useEffect(() => {
     if (show) {
+      const parsedInitial = initialPhaseId !== undefined ? Number(initialPhaseId) : NaN;
+      const firstPhaseId = phases && phases[0]?.id !== undefined ? Number(phases[0].id) : NaN;
+
+      const validPhase = !isNaN(parsedInitial) && parsedInitial > 0
+        ? parsedInitial
+        : (!isNaN(firstPhaseId) && firstPhaseId > 0 ? firstPhaseId : 1);
+
       setForm((prev) => ({
         ...prev,
-        phase: initialPhaseId !== undefined ? initialPhaseId : (phases && phases[0]?.id) || 1,
+        phase: validPhase,
       }));
     }
   }, [show, initialPhaseId, phases]);

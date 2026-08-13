@@ -22,15 +22,26 @@ export async function GET() {
       });
     }
 
-    const formattedPillars = (data || []).map((row) => ({
-      id: row.numeric_id || row.id,
-      title: row.title,
-      subtitle: row.subtitle || '',
-      icon: row.emoji || '🚀',
-      order: row.order,
-      uuid: row.id,
-      created_at: row.created_at,
-    }));
+    const formattedPillars = (data || []).map((row, index) => {
+      let numericId: number;
+      if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
+        numericId = Number(row.numeric_id);
+      } else if (!isNaN(Number(row.id))) {
+        numericId = Number(row.id);
+      } else {
+        numericId = index + 1;
+      }
+
+      return {
+        id: numericId,
+        title: row.title,
+        subtitle: row.subtitle || '',
+        icon: row.emoji || '🚀',
+        order: row.order ?? (index + 1),
+        uuid: row.id,
+        created_at: row.created_at,
+      };
+    });
 
     AppLogger.info(scope, `Sucesso ao listar ${formattedPillars.length} pilar(es)`);
     return NextResponse.json({ pillars: formattedPillars });
@@ -71,11 +82,13 @@ export async function POST(request: NextRequest) {
 
     if (!orderError && existingPillars && existingPillars.length > 0) {
       nextOrder = (existingPillars[0].order || 0) + 1;
-      nextNumericId = (existingPillars[0].numeric_id || 4) + 1;
+      const maxNum = Number(existingPillars[0].numeric_id);
+      nextNumericId = !isNaN(maxNum) && maxNum > 0 ? maxNum + 1 : Date.now();
     }
 
-    // 2. Inserir registro no Supabase
+    // 2. Inserir registro no Supabase incluindo numeric_id
     const newRecord = {
+      numeric_id: nextNumericId,
       title,
       subtitle: subtitle || `Pilar cadastrado em ${new Date().toLocaleDateString('pt-BR')}`,
       emoji,

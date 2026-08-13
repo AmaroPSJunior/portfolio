@@ -60,11 +60,11 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     totalTasksCount === 0 ? 0 : Math.round((completedTasksCount / totalTasksCount) * 100);
 
   const getPhaseTotalCount = (phaseId: number) => {
-    return tasks.filter((t) => t.phase === phaseId).length;
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
   };
 
   const getPhaseCompletedCount = (phaseId: number) => {
-    return tasks.filter((t) => t.phase === phaseId && t.completed).length;
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId) && t.completed).length;
   };
 
   const getPhasePercentage = (phaseId: number) => {
@@ -78,11 +78,11 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   const filteredPhases =
     selectedPhaseFilter === 'all'
       ? phases
-      : phases.filter((p) => p.id === Number(selectedPhaseFilter));
+      : phases.filter((p) => Number(p.id) === Number(selectedPhaseFilter));
 
   const getTasksByPhase = (phaseId: number) => {
     return tasks.filter((task) => {
-      if (task.phase !== phaseId) return false;
+      if (Number(task.phase) !== Number(phaseId)) return false;
 
       // Status filter
       if (selectedStatusFilter === 'completed' && !task.completed) return false;

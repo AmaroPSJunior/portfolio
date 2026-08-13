@@ -21,11 +21,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const overallPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
   const getPhaseCompletedCount = (phaseId: number) => {
-    return tasks.filter((t) => t.phase === phaseId && t.completed).length;
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId) && t.completed).length;
   };
 
   const getPhaseTotalCount = (phaseId: number) => {
-    return tasks.filter((t) => t.phase === phaseId).length;
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
   };
 
   const getPhasePercentage = (phaseId: number) => {

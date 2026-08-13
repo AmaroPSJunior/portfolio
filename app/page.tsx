@@ -76,7 +76,7 @@ export default function HomePage() {
         message: 'Falha temporária ao sincronizar dados com o Supabase.',
         action: fetchDatabaseData,
       });
-    } fontIsLoaded: {
+    } finally {
       setIsLoaded(true);
     }
   }, []);
@@ -241,6 +241,7 @@ export default function HomePage() {
         setTasks((prev) => [data.project, ...prev]);
         setExpandedCards((prev) => [...prev, data.project.id]);
         setOpenPhases((prev) => (prev.includes(newForm.phase) ? prev : [...prev, newForm.phase]));
+        fetchDatabaseData();
       } else {
         throw new Error(data.error || 'Erro ao cadastrar projeto');
       }

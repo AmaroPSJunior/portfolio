@@ -17,18 +17,31 @@ export async function GET() {
       return NextResponse.json({ projects: [], error: error.message });
     }
 
-    const formattedProjects = (data || []).map((row) => ({
-      id: row.numeric_id || row.id,
-      phase: row.phase_id,
-      title: row.title,
-      description: row.description || '',
-      requirements: Array.isArray(row.requirements) ? row.requirements : [],
-      badges: Array.isArray(row.badges) ? row.badges : [],
-      completed: Boolean(row.completed),
-      isCustom: Boolean(row.is_custom),
-      uuid: row.id,
-      created_at: row.created_at,
-    }));
+    const formattedProjects = (data || []).map((row, index) => {
+      let numericId: number;
+      if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
+        numericId = Number(row.numeric_id);
+      } else if (!isNaN(Number(row.id))) {
+        numericId = Number(row.id);
+      } else {
+        numericId = index + 1;
+      }
+
+      const parsedPhase = Number(row.phase_id);
+
+      return {
+        id: numericId,
+        phase: !isNaN(parsedPhase) ? parsedPhase : 1,
+        title: row.title,
+        description: row.description || '',
+        requirements: Array.isArray(row.requirements) ? row.requirements : [],
+        badges: Array.isArray(row.badges) ? row.badges : [],
+        completed: Boolean(row.completed),
+        isCustom: Boolean(row.is_custom),
+        uuid: row.id,
+        created_at: row.created_at,
+      };
+    });
 
     AppLogger.info(scope, `Sucesso ao listar ${formattedProjects.length} projeto(s)`);
     return NextResponse.json({ projects: formattedProjects });
@@ -144,8 +157,8 @@ export async function POST(request: NextRequest) {
       {
         message: 'Projeto cadastrado com sucesso no Supabase',
         project: {
-          id: row?.numeric_id || nextNumericId,
-          phase: row?.phase_id || phaseId,
+          id: row?.numeric_id ? Number(row.numeric_id) : nextNumericId,
+          phase: row?.phase_id ? Number(row.phase_id) : phaseId,
           title: row?.title || title,
           description: row?.description || body.description || '',
           requirements: row?.requirements || requirements,
