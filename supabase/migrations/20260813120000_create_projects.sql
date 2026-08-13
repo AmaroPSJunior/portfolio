@@ -117,3 +117,10 @@ WHERE NOT EXISTS (SELECT 1 FROM public.projects WHERE numeric_id = 16);
 INSERT INTO public.projects (numeric_id, phase_id, title, description, requirements, badges, completed, is_custom)
 SELECT 17, 4, 'Monitoramento de Erros e Performance com Sentry', 'Integração de Sentry para captura proativa de exceções não tratadas e métricas de Web Vitals em ambiente de produção.', ARRAY['Captura automática de erros no cliente e nas API Routes', 'Rastreamento de performance e tempo de carregamento de páginas', 'Alertas em tempo real com stack traces detalhados'], ARRAY['Sentry', 'Monitoring', 'Web Vitals', 'Observability'], false, false
 WHERE NOT EXISTS (SELECT 1 FROM public.projects WHERE numeric_id = 17);
+
+-- 6. Sincronizar a sequência do SERIAL 'projects_numeric_id_seq' com o maior numeric_id existente
+SELECT setval(
+  pg_get_serial_sequence('public.projects', 'numeric_id'),
+  COALESCE((SELECT MAX(numeric_id) FROM public.projects), 1)
+);
+

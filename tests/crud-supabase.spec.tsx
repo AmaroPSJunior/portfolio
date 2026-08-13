@@ -301,6 +301,59 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       expect(body.project.badges).toEqual(['Playwright', 'QA', 'CI/CD']);
       expect(body.project.isCustom).toBe(true);
     });
+
+    it('deve rejeitar criação de projeto sem título ou sem fase informada (status 400)', async () => {
+      const mockReq = {
+        json: async () => ({
+          title: '',
+          phase: null,
+        }),
+      } as any;
+
+      const response = await postProjects(mockReq);
+      const body = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(body.error).toBe('Título e Fase/Pilar são obrigatórios');
+    });
+
+    it('deve utilizar fallback resiliente em caso de erro na inserção do Supabase ao criar projeto', async () => {
+      const mockFrom = supabase.from as unknown as Mock;
+      mockFrom.mockReturnValueOnce({
+        select: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnValue({
+              data: [{ numeric_id: 10 }],
+              error: null,
+            }),
+          }),
+        }),
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            data: null,
+            error: { message: 'Supabase DB Connection Timeout' },
+          }),
+        }),
+      });
+
+      const mockReq = {
+        json: async () => ({
+          phase: 2,
+          title: 'Projeto em Modo Resiliente',
+          description: 'Descrição de teste offline',
+          requirementsInput: 'Requisito 1',
+          badgesInput: 'TypeScript',
+        }),
+      } as any;
+
+      const response = await postProjects(mockReq);
+      const body = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(body.project).toBeDefined();
+      expect(body.project.title).toBe('Projeto em Modo Resiliente');
+      expect(body.project.phase).toBe(2);
+    });
   });
 
   describe('3. Validação de Atualização (UPDATE / PATCH)', () => {

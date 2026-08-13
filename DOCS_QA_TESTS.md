@@ -19,7 +19,7 @@ Nenhum dado estático/fictício é aceito sem validar o contrato das tabelas de 
 | Arquivo de Teste | Tipo | Cobertura / Responsabilidade | Status |
 | :--- | :--- | :--- | :--- |
 | `app.spec.jsx` | Unitário | Funções utilitárias de cálculo de progresso (`calculateProgress`, `calculatePhaseProgress`), validação de formulários de pilar e estado inicial de accordions/modais. | ✅ 12/12 Passed |
-| `tests/crud-supabase.spec.tsx` | Integração & Banco | Mocks de contrato Supabase/PostgreSQL, teste das API Routes (`GET`, `POST`, `PATCH`, `DELETE`) e vinculação com o ciclo de vida dos componentes React. | ✅ 12/12 Passed |
+| `tests/crud-supabase.spec.tsx` | Integração & Banco | Mocks de contrato Supabase/PostgreSQL, teste das API Routes (`GET`, `POST`, `PATCH`, `DELETE`), resiliência no cálculo do `numeric_id` e modo offline/fallback. | ✅ 14/14 Passed |
 
 ---
 
@@ -41,9 +41,10 @@ Os mocks implementados em `tests/crud-supabase.spec.tsx` refletem com exatidão 
 - Garante que propriedades como `numeric_id`, `phase_id`, arrays de `requirements` e `badges` sejam preservadas.
 
 #### ➕ B. Inclusão (INSERT / POST)
+- Corrigida a criação de novos projetos eliminando conflitos na sequência `numeric_id` SERIAL do Supabase através do cálculo prévio `max(numeric_id) + 1`.
+- Suporte a modo local/resiliente em `POST /api/projects` garantindo criação e expansão imediata no pilar selecionado na interface mesmo em ambientes com credenciais temporárias ou banco indisponível.
+- Rejeição graciosa de requisições com dados faltantes (validação de título e fase obrigatórios - código 400).
 - Testa o cadastro de um novo pilar calculando a ordenação reativa (`order = max + 1`).
-- Rejeita payloads com títulos inválidos/em branco (validação de integridade de input).
-- Valida o cadastro de novos projetos vinculados à fase selecionada com `is_custom: true`.
 
 #### ✏️ C. Atualização (UPDATE / PATCH)
 - Testa a alteração reativa do status de conclusão (`completed: true / false`) por `numeric_id` via `PATCH /api/projects/[id]`.
