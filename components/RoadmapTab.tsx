@@ -21,6 +21,7 @@ interface RoadmapTabProps {
   collapseAllCards: () => void;
   toggleTask: (taskId: number) => void;
   deleteTask: (taskId: number) => void;
+  deletePillar?: (phaseId: number) => void;
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   onOpenAddTaskModal?: (phaseId?: number) => void;
@@ -46,6 +47,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   collapseAllCards,
   toggleTask,
   deleteTask,
+  deletePillar,
   resetChecklist,
   setShowAddModal,
   onOpenAddTaskModal,
@@ -304,6 +306,21 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                     <span className="text-xs font-mono font-semibold text-slate-300 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
                       {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} ({getPhasePercentage(phase.id)}%)
                     </span>
+                    {deletePillar && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Deseja excluir o pilar "${phase.title}" e seus projetos do Supabase?`)) {
+                            deletePillar(phase.id);
+                          }
+                        }}
+                        className="text-[11px] bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800 px-2 py-1 rounded transition-all"
+                        title="Excluir pilar do Supabase"
+                      >
+                        🗑️ Excluir
+                      </button>
+                    )}
                     <span className="text-slate-400 group-hover:text-white transition-transform text-xs">
                       {isPhaseOpen ? '▲' : '▼'}
                     </span>
@@ -458,15 +475,13 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                                         {task.completed ? '⏪ Voltar a Pendente' : '✅ Marcar Concluído'}
                                       </button>
 
-                                      {task.isCustom && (
-                                        <button
-                                          onClick={() => deleteTask(task.id)}
-                                          className="text-[11px] bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800 px-2 py-1 rounded transition-all"
-                                          title="Excluir projeto customizado"
-                                        >
-                                          🗑️ Excluir
-                                        </button>
-                                      )}
+                                      <button
+                                        onClick={() => deleteTask(task.id)}
+                                        className="text-[11px] bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800 px-2 py-1 rounded transition-all"
+                                        title="Excluir projeto do Supabase"
+                                      >
+                                        🗑️ Excluir
+                                      </button>
                                     </div>
                                   </div>
                                 </div>

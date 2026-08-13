@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { HomeTab } from '@/components/HomeTab';
 import { RoadmapTab } from '@/components/RoadmapTab';
@@ -9,7 +9,7 @@ import { CicdTab } from '@/components/CicdTab';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { GithubModal } from '@/components/GithubModal';
 import { CreatePilarModal } from '@/components/CreatePilarModal';
-import { DEFAULT_TASKS, PHASES, SKILLS_MATRIX } from '@/data/constants';
+import { SKILLS_MATRIX } from '@/data/constants';
 import { Task, NewTaskForm, GithubConfig, Phase } from '@/types';
 
 export default function HomePage() {
@@ -22,16 +22,14 @@ export default function HomePage() {
   const [showPilarModal, setShowPilarModal] = useState<boolean>(false);
   const [selectedPillarForModal, setSelectedPillarForModal] = useState<number | undefined>(undefined);
 
-  // Dynamic Phases State
-  const [phases, setPhases] = useState<Phase[]>(PHASES);
-
-  // Accordion state (All pillars start collapsed by default)
-  const [openPhases, setOpenPhases] = useState<number[]>([]);
-  const [expandedCards, setExpandedCards] = useState<number[]>([1, 6, 10]);
-
-  // Tasks state
+  // Dynamic Phases and Tasks State from Supabase Database
+  const [phases, setPhases] = useState<Phase[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  // Accordion state
+  const [openPhases, setOpenPhases] = useState<number[]>([]);
+  const [expandedCards, setExpandedCards] = useState<number[]>([1, 6, 10]);
 
   // GitHub Config state
   const [githubConfig, setGithubConfig] = useState<GithubConfig>({
@@ -41,58 +39,45 @@ export default function HomePage() {
     token: '',
   });
 
-  // Load state on mount & fetch Pillars from Supabase API
-  useEffect(() => {
+  // Fetch all pillars & projects directly from Supabase DB via Next.js API Routes
+  const fetchDatabaseData = useCallback(async () => {
     try {
-      const savedTasks = localStorage.getItem('amaro_dev_checklist_v2');
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-      } else {
-        setTasks(DEFAULT_TASKS);
-      }
+      const [resPillars, resProjects] = await Promise.all([
+        fetch('/api/pillars').then((r) => r.json()).catch(() => ({ pillars: [] })),
+        fetch('/api/projects').then((r) => r.json()).catch(() => ({ projects: [] })),
+      ]);
 
-      const savedGithub = localStorage.getItem('amaro_github_config_v1');
-      if (savedGithub) {
-        setGithubConfig((prev) => ({ ...prev, ...JSON.parse(savedGithub) }));
+      if (resPillars && Array.isArray(resPillars.pillars)) {
+        setPhases(resPillars.pillars);
       }
-
-      const savedPillars = localStorage.getItem('amaro_custom_pillars_v1');
-      if (savedPillars) {
-        const parsedCustomPillars: Phase[] = JSON.parse(savedPillars);
-        setPhases((prev) => {
-          const existingIds = new Set(prev.map((p) => p.id));
-          const filteredNew = parsedCustomPillars.filter((p) => !existingIds.has(p.id));
-          return [...prev, ...filteredNew];
-        });
+      if (resProjects && Array.isArray(resProjects.projects)) {
+        setTasks(resProjects.projects);
       }
-
-      // Sync with Supabase API
-      fetch('/api/pillars')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.pillars && data.pillars.length > 0) {
-            setPhases((prev) => {
-              const existingIds = new Set(prev.map((p) => p.id));
-              const remoteNew = data.pillars.filter((p: Phase) => !existingIds.has(p.id));
-              const updatedList = [...prev, ...remoteNew];
-              return updatedList;
-            });
-          }
-        })
-        .catch(() => {});
     } catch (e) {
-      setTasks(DEFAULT_TASKS);
+      console.error('Erro ao buscar dados do Supabase:', e);
     } finally {
       setIsLoaded(true);
     }
   }, []);
 
-  // Save tasks to localStorage when changed
+  // Sync on mount & setup periodic refresh for bidirectional database updates
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('amaro_dev_checklist_v2', JSON.stringify(tasks));
+    const savedGithub = localStorage.getItem('amaro_github_config_v1');
+    if (savedGithub) {
+      try {
+        setGithubConfig((prev) => ({ ...prev, ...JSON.parse(savedGithub) }));
+      } catch (e) {}
     }
-  }, [tasks, isLoaded]);
+
+    fetchDatabaseData();
+
+    // Periodic auto-sync every 8 seconds to ensure bidirectional sync with DB
+    const syncInterval = setInterval(() => {
+      fetchDatabaseData();
+    }, 8000);
+
+    return () => clearInterval(syncInterval);
+  }, [fetchDatabaseData]);
 
   // Save github config
   const handleSaveGithubConfig = (config: GithubConfig) => {
@@ -123,57 +108,92 @@ export default function HomePage() {
     setExpandedCards([]);
   };
 
-  // Pillar actions
+  // Pillar actions (Create & Delete)
   const handlePillarCreated = (newPillar: Phase) => {
     setPhases((prev) => {
       const exists = prev.some((p) => p.id === newPillar.id);
       if (exists) return prev;
-      const updated = [...prev, newPillar];
-      localStorage.setItem('amaro_custom_pillars_v1', JSON.stringify(updated.slice(4)));
-      return updated;
+      return [...prev, newPillar];
     });
     setOpenPhases((prev) => [...prev, newPillar.id]);
+    fetchDatabaseData();
   };
 
-  // Task actions
-  const toggleTask = (taskId: number) => {
+  const deletePillar = async (phaseId: number) => {
+    // Optimistic UI update
+    setPhases((prev) => prev.filter((p) => p.id !== phaseId));
+    setTasks((prev) => prev.filter((t) => t.phase !== phaseId));
+
+    try {
+      await fetch(`/api/pillars/${phaseId}`, { method: 'DELETE' });
+      fetchDatabaseData();
+    } catch (err) {
+      console.error('Erro ao excluir pilar do Supabase:', err);
+      fetchDatabaseData();
+    }
+  };
+
+  // Task / Project actions (Toggle, Delete, Add)
+  const toggleTask = async (taskId: number) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
+    if (!targetTask) return;
+
+    const newCompleted = !targetTask.completed;
+
+    // Optimistic UI update
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, completed: newCompleted } : t))
     );
+
+    try {
+      await fetch(`/api/projects/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: newCompleted }),
+      });
+    } catch (err) {
+      console.error('Erro ao atualizar status do projeto no Supabase:', err);
+      fetchDatabaseData();
+    }
   };
 
-  const deleteTask = (taskId: number) => {
+  const deleteTask = async (taskId: number) => {
+    // Optimistic UI update
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+
+    try {
+      await fetch(`/api/projects/${taskId}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('Erro ao excluir projeto do Supabase:', err);
+      fetchDatabaseData();
+    }
   };
 
-  const handleAddNewTask = (newForm: NewTaskForm) => {
-    const requirements = newForm.requirementsInput
-      ? newForm.requirementsInput
-          .split(';')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [];
+  const handleAddNewTask = async (newForm: NewTaskForm) => {
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phase: newForm.phase,
+          title: newForm.title,
+          description: newForm.description,
+          requirementsInput: newForm.requirementsInput,
+          badgesInput: newForm.badgesInput,
+        }),
+      });
 
-    const badges = newForm.badgesInput
-      ? newForm.badgesInput
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : ['Novo Projeto'];
-
-    const newTaskItem: Task = {
-      id: Date.now(),
-      phase: newForm.phase,
-      title: newForm.title,
-      description: newForm.description,
-      requirements,
-      badges,
-      completed: false,
-      isCustom: true,
-    };
-
-    setTasks((prev) => [newTaskItem, ...prev]);
-    setExpandedCards((prev) => [...prev, newTaskItem.id]);
+      const data = await response.json();
+      if (response.ok && data.project) {
+        setTasks((prev) => [data.project, ...prev]);
+        setExpandedCards((prev) => [...prev, data.project.id]);
+      } else {
+        fetchDatabaseData();
+      }
+    } catch (err) {
+      console.error('Erro ao cadastrar projeto no Supabase:', err);
+      fetchDatabaseData();
+    }
   };
 
   const handleOpenAddTaskModal = (phaseId?: number) => {
@@ -182,14 +202,7 @@ export default function HomePage() {
   };
 
   const resetChecklist = () => {
-    if (window.confirm('Deseja restaurar a lista padrão de projetos e requisitos?')) {
-      setTasks(DEFAULT_TASKS);
-      setPhases(PHASES);
-      setExpandedCards([1, 6, 10]);
-      setOpenPhases([]);
-      localStorage.removeItem('amaro_dev_checklist_v2');
-      localStorage.removeItem('amaro_custom_pillars_v1');
-    }
+    fetchDatabaseData();
   };
 
   return (
@@ -229,6 +242,7 @@ export default function HomePage() {
           collapseAllCards={collapseAllCards}
           toggleTask={toggleTask}
           deleteTask={deleteTask}
+          deletePillar={deletePillar}
           resetChecklist={resetChecklist}
           setShowAddModal={setShowAddModal}
           onOpenAddTaskModal={handleOpenAddTaskModal}
