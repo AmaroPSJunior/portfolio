@@ -23,17 +23,19 @@ export async function GET() {
     let pillarsResult: Phase[] = [];
 
     if (error) {
-      AppLogger.warn(scope, 'Falha ao consultar pilares no Supabase, retornando lista vazia', { error });
+      AppLogger.warn(scope, 'Falha ao consultar pilares no Supabase', { error });
+      const isMissingTable = error.code === 'PGRST205' || error.message?.includes('pillars');
       return NextResponse.json({
         pillars: [],
-        warning: 'Não foi possível carregar do banco de dados.',
+        tableMissing: isMissingTable,
+        warning: isMissingTable
+          ? "A tabela 'pillars' não foi encontrada no banco de dados Supabase."
+          : 'Não foi possível carregar do banco de dados.',
         error: error.message,
       });
     }
 
-    if (!data) {
-      pillarsResult = [...PHASES];
-    } else {
+    if (data && data.length > 0) {
       pillarsResult = data.map((row, index) => {
         let numericId: number;
         if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
@@ -54,10 +56,6 @@ export async function GET() {
           created_at: row.created_at,
         };
       });
-
-      if (pillarsResult.length === 0) {
-        pillarsResult = [...PHASES];
-      }
     }
 
     // Merge in-memory custom pillars that aren't in pillarsResult
@@ -68,16 +66,11 @@ export async function GET() {
       }
     }
 
-    AppLogger.info(scope, `Sucesso ao listar ${pillarsResult.length} pilar(es)`);
+    AppLogger.info(scope, `Sucesso ao listar ${pillarsResult.length} pilar(es) do banco`);
     return NextResponse.json({ pillars: pillarsResult });
   } catch (err: any) {
     AppLogger.error(scope, 'Exceção não tratada ao listar pilares', err);
-    const existingIds = new Set(PHASES.map((p) => p.id));
-    const merged = [...PHASES];
-    for (const c of inMemoryCustomPillars) {
-      if (!existingIds.has(c.id)) merged.push(c);
-    }
-    return NextResponse.json({ pillars: merged });
+    return NextResponse.json({ pillars: [...inMemoryCustomPillars] });
   }
 }
 
@@ -101,16 +94,11 @@ export async function POST(request: NextRequest) {
     const { title, subtitle, emoji } = validation.sanitized;
 
     // 1. Obter a maior ordem e id atual para colocar o novo pilar no final da lista
-    const defaultMaxOrder = Math.max(...PHASES.map((p) => Number(p.order || p.id) || 0), 0);
     const memoryMaxOrder = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.order || p.id) || 0)) : 0;
-    const baseOrder = Math.max(defaultMaxOrder, memoryMaxOrder);
-
-    const defaultMaxId = Math.max(...PHASES.map((p) => Number(p.id) || 0), 0);
     const memoryMaxId = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.id) || 0)) : 0;
-    const baseId = Math.max(defaultMaxId, memoryMaxId);
 
-    let nextOrder = baseOrder + 1;
-    let nextNumericId = baseId + 1;
+    let nextOrder = memoryMaxOrder + 1;
+    let nextNumericId = memoryMaxId + 1;
 
     try {
       const { data: existingPillars, error: orderError } = await supabase
@@ -120,13 +108,15 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!orderError && existingPillars && existingPillars.length > 0) {
-        nextOrder = Math.max((existingPillars[0].order || 0) + 1, baseOrder + 1);
-        const maxNum = Number(existingPillars[0].numeric_id);
-        nextNumericId = !isNaN(maxNum) && maxNum > 0 ? Math.max(maxNum + 1, baseId + 1) : baseId + 1;
+        const dbMaxOrder = Number(existingPillars[0].order) || 0;
+        nextOrder = Math.max(dbMaxOrder + 1, memoryMaxOrder + 1);
+        const dbMaxId = Number(existingPillars[0].numeric_id);
+        if (!isNaN(dbMaxId) && dbMaxId > 0) {
+          nextNumericId = Math.max(dbMaxId + 1, memoryMaxId + 1);
+        }
       }
     } catch (e) {
-      nextOrder = baseOrder + 1;
-      nextNumericId = baseId + 1;
+      // Usar sequencial local
     }
 
     // 2. Inserir registro no Supabase incluindo numeric_id
@@ -160,10 +150,16 @@ export async function POST(request: NextRequest) {
 
       inMemoryCustomPillars.push(fallbackPillar);
 
+      const isMissingTable = insertError.code === 'PGRST205' || insertError.message?.includes('pillars');
+
       return NextResponse.json(
         {
-          message: 'Pilar cadastrado com sucesso (modo local/resiliente)',
+          message: isMissingTable
+            ? "A tabela 'pillars' não foi encontrada no Supabase. O pilar foi salvo localmente temporariamente."
+            : 'Pilar cadastrado com sucesso (modo local/resiliente)',
           pillar: fallbackPillar,
+          tableMissing: isMissingTable,
+          warning: insertError.message,
         },
         { status: 201 }
       );

@@ -22,10 +22,20 @@ export async function GET() {
 
     let projectsResult: Task[] = [];
 
-    if (error || !data) {
-      AppLogger.warn(scope, 'Erro ou ausência de dados ao buscar projetos do Supabase, utilizando lista padrão', { error });
-      projectsResult = [...DEFAULT_TASKS];
-    } else {
+    if (error) {
+      AppLogger.warn(scope, 'Erro ao buscar projetos do Supabase', { error });
+      const isMissingTable = error.code === 'PGRST205' || error.message?.includes('projects');
+      return NextResponse.json({
+        projects: [],
+        tableMissing: isMissingTable,
+        warning: isMissingTable
+          ? "A tabela 'projects' não foi encontrada no banco de dados Supabase."
+          : 'Não foi possível carregar do banco de dados.',
+        error: error.message,
+      });
+    }
+
+    if (data && data.length > 0) {
       projectsResult = data.map((row, index) => {
         let numericId: number;
         if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
@@ -51,11 +61,6 @@ export async function GET() {
           created_at: row.created_at,
         };
       });
-
-      // If DB was empty, fall back to default tasks
-      if (projectsResult.length === 0) {
-        projectsResult = [...DEFAULT_TASKS];
-      }
     }
 
     // Merge in-memory custom projects that aren't in projectsResult
@@ -66,17 +71,11 @@ export async function GET() {
       }
     }
 
-    AppLogger.info(scope, `Sucesso ao listar ${projectsResult.length} projeto(s)`);
+    AppLogger.info(scope, `Sucesso ao listar ${projectsResult.length} projeto(s) do banco`);
     return NextResponse.json({ projects: projectsResult });
   } catch (err: any) {
     AppLogger.error(scope, 'Exceção ao listar projetos', err);
-    // Combine DEFAULT_TASKS with inMemoryCustomProjects
-    const existingIds = new Set(DEFAULT_TASKS.map((t) => t.id));
-    const merged = [...DEFAULT_TASKS];
-    for (const c of inMemoryCustomProjects) {
-      if (!existingIds.has(c.id)) merged.unshift(c);
-    }
-    return NextResponse.json({ projects: merged });
+    return NextResponse.json({ projects: [...inMemoryCustomProjects] });
   }
 }
 
@@ -98,12 +97,10 @@ export async function POST(request: NextRequest) {
 
     const { title, phaseId, description, requirements, badges } = validation.sanitized;
 
-    // Obter o maior numeric_id existente para evitar conflito de chave única ou erro de sequência SERIAL
-    const defaultMaxId = Math.max(...DEFAULT_TASKS.map((t) => Number(t.id) || 0), 0);
+    // Obter o maior numeric_id existente para evitar conflito
     const memoryMaxId = inMemoryCustomProjects.length > 0 ? Math.max(...inMemoryCustomProjects.map((t) => Number(t.id) || 0)) : 0;
-    const baseMaxId = Math.max(defaultMaxId, memoryMaxId);
 
-    let nextNumericId = baseMaxId + 1;
+    let nextNumericId = memoryMaxId + 1;
     try {
       const { data: maxRows } = await supabase
         .from('projects')
@@ -112,10 +109,11 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (maxRows && maxRows.length > 0 && maxRows[0].numeric_id && !isNaN(Number(maxRows[0].numeric_id))) {
-        nextNumericId = Math.max(Number(maxRows[0].numeric_id) + 1, baseMaxId + 1);
+        const dbMax = Number(maxRows[0].numeric_id);
+        nextNumericId = Math.max(dbMax + 1, memoryMaxId + 1);
       }
     } catch (e) {
-      nextNumericId = baseMaxId + 1;
+      // Usar sequencial local
     }
 
     const newProject = {
@@ -137,7 +135,6 @@ export async function POST(request: NextRequest) {
     if (error) {
       AppLogger.warn(scope, 'Erro no Supabase ao criar projeto, ativando fallback local', { error });
 
-      // Retorno resiliente para ambiente local/desconectado ou credenciais de teste
       const fallbackProject: Task = {
         id: nextNumericId,
         phase: phaseId,
@@ -152,8 +149,17 @@ export async function POST(request: NextRequest) {
 
       inMemoryCustomProjects.unshift(fallbackProject);
 
+      const isMissingTable = error.code === 'PGRST205' || error.message?.includes('projects');
+
       return NextResponse.json(
-        { message: 'Projeto criado com sucesso (modo local/resiliente)', project: fallbackProject },
+        {
+          message: isMissingTable
+            ? "A tabela 'projects' não foi encontrada no Supabase. O projeto foi salvo localmente temporariamente."
+            : 'Projeto criado com sucesso (modo local/resiliente)',
+          project: fallbackProject,
+          tableMissing: isMissingTable,
+          warning: error.message,
+        },
         { status: 201 }
       );
     }

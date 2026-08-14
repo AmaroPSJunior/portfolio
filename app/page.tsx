@@ -62,9 +62,7 @@ export default function HomePage() {
 
   const saveCustomPillarsToLocalStorage = (allPhases: Phase[]) => {
     try {
-      const defaultIds = new Set(PHASES.map((p) => p.id));
-      const customPillars = allPhases.filter((p) => !defaultIds.has(p.id));
-      localStorage.setItem('amaro_custom_pillars_v2', JSON.stringify(customPillars));
+      localStorage.setItem('amaro_custom_pillars_v2', JSON.stringify(allPhases));
     } catch (e) {
       AppLogger.warn('UI:localStorage', 'Falha ao salvar pilares no LocalStorage');
     }
@@ -84,54 +82,21 @@ export default function HomePage() {
         }),
       ]);
 
-      if (resPillars && Array.isArray(resPillars.pillars)) {
-        setPhases((prevPhases) => {
-          const serverList: Phase[] = resPillars.pillars.length > 0 ? resPillars.pillars : PHASES;
-          let savedLocalPillars: Phase[] = [];
-          try {
-            const raw = localStorage.getItem('amaro_custom_pillars_v2');
-            if (raw) savedLocalPillars = JSON.parse(raw);
-          } catch (e) {}
-
-          const serverIds = new Set(serverList.map((p) => p.id));
-          const localOnly = prevPhases.filter((p) => !serverIds.has(p.id));
-          const storageOnly = savedLocalPillars.filter((p) => !serverIds.has(p.id));
-
-          const mergedPillarsMap = new Map<number, Phase>();
-          serverList.forEach((p) => mergedPillarsMap.set(p.id, p));
-          storageOnly.forEach((p) => mergedPillarsMap.set(p.id, p));
-          localOnly.forEach((p) => mergedPillarsMap.set(p.id, p));
-
-          const finalPhases = Array.from(mergedPillarsMap.values());
-          saveCustomPillarsToLocalStorage(finalPhases);
-          return finalPhases;
+      if (resPillars?.tableMissing || resProjects?.tableMissing) {
+        setApiErrorNotice({
+          message: 'Aviso Supabase: A tabela "projects" ou "pillars" não foi encontrada no banco. Clique para abrir Diagnóstico e ver o SQL de criação.',
+          action: () => setShowDiagnosticsModal(true),
         });
       }
 
+      if (resPillars && Array.isArray(resPillars.pillars)) {
+        setPhases(resPillars.pillars);
+        saveCustomPillarsToLocalStorage(resPillars.pillars);
+      }
+
       if (resProjects && Array.isArray(resProjects.projects)) {
-        setTasks((prevTasks) => {
-          const serverList: Task[] = resProjects.projects.length > 0 ? resProjects.projects : DEFAULT_TASKS;
-          let savedLocalTasks: Task[] = [];
-          try {
-            const raw = localStorage.getItem('amaro_custom_tasks_v2');
-            if (raw) savedLocalTasks = JSON.parse(raw);
-          } catch (e) {}
-
-          const serverIds = new Set(serverList.map((t) => t.id));
-          const localOnlyCustom = prevTasks.filter((t) => t.isCustom && !serverIds.has(t.id));
-          const storageOnlyCustom = savedLocalTasks.filter((t) => t.isCustom && !serverIds.has(t.id));
-
-          const mergedCustomMap = new Map<number, Task>();
-          // Combine storage custom tasks and state custom tasks
-          storageOnlyCustom.forEach((t) => mergedCustomMap.set(t.id, t));
-          localOnlyCustom.forEach((t) => mergedCustomMap.set(t.id, t));
-
-          const extraCustom = Array.from(mergedCustomMap.values());
-          const finalTasks = [...extraCustom, ...serverList];
-
-          saveCustomTasksToLocalStorage(finalTasks);
-          return finalTasks;
-        });
+        setTasks(resProjects.projects);
+        saveCustomTasksToLocalStorage(resProjects.projects);
       }
     } catch (e: any) {
       AppLogger.error('UI:fetchDatabaseData', 'Exceção geral na sincronização com Supabase', e);
