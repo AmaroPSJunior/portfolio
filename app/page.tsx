@@ -50,6 +50,26 @@ export default function HomePage() {
     token: '',
   });
 
+  // Helper functions for LocalStorage persistence
+  const saveCustomTasksToLocalStorage = (allTasks: Task[]) => {
+    try {
+      const customTasks = allTasks.filter((t) => t.isCustom);
+      localStorage.setItem('amaro_custom_tasks_v2', JSON.stringify(customTasks));
+    } catch (e) {
+      AppLogger.warn('UI:localStorage', 'Falha ao salvar tarefas no LocalStorage');
+    }
+  };
+
+  const saveCustomPillarsToLocalStorage = (allPhases: Phase[]) => {
+    try {
+      const defaultIds = new Set(PHASES.map((p) => p.id));
+      const customPillars = allPhases.filter((p) => !defaultIds.has(p.id));
+      localStorage.setItem('amaro_custom_pillars_v2', JSON.stringify(customPillars));
+    } catch (e) {
+      AppLogger.warn('UI:localStorage', 'Falha ao salvar pilares no LocalStorage');
+    }
+  };
+
   // Fetch all pillars & projects directly from Supabase DB via Next.js API Routes
   const fetchDatabaseData = useCallback(async () => {
     try {
@@ -66,19 +86,51 @@ export default function HomePage() {
 
       if (resPillars && Array.isArray(resPillars.pillars)) {
         setPhases((prevPhases) => {
-          const serverList = resPillars.pillars.length > 0 ? resPillars.pillars : PHASES;
-          const serverIds = new Set(serverList.map((p: Phase) => p.id));
+          const serverList: Phase[] = resPillars.pillars.length > 0 ? resPillars.pillars : PHASES;
+          let savedLocalPillars: Phase[] = [];
+          try {
+            const raw = localStorage.getItem('amaro_custom_pillars_v2');
+            if (raw) savedLocalPillars = JSON.parse(raw);
+          } catch (e) {}
+
+          const serverIds = new Set(serverList.map((p) => p.id));
           const localOnly = prevPhases.filter((p) => !serverIds.has(p.id));
-          return [...serverList, ...localOnly];
+          const storageOnly = savedLocalPillars.filter((p) => !serverIds.has(p.id));
+
+          const mergedPillarsMap = new Map<number, Phase>();
+          serverList.forEach((p) => mergedPillarsMap.set(p.id, p));
+          storageOnly.forEach((p) => mergedPillarsMap.set(p.id, p));
+          localOnly.forEach((p) => mergedPillarsMap.set(p.id, p));
+
+          const finalPhases = Array.from(mergedPillarsMap.values());
+          saveCustomPillarsToLocalStorage(finalPhases);
+          return finalPhases;
         });
       }
 
       if (resProjects && Array.isArray(resProjects.projects)) {
         setTasks((prevTasks) => {
-          const serverList = resProjects.projects.length > 0 ? resProjects.projects : DEFAULT_TASKS;
-          const serverIds = new Set(serverList.map((t: Task) => t.id));
+          const serverList: Task[] = resProjects.projects.length > 0 ? resProjects.projects : DEFAULT_TASKS;
+          let savedLocalTasks: Task[] = [];
+          try {
+            const raw = localStorage.getItem('amaro_custom_tasks_v2');
+            if (raw) savedLocalTasks = JSON.parse(raw);
+          } catch (e) {}
+
+          const serverIds = new Set(serverList.map((t) => t.id));
           const localOnlyCustom = prevTasks.filter((t) => t.isCustom && !serverIds.has(t.id));
-          return [...serverList, ...localOnlyCustom];
+          const storageOnlyCustom = savedLocalTasks.filter((t) => t.isCustom && !serverIds.has(t.id));
+
+          const mergedCustomMap = new Map<number, Task>();
+          // Combine storage custom tasks and state custom tasks
+          storageOnlyCustom.forEach((t) => mergedCustomMap.set(t.id, t));
+          localOnlyCustom.forEach((t) => mergedCustomMap.set(t.id, t));
+
+          const extraCustom = Array.from(mergedCustomMap.values());
+          const finalTasks = [...extraCustom, ...serverList];
+
+          saveCustomTasksToLocalStorage(finalTasks);
+          return finalTasks;
         });
       }
     } catch (e: any) {
@@ -101,6 +153,40 @@ export default function HomePage() {
       } catch (e) {
         AppLogger.warn('UI:localStorage', 'Falha ao recuperar configurações salvas do GitHub');
       }
+    }
+
+    // Load custom tasks from LocalStorage on mount
+    try {
+      const savedTasksRaw = localStorage.getItem('amaro_custom_tasks_v2');
+      if (savedTasksRaw) {
+        const customTasks: Task[] = JSON.parse(savedTasksRaw);
+        if (customTasks.length > 0) {
+          setTasks((prev) => {
+            const existingIds = new Set(prev.map((t) => t.id));
+            const newTasks = customTasks.filter((t) => !existingIds.has(t.id));
+            return [...newTasks, ...prev];
+          });
+        }
+      }
+    } catch (e) {
+      AppLogger.warn('UI:localStorage', 'Falha ao carregar tarefas salvas do LocalStorage');
+    }
+
+    // Load custom pillars from LocalStorage on mount
+    try {
+      const savedPillarsRaw = localStorage.getItem('amaro_custom_pillars_v2');
+      if (savedPillarsRaw) {
+        const customPillars: Phase[] = JSON.parse(savedPillarsRaw);
+        if (customPillars.length > 0) {
+          setPhases((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newPillars = customPillars.filter((p) => !existingIds.has(p.id));
+            return [...prev, ...newPillars];
+          });
+        }
+      }
+    } catch (e) {
+      AppLogger.warn('UI:localStorage', 'Falha ao carregar pilares salvos do LocalStorage');
     }
 
     fetchDatabaseData();
@@ -151,8 +237,9 @@ export default function HomePage() {
   const handlePillarCreated = (newPillar: Phase) => {
     setPhases((prev) => {
       const exists = prev.some((p) => p.id === newPillar.id);
-      if (exists) return prev;
-      return [...prev, newPillar];
+      const updated = exists ? prev.map((p) => (p.id === newPillar.id ? newPillar : p)) : [...prev, newPillar];
+      saveCustomPillarsToLocalStorage(updated);
+      return updated;
     });
     setOpenPhases((prev) => [...prev, newPillar.id]);
     fetchDatabaseData();
@@ -161,8 +248,16 @@ export default function HomePage() {
   const deletePillar = async (phaseId: number) => {
     setApiErrorNotice(null);
     // Optimistic UI update
-    setPhases((prev) => prev.filter((p) => p.id !== phaseId));
-    setTasks((prev) => prev.filter((t) => t.phase !== phaseId));
+    setPhases((prev) => {
+      const updated = prev.filter((p) => p.id !== phaseId);
+      saveCustomPillarsToLocalStorage(updated);
+      return updated;
+    });
+    setTasks((prev) => {
+      const updated = prev.filter((t) => t.phase !== phaseId);
+      saveCustomTasksToLocalStorage(updated);
+      return updated;
+    });
 
     try {
       const res = await fetch(`/api/pillars/${phaseId}`, { method: 'DELETE' });
@@ -189,9 +284,11 @@ export default function HomePage() {
     const newCompleted = !targetTask.completed;
 
     // Optimistic UI update
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: newCompleted } : t))
-    );
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: newCompleted } : t));
+      saveCustomTasksToLocalStorage(updated);
+      return updated;
+    });
 
     try {
       const res = await fetch(`/api/projects/${taskId}`, {
@@ -215,7 +312,11 @@ export default function HomePage() {
   const deleteTask = async (taskId: number) => {
     setApiErrorNotice(null);
     // Optimistic UI update
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setTasks((prev) => {
+      const updated = prev.filter((t) => t.id !== taskId);
+      saveCustomTasksToLocalStorage(updated);
+      return updated;
+    });
 
     try {
       const res = await fetch(`/api/projects/${taskId}`, { method: 'DELETE' });
@@ -253,8 +354,12 @@ export default function HomePage() {
 
         setTasks((prev) => {
           const exists = prev.some((t) => t.id === createdProject.id);
-          if (exists) return prev;
-          return [createdProject, ...prev];
+          const updated = exists
+            ? prev.map((t) => (t.id === createdProject.id ? createdProject : t))
+            : [createdProject, ...prev];
+
+          saveCustomTasksToLocalStorage(updated);
+          return updated;
         });
 
         const phaseNum = Number(createdProject.phase);

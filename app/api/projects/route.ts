@@ -99,7 +99,11 @@ export async function POST(request: NextRequest) {
     const { title, phaseId, description, requirements, badges } = validation.sanitized;
 
     // Obter o maior numeric_id existente para evitar conflito de chave única ou erro de sequência SERIAL
-    let nextNumericId = 1;
+    const defaultMaxId = Math.max(...DEFAULT_TASKS.map((t) => Number(t.id) || 0), 0);
+    const memoryMaxId = inMemoryCustomProjects.length > 0 ? Math.max(...inMemoryCustomProjects.map((t) => Number(t.id) || 0)) : 0;
+    const baseMaxId = Math.max(defaultMaxId, memoryMaxId);
+
+    let nextNumericId = baseMaxId + 1;
     try {
       const { data: maxRows } = await supabase
         .from('projects')
@@ -107,13 +111,11 @@ export async function POST(request: NextRequest) {
         .order('numeric_id', { ascending: false })
         .limit(1);
 
-      if (maxRows && maxRows.length > 0 && maxRows[0].numeric_id) {
-        nextNumericId = Number(maxRows[0].numeric_id) + 1;
-      } else {
-        nextNumericId = Date.now();
+      if (maxRows && maxRows.length > 0 && maxRows[0].numeric_id && !isNaN(Number(maxRows[0].numeric_id))) {
+        nextNumericId = Math.max(Number(maxRows[0].numeric_id) + 1, baseMaxId + 1);
       }
     } catch (e) {
-      nextNumericId = Date.now();
+      nextNumericId = baseMaxId + 1;
     }
 
     const newProject = {

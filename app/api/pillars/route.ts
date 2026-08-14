@@ -100,20 +100,33 @@ export async function POST(request: NextRequest) {
 
     const { title, subtitle, emoji } = validation.sanitized;
 
-    // 1. Obter a maior ordem atual para colocar o novo pilar no final da lista
-    let nextOrder = 1;
-    let nextNumericId = Date.now();
+    // 1. Obter a maior ordem e id atual para colocar o novo pilar no final da lista
+    const defaultMaxOrder = Math.max(...PHASES.map((p) => Number(p.order || p.id) || 0), 0);
+    const memoryMaxOrder = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.order || p.id) || 0)) : 0;
+    const baseOrder = Math.max(defaultMaxOrder, memoryMaxOrder);
 
-    const { data: existingPillars, error: orderError } = await supabase
-      .from('pillars')
-      .select('order, numeric_id')
-      .order('order', { ascending: false })
-      .limit(1);
+    const defaultMaxId = Math.max(...PHASES.map((p) => Number(p.id) || 0), 0);
+    const memoryMaxId = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.id) || 0)) : 0;
+    const baseId = Math.max(defaultMaxId, memoryMaxId);
 
-    if (!orderError && existingPillars && existingPillars.length > 0) {
-      nextOrder = (existingPillars[0].order || 0) + 1;
-      const maxNum = Number(existingPillars[0].numeric_id);
-      nextNumericId = !isNaN(maxNum) && maxNum > 0 ? maxNum + 1 : Date.now();
+    let nextOrder = baseOrder + 1;
+    let nextNumericId = baseId + 1;
+
+    try {
+      const { data: existingPillars, error: orderError } = await supabase
+        .from('pillars')
+        .select('order, numeric_id')
+        .order('order', { ascending: false })
+        .limit(1);
+
+      if (!orderError && existingPillars && existingPillars.length > 0) {
+        nextOrder = Math.max((existingPillars[0].order || 0) + 1, baseOrder + 1);
+        const maxNum = Number(existingPillars[0].numeric_id);
+        nextNumericId = !isNaN(maxNum) && maxNum > 0 ? Math.max(maxNum + 1, baseId + 1) : baseId + 1;
+      }
+    } catch (e) {
+      nextOrder = baseOrder + 1;
+      nextNumericId = baseId + 1;
     }
 
     // 2. Inserir registro no Supabase incluindo numeric_id
