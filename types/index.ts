@@ -62,3 +62,11 @@ export interface GithubRepoData {
     avatar_url: string;
   };
 }
+
+export interface SiteConfig {
+  id?: string;
+  page_key: string;
+  title: string;
+  subtitle: string;
+  updated_at?: string;
+}

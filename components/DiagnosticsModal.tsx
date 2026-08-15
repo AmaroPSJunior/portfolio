@@ -51,11 +51,21 @@ CREATE TABLE IF NOT EXISTS public.projects (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. Ativar RLS
+-- 3. Tabela de Configurações Dinâmicas do Site (Titulos e Subtitulos)
+CREATE TABLE IF NOT EXISTS public.site_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_key TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  subtitle TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Ativar RLS
 ALTER TABLE public.pillars ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_config ENABLE ROW LEVEL SECURITY;
 
--- 4. Políticas RLS
+-- 5. Políticas RLS
 DROP POLICY IF EXISTS "Permitir leitura de pilares" ON public.pillars;
 CREATE POLICY "Permitir leitura de pilares" ON public.pillars FOR SELECT USING (true);
 
@@ -78,7 +88,21 @@ DROP POLICY IF EXISTS "Permitir atualização de projetos" ON public.projects;
 CREATE POLICY "Permitir atualização de projetos" ON public.projects FOR UPDATE USING (true);
 
 DROP POLICY IF EXISTS "Permitir deleção de projetos" ON public.projects;
-CREATE POLICY "Permitir deleção de projetos" ON public.projects FOR DELETE USING (true);`;
+CREATE POLICY "Permitir deleção de projetos" ON public.projects FOR DELETE USING (true);
+
+DROP POLICY IF EXISTS "Permitir leitura publica de site_config" ON public.site_config;
+CREATE POLICY "Permitir leitura publica de site_config" ON public.site_config FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Permitir escrita em site_config" ON public.site_config;
+CREATE POLICY "Permitir escrita em site_config" ON public.site_config FOR ALL USING (true);
+
+-- Dados Iniciais
+INSERT INTO public.site_config (page_key, title, subtitle)
+VALUES (
+  'roadmap',
+  'Projetos, Ideias & Requisitos de Evolução',
+  'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.'
+) ON CONFLICT (page_key) DO NOTHING;`;
 
 export function DiagnosticsModal({ isOpen, onClose }: Props) {
   const [logs, setLogs] = useState<LogEntry[]>([]);

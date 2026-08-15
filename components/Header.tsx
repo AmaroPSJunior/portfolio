@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, ShieldCheck } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   setShowGithubModal: (show: boolean) => void;
   onOpenDiagnostics?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   setShowGithubModal,
   onOpenDiagnostics,
+  onOpenAdmin,
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
@@ -81,6 +83,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span>💼</span> Produtos & Tech Lab
             </button>
           </nav>
+
+          {onOpenAdmin && (
+            <button
+              id="btn-open-admin"
+              onClick={onOpenAdmin}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Abrir Área Administrativa (Login/Edição de Conteúdo)"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin</span>
+            </button>
+          )}
 
           {onOpenDiagnostics && (
             <button

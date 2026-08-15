@@ -10,9 +10,10 @@ import { AddTaskModal } from '@/components/AddTaskModal';
 import { GithubModal } from '@/components/GithubModal';
 import { CreatePilarModal } from '@/components/CreatePilarModal';
 import { DiagnosticsModal } from '@/components/DiagnosticsModal';
+import { AdminModal } from '@/components/AdminModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SKILLS_MATRIX } from '@/data/constants';
-import { Task, NewTaskForm, GithubConfig, Phase } from '@/types';
+import { Task, NewTaskForm, GithubConfig, Phase, SiteConfig } from '@/types';
 import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 
@@ -25,7 +26,16 @@ export default function HomePage() {
   const [showGithubModal, setShowGithubModal] = useState<boolean>(false);
   const [showPilarModal, setShowPilarModal] = useState<boolean>(false);
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState<boolean>(false);
+  const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
   const [selectedPillarForModal, setSelectedPillarForModal] = useState<number | undefined>(undefined);
+
+  // Dynamic Site Config for Roadmap Page Title & Subtitle from Database
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>({
+    page_key: 'roadmap',
+    title: 'Projetos, Ideias & Requisitos de Evolução',
+    subtitle:
+      'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.',
+  });
 
   // Global UI Error Banner Notice for API Actions
   const [apiErrorNotice, setApiErrorNotice] = useState<{
@@ -68,10 +78,10 @@ export default function HomePage() {
     }
   };
 
-  // Fetch all pillars & projects directly from Supabase DB via Next.js API Routes
+  // Fetch all pillars, projects & site_config directly from Supabase DB via API
   const fetchDatabaseData = useCallback(async () => {
     try {
-      const [resPillars, resProjects] = await Promise.all([
+      const [resPillars, resProjects, resConfig] = await Promise.all([
         fetch('/api/pillars').then((r) => r.json()).catch((err) => {
           AppLogger.error('UI:fetchPillars', 'Erro na requisição /api/pillars', err);
           return { pillars: [] };
@@ -79,6 +89,10 @@ export default function HomePage() {
         fetch('/api/projects').then((r) => r.json()).catch((err) => {
           AppLogger.error('UI:fetchProjects', 'Erro na requisição /api/projects', err);
           return { projects: [] };
+        }),
+        fetch('/api/config?page=roadmap').then((r) => r.json()).catch((err) => {
+          AppLogger.error('UI:fetchConfig', 'Erro na requisição /api/config', err);
+          return { config: null };
         }),
       ]);
 
@@ -98,6 +112,10 @@ export default function HomePage() {
         setTasks(resProjects.projects);
         saveCustomTasksToLocalStorage(resProjects.projects);
       }
+
+      if (resConfig?.config) {
+        setSiteConfig(resConfig.config);
+      }
     } catch (e: any) {
       AppLogger.error('UI:fetchDatabaseData', 'Exceção geral na sincronização com Supabase', e);
       setApiErrorNotice({
@@ -108,6 +126,27 @@ export default function HomePage() {
       setIsLoaded(true);
     }
   }, []);
+
+  // Update site config via API
+  const handleUpdateSiteConfig = async (newConfig: SiteConfig): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newConfig),
+      });
+      const data = await res.json();
+      if (res.ok && data.config) {
+        setSiteConfig(data.config);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      AppLogger.error('UI:handleUpdateSiteConfig', 'Erro ao atualizar configurações do site', err);
+      return false;
+    }
+  };
+
 
   // Sync on mount & setup periodic refresh for bidirectional database updates
   useEffect(() => {
@@ -337,6 +376,7 @@ export default function HomePage() {
         setActiveTab={setActiveTab}
         setShowGithubModal={setShowGithubModal}
         onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
+        onOpenAdmin={() => setShowAdminModal(true)}
       />
 
       {/* Global API Notice Banner */}
@@ -405,6 +445,7 @@ export default function HomePage() {
               selectedPhaseFilter={selectedPhaseFilter}
               selectedStatusFilter={selectedStatusFilter}
               githubConfig={githubConfig}
+              siteConfig={siteConfig}
               setSearchQuery={setSearchQuery}
               setSelectedPhaseFilter={setSelectedPhaseFilter}
               setSelectedStatusFilter={setSelectedStatusFilter}
@@ -442,6 +483,13 @@ export default function HomePage() {
       </main>
 
       {/* Modals */}
+      <AdminModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        siteConfig={siteConfig}
+        onUpdateConfig={handleUpdateSiteConfig}
+      />
+
       <AddTaskModal
         show={showAddModal}
         onClose={() => setShowAddModal(false)}

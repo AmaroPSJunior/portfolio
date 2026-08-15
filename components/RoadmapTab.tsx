@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Phase, Task, GithubConfig } from '@/types';
+import { Phase, Task, GithubConfig, SiteConfig } from '@/types';
 
 interface RoadmapTabProps {
   phases: Phase[];
@@ -12,6 +12,7 @@ interface RoadmapTabProps {
   selectedPhaseFilter: string;
   selectedStatusFilter: string;
   githubConfig: GithubConfig;
+  siteConfig?: SiteConfig;
   setSearchQuery: (q: string) => void;
   setSelectedPhaseFilter: (f: string) => void;
   setSelectedStatusFilter: (s: string) => void;
@@ -39,6 +40,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   selectedPhaseFilter,
   selectedStatusFilter,
   githubConfig,
+  siteConfig,
   setSearchQuery,
   setSelectedPhaseFilter,
   setSelectedStatusFilter,
@@ -110,20 +112,14 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
       <section className="max-w-7xl mx-auto px-4 lg:px-8 pt-6 pb-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* Title and Description */}
+            {/* Title and Description (Loaded dynamically from database) */}
             <div className="space-y-2 max-w-2xl">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-950 border border-cyan-800 px-2.5 py-1 rounded-md">
-                  📍 Metadados & Roadmap Next.js
-                </span>
-                <span className="text-xs text-slate-400 font-mono">Cards Sanfonados em Grade</span>
-              </div>
               <h2 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-                Projetos, Ideias & Requisitos de Evolução
+                {siteConfig?.title || 'Projetos, Ideias & Requisitos de Evolução'}
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis.
-                Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.
+                {siteConfig?.subtitle ||
+                  'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.'}
               </p>
             </div>
 
@@ -165,30 +161,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 <span>Pilares Concluídos: {completedPhasesCount}/4</span>
               </div>
             </div>
-          </div>
-
-          {/* Quick Stats Row Across 4 Pillars */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80">
-            {phases.map((phase) => (
-              <div
-                key={phase.id}
-                className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between cursor-pointer hover:border-slate-700 transition-all"
-                onClick={() => setSelectedPhaseFilter(String(phase.id))}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">{phase.icon}</span>
-                  <div>
-                    <p className="text-[11px] text-slate-400 font-semibold uppercase">Pilar {phase.id}</p>
-                    <p className="text-xs font-bold text-white line-clamp-1">
-                      {phase.title.split('-')[1] || phase.title}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
-                  {getPhasePercentage(phase.id)}%
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       </section>
