@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "🔄 Iniciando sincronização de migrações no Supabase..."
           
-          # Tentativa 1: Execução direta com flags de resiliência
+          # Tentativa 1: Execução direta
           if supabase db push --include-all -p "$SUPABASE_DB_PASSWORD"; then
             echo "✅ Migrações aplicadas com sucesso no primeiro ciclo."
             exit 0
@@ -61,6 +61,10 @@ jobs:
             done
           fi
 
-          # Tentativa 2: Re-execução após reparo de histórico
+          # Puxar migrações do banco remoto para garantir que o diretório local tem todas as definições
+          echo "📥 Executando db pull para sincronizar arquivos de migração locais..."
+          supabase db pull -p "$SUPABASE_DB_PASSWORD" || true
+
+          # Tentativa 2: Re-execução após reparo de histórico e pull
           echo "🚀 Re-executando db push pós-reconciliação..."
           supabase db push --include-all -p "$SUPABASE_DB_PASSWORD"
