@@ -21,17 +21,17 @@ export interface NewTaskForm {
 
 export interface Phase {
   id: number;
-  icon: string;
   title: string;
   subtitle: string;
+  icon: string;
   order?: number;
   uuid?: string;
   created_at?: string;
 }
 
-export interface NewPilarForm {
+export interface NewPhaseForm {
   title: string;
-  subtitle?: string;
+  subtitle: string;
   emoji: string;
 }
 
@@ -46,25 +46,24 @@ export interface GithubConfig {
   owner: string;
   repo: string;
   branch: string;
-  token: string;
+  token?: string;
 }
 
 export interface GithubRepoData {
   full_name: string;
   html_url: string;
-  description: string;
-  private: boolean;
+  description?: string;
+  private?: boolean;
   stargazers_count: number;
   forks_count: number;
   open_issues_count: number;
   default_branch: string;
   owner?: {
-    avatar_url: string;
+    avatar_url?: string;
   };
 }
 
 export interface SiteConfig {
-  id?: string;
   page_key: string;
   title: string;
   subtitle: string;

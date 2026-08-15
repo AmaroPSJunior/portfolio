@@ -1,41 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { validatePillarInput } from '@/lib/validators';
+import { validatePhaseInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError } from '@/lib/errorHandler';
 import { Phase } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-// In-memory fallback cache for pillars created when Supabase is offline or table is missing
-const inMemoryCustomPillars: Phase[] = [];
+// In-memory fallback cache for phases created when Supabase is offline or table is missing
+const inMemoryCustomPhases: Phase[] = [];
 
-// GET: Listar todos os pilares ordenados pela coluna 'order'
+// GET: Listar todas as fases ordenadas pela coluna 'order'
 export async function GET() {
-  const scope = 'pillars:GET';
+  const scope = 'fases:GET';
   try {
     const { data, error } = await supabase
-      .from('pillars')
+      .from('fases')
       .select('*')
       .order('order', { ascending: true });
 
-    let pillarsResult: Phase[] = [];
+    let phasesResult: Phase[] = [];
 
     if (error) {
-      AppLogger.warn(scope, 'Falha ao consultar pilares no Supabase', { error });
-      const isMissingTable = error.code === 'PGRST205' || error.message?.includes('pillars');
+      AppLogger.warn(scope, 'Falha ao consultar fases no Supabase', { error });
+      const isMissingTable = error.code === 'PGRST205' || error.message?.includes('fases');
       return NextResponse.json({
-        pillars: [],
+        phases: [],
         tableMissing: isMissingTable,
         warning: isMissingTable
-          ? "A tabela 'pillars' não foi encontrada no banco de dados Supabase."
+          ? "A tabela 'fases' não foi encontrada no banco de dados Supabase."
           : 'Não foi possível carregar do banco de dados.',
         error: error.message,
       });
     }
 
     if (data && data.length > 0) {
-      pillarsResult = data.map((row, index) => {
+      phasesResult = data.map((row, index) => {
         let numericId: number;
         if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
           numericId = Number(row.numeric_id);
@@ -57,31 +57,31 @@ export async function GET() {
       });
     }
 
-    // Merge in-memory custom pillars that aren't in pillarsResult
-    const existingIds = new Set(pillarsResult.map((p) => p.id));
-    for (const customPillar of inMemoryCustomPillars) {
-      if (!existingIds.has(customPillar.id)) {
-        pillarsResult.push(customPillar);
+    // Merge in-memory custom phases that aren't in phasesResult
+    const existingIds = new Set(phasesResult.map((p) => p.id));
+    for (const customPhase of inMemoryCustomPhases) {
+      if (!existingIds.has(customPhase.id)) {
+        phasesResult.push(customPhase);
       }
     }
 
-    AppLogger.info(scope, `Sucesso ao listar ${pillarsResult.length} pilar(es) do banco`);
-    return NextResponse.json({ pillars: pillarsResult });
+    AppLogger.info(scope, `Sucesso ao listar ${phasesResult.length} fase(s) do banco`);
+    return NextResponse.json({ phases: phasesResult });
   } catch (err: any) {
-    AppLogger.error(scope, 'Exceção não tratada ao listar pilares', err);
-    return NextResponse.json({ pillars: [...inMemoryCustomPillars] });
+    AppLogger.error(scope, 'Exceção não tratada ao listar fases', err);
+    return NextResponse.json({ phases: [...inMemoryCustomPhases] });
   }
 }
 
-// POST: Cadastrar novo Pilar no Supabase garantindo ordenação ao final
+// POST: Cadastrar nova Fase no Supabase garantindo ordenação ao final
 export async function POST(request: NextRequest) {
-  const scope = 'pillars:POST';
+  const scope = 'fases:POST';
   try {
     const body = await request.json().catch(() => null);
-    const validation = validatePillarInput(body);
+    const validation = validatePhaseInput(body);
 
     if (!validation.valid) {
-      AppLogger.warn(scope, 'Tentativa de cadastro de pilar com dados inválidos', {
+      AppLogger.warn(scope, 'Tentativa de cadastro de fase com dados inválidos', {
         errors: validation.errors,
       });
       return NextResponse.json(
@@ -92,24 +92,24 @@ export async function POST(request: NextRequest) {
 
     const { title, subtitle, emoji } = validation.sanitized;
 
-    // 1. Obter a maior ordem e id atual para colocar o novo pilar no final da lista
-    const memoryMaxOrder = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.order || p.id) || 0)) : 0;
-    const memoryMaxId = inMemoryCustomPillars.length > 0 ? Math.max(...inMemoryCustomPillars.map((p) => Number(p.id) || 0)) : 0;
+    // 1. Obter a maior ordem e id atual para colocar a nova fase no final da lista
+    const memoryMaxOrder = inMemoryCustomPhases.length > 0 ? Math.max(...inMemoryCustomPhases.map((p) => Number(p.order || p.id) || 0)) : 0;
+    const memoryMaxId = inMemoryCustomPhases.length > 0 ? Math.max(...inMemoryCustomPhases.map((p) => Number(p.id) || 0)) : 0;
 
     let nextOrder = memoryMaxOrder + 1;
     let nextNumericId = memoryMaxId + 1;
 
     try {
-      const { data: existingPillars, error: orderError } = await supabase
-        .from('pillars')
+      const { data: existingPhases, error: orderError } = await supabase
+        .from('fases')
         .select('order, numeric_id')
         .order('order', { ascending: false })
         .limit(1);
 
-      if (!orderError && existingPillars && existingPillars.length > 0) {
-        const dbMaxOrder = Number(existingPillars[0].order) || 0;
+      if (!orderError && existingPhases && existingPhases.length > 0) {
+        const dbMaxOrder = Number(existingPhases[0].order) || 0;
         nextOrder = Math.max(dbMaxOrder + 1, memoryMaxOrder + 1);
-        const dbMaxId = Number(existingPillars[0].numeric_id);
+        const dbMaxId = Number(existingPhases[0].numeric_id);
         if (!isNaN(dbMaxId) && dbMaxId > 0) {
           nextNumericId = Math.max(dbMaxId + 1, memoryMaxId + 1);
         }
@@ -122,13 +122,13 @@ export async function POST(request: NextRequest) {
     const newRecord = {
       numeric_id: nextNumericId,
       title,
-      subtitle: subtitle || `Pilar cadastrado em ${new Date().toLocaleDateString('pt-BR')}`,
+      subtitle: subtitle || `Fase cadastrada em ${new Date().toLocaleDateString('pt-BR')}`,
       emoji,
       order: nextOrder,
     };
 
     const { data: inserted, error: insertError } = await supabase
-      .from('pillars')
+      .from('fases')
       .insert([newRecord])
       .select();
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         { insertError, title }
       );
 
-      const fallbackPillar: Phase = {
+      const fallbackPhase: Phase = {
         id: nextNumericId,
         title,
         subtitle: newRecord.subtitle,
@@ -147,16 +147,16 @@ export async function POST(request: NextRequest) {
         order: nextOrder,
       };
 
-      inMemoryCustomPillars.push(fallbackPillar);
+      inMemoryCustomPhases.push(fallbackPhase);
 
-      const isMissingTable = insertError.code === 'PGRST205' || insertError.message?.includes('pillars');
+      const isMissingTable = insertError.code === 'PGRST205' || insertError.message?.includes('fases');
 
       return NextResponse.json(
         {
           message: isMissingTable
-            ? "A tabela 'pillars' não foi encontrada no Supabase. O pilar foi salvo localmente temporariamente."
-            : 'Pilar cadastrado com sucesso (modo local/resiliente)',
-          pillar: fallbackPillar,
+            ? "A tabela 'fases' não foi encontrada no Supabase. A fase foi salva localmente temporariamente."
+            : 'Fase cadastrada com sucesso (modo local/resiliente)',
+          phase: fallbackPhase,
           tableMissing: isMissingTable,
           warning: insertError.message,
         },
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     const row = inserted && inserted[0] ? inserted[0] : null;
 
-    const createdPillar: Phase = {
+    const createdPhase: Phase = {
       id: row?.numeric_id ? Number(row.numeric_id) : nextNumericId,
       title: row?.title || title,
       subtitle: row?.subtitle || newRecord.subtitle,
@@ -176,21 +176,21 @@ export async function POST(request: NextRequest) {
       created_at: row?.created_at,
     };
 
-    inMemoryCustomPillars.push(createdPillar);
+    inMemoryCustomPhases.push(createdPhase);
 
-    AppLogger.info(scope, 'Pilar cadastrado com sucesso no Supabase', {
-      numeric_id: createdPillar.id,
+    AppLogger.info(scope, 'Fase cadastrada com sucesso no Supabase', {
+      numeric_id: createdPhase.id,
       title,
     });
 
     return NextResponse.json(
       {
-        message: 'Pilar cadastrado com sucesso no Supabase',
-        pillar: createdPillar,
+        message: 'Fase cadastrada com sucesso no Supabase',
+        phase: createdPhase,
       },
       { status: 201 }
     );
   } catch (err: any) {
-    return handleApiError(err, scope, { action: 'create_pillar' });
+    return handleApiError(err, scope, { action: 'create_phase' });
   }
 }

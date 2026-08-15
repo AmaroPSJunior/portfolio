@@ -57,7 +57,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>➕</span> Adicionar Novo Projeto ou Ideia ao Pilar
+            <span>➕</span> Adicionar Novo Projeto ou Ideia à Fase
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
             ✖️
@@ -66,7 +66,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
-            <label className="block text-slate-300 mb-1 font-semibold">Pilar / Fase do Roadmap:</label>
+            <label className="block text-slate-300 mb-1 font-semibold">Fase do Roadmap:</label>
             <select
               value={form.phase}
               onChange={(e) => setForm({ ...form, phase: Number(e.target.value) })}

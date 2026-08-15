@@ -1,4 +1,4 @@
-export interface PillarInput {
+export interface PhaseInput {
   title?: string;
   subtitle?: string;
   emoji?: string;
@@ -14,7 +14,7 @@ export interface ValidationResult {
   };
 }
 
-export function validatePillarInput(data: any): ValidationResult {
+export function validatePhaseInput(data: any): ValidationResult {
   const errors: string[] = [];
 
   if (!data || typeof data !== 'object') {
@@ -30,13 +30,13 @@ export function validatePillarInput(data: any): ValidationResult {
   const subtitle = typeof data.subtitle === 'string' ? data.subtitle.trim() : '';
 
   if (!title) {
-    errors.push('O título do Pilar é obrigatório.');
+    errors.push('O título da Fase é obrigatório.');
   } else if (title.length < 3) {
     errors.push('O título deve conter pelo menos 3 caracteres.');
   }
 
   if (!emoji) {
-    errors.push('O emoji/ícone do Pilar é obrigatório.');
+    errors.push('O emoji/ícone da Fase é obrigatório.');
   } else if (emoji.length > 10) {
     errors.push('O campo de emoji/ícone deve conter um valor válido.');
   }
@@ -76,10 +76,10 @@ export function validateProjectInput(data: any): ProjectValidationResult {
   }
 
   const title = typeof data.title === 'string' ? data.title.trim() : '';
-  const phaseId = Number(data.phase || data.phase_id);
+  const phaseId = Number(data.phase || data.phase_id || data.fase_id);
 
   if (!title || isNaN(phaseId) || phaseId <= 0) {
-    errors.push('Título e Fase/Pilar são obrigatórios');
+    errors.push('Título e Fase são obrigatórios');
   }
 
   const description = typeof data.description === 'string' ? data.description.trim() : '';
@@ -115,11 +115,10 @@ export function validateProjectInput(data: any): ProjectValidationResult {
   };
 }
 
-export function calculateNextOrder(existingPillarsOrder: number[]): number {
-  if (!existingPillarsOrder || existingPillarsOrder.length === 0) {
+export function calculateNextOrder(existingPhasesOrder: number[]): number {
+  if (!existingPhasesOrder || existingPhasesOrder.length === 0) {
     return 1;
   }
-  const maxOrder = Math.max(...existingPillarsOrder);
+  const maxOrder = Math.max(...existingPhasesOrder);
   return maxOrder + 1;
 }
-

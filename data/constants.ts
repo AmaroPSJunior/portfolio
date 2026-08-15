@@ -74,7 +74,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
       { id: 5, phase: 3, title: 'PoC Web3', completed: true, badges: ['Web3'] },
       { id: 6, phase: 3, title: 'PoC Pix', completed: false, badges: ['Pix'] },
       { id: 7, phase: 4, title: 'Suíte Vitest', completed: true, badges: ['QA'] },
-      { id: 8, phase: 4, title: 'Validação 4 Pilares', completed: true, badges: ['DevOps'] }
+      { id: 8, phase: 4, title: 'Validação 4 Fases', completed: true, badges: ['DevOps'] }
     ];
   });
 
@@ -82,7 +82,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
     expect(calculateProgress(mockTasks)).toBe(75);
   });
 
-  it('deve calcular progresso dos 4 pilares individualmente', () => {
+  it('deve calcular progresso das 4 fases individualmente', () => {
     expect(calculatePhaseProgress(mockTasks, 1)).toBe(100);
     expect(calculatePhaseProgress(mockTasks, 2)).toBe(50);
     expect(calculatePhaseProgress(mockTasks, 3)).toBe(50);

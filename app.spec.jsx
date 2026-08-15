@@ -2,15 +2,15 @@
 import React, { useState } from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { validatePillarInput, calculateNextOrder } from './lib/validators';
+import { validatePhaseInput, calculateNextOrder } from './lib/validators';
 import { RoadmapTab } from './components/RoadmapTab';
 import { AddTaskModal } from './components/AddTaskModal';
 
 const TEST_PHASES = [
-  { id: 1, icon: '🚀', title: 'Fase 1 - Roadmap & Evolução do Portfólio', subtitle: 'Pilar 1' },
-  { id: 2, icon: '💼', title: 'Fase 2 - Projetos, Produtos e Serviços', subtitle: 'Pilar 2' },
-  { id: 3, icon: '🧪', title: 'Fase 3 - Tech Lab & Experimentos', subtitle: 'Pilar 3' },
-  { id: 4, icon: '🛡️', title: 'Fase 4 - QA & Testes de Habilidade', subtitle: 'Pilar 4' },
+  { id: 1, icon: '🚀', title: 'Fase 1 - Roadmap & Evolução do Portfólio', subtitle: 'Fase 1' },
+  { id: 2, icon: '💼', title: 'Fase 2 - Projetos, Produtos e Serviços', subtitle: 'Fase 2' },
+  { id: 3, icon: '🧪', title: 'Fase 3 - Tech Lab & Experimentos', subtitle: 'Fase 3' },
+  { id: 4, icon: '🛡️', title: 'Fase 4 - QA & Testes de Habilidade', subtitle: 'Fase 4' },
 ];
 
 const TEST_TASKS = [
@@ -46,7 +46,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
       { id: 5, phase: 3, title: 'PoC Web3', completed: true, badges: ['Web3'] },
       { id: 6, phase: 3, title: 'PoC Pix', completed: false, badges: ['Pix'] },
       { id: 7, phase: 4, title: 'Suíte Vitest', completed: true, badges: ['QA'] },
-      { id: 8, phase: 4, title: 'Validação 4 Pilares', completed: true, badges: ['DevOps'] }
+      { id: 8, phase: 4, title: 'Validação 4 Fases', completed: true, badges: ['DevOps'] }
     ];
   });
 
@@ -54,34 +54,34 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
     expect(calculateProgress(mockTasks)).toBe(75);
   });
 
-  it('deve calcular progresso dos 4 pilares individualmente', () => {
+  it('deve calcular progresso das 4 fases individualmente', () => {
     expect(calculatePhaseProgress(mockTasks, 1)).toBe(100);
     expect(calculatePhaseProgress(mockTasks, 2)).toBe(50);
     expect(calculatePhaseProgress(mockTasks, 3)).toBe(50);
     expect(calculatePhaseProgress(mockTasks, 4)).toBe(100);
   });
 
-  describe('Validação e Ordenação do Cadastro de Pilares (Supabase Integration)', () => {
+  describe('Validação e Ordenação do Cadastro de Fases (Supabase Integration)', () => {
     it('deve rejeitar cadastro com título em branco', () => {
-      const result = validatePillarInput({ title: '   ', emoji: '🚀' });
+      const result = validatePhaseInput({ title: '   ', emoji: '🚀' });
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('O título do Pilar é obrigatório.');
+      expect(result.errors).toContain('O título da Fase é obrigatório.');
     });
 
     it('deve rejeitar título com menos de 3 caracteres', () => {
-      const result = validatePillarInput({ title: 'Ab', emoji: '🚀' });
+      const result = validatePhaseInput({ title: 'Ab', emoji: '🚀' });
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('O título deve conter pelo menos 3 caracteres.');
     });
 
     it('deve rejeitar cadastro sem emoji', () => {
-      const result = validatePillarInput({ title: 'Fase 5 - DevOps', emoji: '' });
+      const result = validatePhaseInput({ title: 'Fase 5 - DevOps', emoji: '' });
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('O emoji/ícone do Pilar é obrigatório.');
+      expect(result.errors).toContain('O emoji/ícone da Fase é obrigatório.');
     });
 
     it('deve aceitar dados válidos e sanitizar entradas', () => {
-      const result = validatePillarInput({
+      const result = validatePhaseInput({
         title: '  Fase 5 - Microservices  ',
         subtitle: ' Arquitetura Cloud Native ',
         emoji: ' ☁️ ',
@@ -99,7 +99,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
     });
   });
 
-  describe('Comportamento de Pilares Contraídos e Botão Novo Projeto', () => {
+  describe('Comportamento de Fases Contraídas e Botão Novo Projeto', () => {
     const dummyGithubConfig = {
       owner: 'amaropedro',
       repo: 'painel-homologacao',
@@ -146,60 +146,61 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
           setShowAddModal={() => {}}
           onOpenAddTaskModal={onOpenAddTaskModal}
           setShowGithubModal={() => {}}
-          setShowPilarModal={() => {}}
+          setShowPhaseModal={() => {}}
         />
       );
     }
 
-    it('a) Os pilares iniciam contraídos por padrão', () => {
+    it('a) As fases iniciam contraídas por padrão', () => {
       render(<RoadmapTabTestWrapper />);
 
-      // Títulos dos pilares visíveis
-      expect(screen.getAllByText('Pilar 1').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Pilar 2').length).toBeGreaterThan(0);
+      // Títulos das fases visíveis
+      expect(screen.getAllByText('Fase 1').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Fase 2').length).toBeGreaterThan(0);
 
-      // Nenhum botão "Novo Projeto" deve estar presente no DOM
-      const novoProjetoButtons = screen.queryAllByText('Novo Projeto');
-      expect(novoProjetoButtons.length).toBe(0);
+      // Apenas 1 botão "Novo Projeto" (na barra de ações global)
+      const novoProjetoButtons = screen.getAllByText('Novo Projeto');
+      expect(novoProjetoButtons.length).toBe(1);
     });
 
-    it('b) O botão "Novo Projeto" NÃO está presente no DOM quando os pilares estão contraídos', () => {
+    it('b) Botão "Novo Projeto" específico da Fase NÃO está presente quando a fase está contraída', () => {
       render(<RoadmapTabTestWrapper />);
 
-      const novoProjetoBtn = screen.queryByText('Novo Projeto');
-      expect(novoProjetoBtn).toBeNull();
+      // Apenas a barra global possui o botão quando as fases estão fechadas
+      const novoProjetoBtns = screen.getAllByText('Novo Projeto');
+      expect(novoProjetoBtns.length).toBe(1);
     });
 
-    it('c) O clique no pilar expande o conteúdo e exibe o botão "Novo Projeto"', () => {
+    it('c) O clique na fase expande o conteúdo e exibe o botão "Novo Projeto" adicional dentro da fase', () => {
       render(<RoadmapTabTestWrapper />);
 
-      // Clica para expandir o Pilar 1 (último 'Pilar 1' é o accordion header)
-      const pilar1Elements = screen.getAllByText('Pilar 1');
-      const pilar1Header = pilar1Elements[pilar1Elements.length - 1];
-      fireEvent.click(pilar1Header);
+      // Clica para expandir a Fase 1
+      const fase1Elements = screen.getAllByText('Fase 1');
+      const fase1Header = fase1Elements[fase1Elements.length - 1];
+      fireEvent.click(fase1Header);
 
-      // O botão "Novo Projeto" agora deve ser renderizado no DOM dentro do pilar expandido
-      const novoProjetoBtn = screen.getByText('Novo Projeto');
-      expect(novoProjetoBtn).toBeTruthy();
+      // Agora temos 2 botões "Novo Projeto" (Global + Dentro da Fase 1)
+      const novoProjetoBtns = screen.getAllByText('Novo Projeto');
+      expect(novoProjetoBtns.length).toBe(2);
     });
 
-    it('d) Clicar em "Novo Projeto" passa o pilar_id correspondente', () => {
+    it('d) Clicar em "Novo Projeto" da fase passa o fase_id correspondente', () => {
       const handleOpenAddModal = vi.fn();
       render(<RoadmapTabTestWrapper onOpenAddTaskModal={handleOpenAddModal} />);
 
-      // Expande o Pilar 2 (último 'Pilar 2' é o accordion header)
-      const pilar2Elements = screen.getAllByText('Pilar 2');
-      const pilar2Header = pilar2Elements[pilar2Elements.length - 1];
-      fireEvent.click(pilar2Header);
+      // Expande a Fase 2
+      const fase2Elements = screen.getAllByText('Fase 2');
+      const fase2Header = fase2Elements[fase2Elements.length - 1];
+      fireEvent.click(fase2Header);
 
-      // Clica no botão "Novo Projeto" do Pilar 2
-      const novoProjetoBtn = screen.getByText('Novo Projeto');
-      fireEvent.click(novoProjetoBtn);
+      // Clica no segundo botão "Novo Projeto" (o da Fase 2)
+      const novoProjetoBtns = screen.getAllByText('Novo Projeto');
+      fireEvent.click(novoProjetoBtns[1]);
 
       expect(handleOpenAddModal).toHaveBeenCalledWith(2);
     });
 
-    it('e) O modal de criação de projeto preseleciona automaticamente o pilar vinculado', () => {
+    it('e) O modal de criação de projeto preseleciona automaticamente a fase vinculada', () => {
       render(
         <AddTaskModal
           show={true}
@@ -215,4 +216,3 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
     });
   });
 });
-

@@ -26,8 +26,8 @@ interface Props {
 const SUPABASE_MIGRATION_SQL = `-- SQL de Migração Supabase
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. Tabela de Pilares
-CREATE TABLE IF NOT EXISTS public.pillars (
+-- 1. Tabela de Fases
+CREATE TABLE IF NOT EXISTS public.fases (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   numeric_id SERIAL UNIQUE,
   title TEXT NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.pillars (
 CREATE TABLE IF NOT EXISTS public.projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   numeric_id SERIAL UNIQUE,
-  phase_id INT NOT NULL,
+  fase_id INT NOT NULL,
   title TEXT NOT NULL,
   description TEXT DEFAULT '',
   requirements TEXT[] DEFAULT '{}',
@@ -61,22 +61,22 @@ CREATE TABLE IF NOT EXISTS public.site_config (
 );
 
 -- 4. Ativar RLS
-ALTER TABLE public.pillars ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_config ENABLE ROW LEVEL SECURITY;
 
 -- 5. Políticas RLS
-DROP POLICY IF EXISTS "Permitir leitura de pilares" ON public.pillars;
-CREATE POLICY "Permitir leitura de pilares" ON public.pillars FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Permitir leitura de fases" ON public.fases;
+CREATE POLICY "Permitir leitura de fases" ON public.fases FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Permitir inserção de pilares" ON public.pillars;
-CREATE POLICY "Permitir inserção de pilares" ON public.pillars FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Permitir inserção de fases" ON public.fases;
+CREATE POLICY "Permitir inserção de fases" ON public.fases FOR INSERT WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Permitir atualização de pilares" ON public.pillars;
-CREATE POLICY "Permitir atualização de pilares" ON public.pillars FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Permitir atualização de fases" ON public.fases;
+CREATE POLICY "Permitir atualização de fases" ON public.fases FOR UPDATE USING (true);
 
-DROP POLICY IF EXISTS "Permitir deleção de pilares" ON public.pillars;
-CREATE POLICY "Permitir deleção de pilares" ON public.pillars FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Permitir deleção de fases" ON public.fases;
+CREATE POLICY "Permitir deleção de fases" ON public.fases FOR DELETE USING (true);
 
 DROP POLICY IF EXISTS "Permitir leitura de projetos" ON public.projects;
 CREATE POLICY "Permitir leitura de projetos" ON public.projects FOR SELECT USING (true);

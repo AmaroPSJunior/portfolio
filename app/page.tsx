@@ -8,7 +8,7 @@ import { ProductsTab } from '@/components/ProductsTab';
 import { CicdTab } from '@/components/CicdTab';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { GithubModal } from '@/components/GithubModal';
-import { CreatePilarModal } from '@/components/CreatePilarModal';
+import { CreatePhaseModal } from '@/components/CreatePhaseModal';
 import { DiagnosticsModal } from '@/components/DiagnosticsModal';
 import { AdminModal } from '@/components/AdminModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -24,10 +24,10 @@ export default function HomePage() {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showGithubModal, setShowGithubModal] = useState<boolean>(false);
-  const [showPilarModal, setShowPilarModal] = useState<boolean>(false);
+  const [showPhaseModal, setShowPhaseModal] = useState<boolean>(false);
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState<boolean>(false);
   const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
-  const [selectedPillarForModal, setSelectedPillarForModal] = useState<number | undefined>(undefined);
+  const [selectedPhaseForModal, setSelectedPhaseForModal] = useState<number | undefined>(undefined);
 
   // Dynamic Site Config for Roadmap Page Title & Subtitle from Database
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
@@ -70,21 +70,21 @@ export default function HomePage() {
     }
   };
 
-  const saveCustomPillarsToLocalStorage = (allPhases: Phase[]) => {
+  const saveCustomPhasesToLocalStorage = (allPhases: Phase[]) => {
     try {
-      localStorage.setItem('amaro_custom_pillars_v2', JSON.stringify(allPhases));
+      localStorage.setItem('amaro_custom_phases_v2', JSON.stringify(allPhases));
     } catch (e) {
-      AppLogger.warn('UI:localStorage', 'Falha ao salvar pilares no LocalStorage');
+      AppLogger.warn('UI:localStorage', 'Falha ao salvar fases no LocalStorage');
     }
   };
 
-  // Fetch all pillars, projects & site_config directly from Supabase DB via API
+  // Fetch all phases, projects & site_config directly from Supabase DB via API
   const fetchDatabaseData = useCallback(async () => {
     try {
-      const [resPillars, resProjects, resConfig] = await Promise.all([
-        fetch('/api/pillars').then((r) => r.json()).catch((err) => {
-          AppLogger.error('UI:fetchPillars', 'Erro na requisição /api/pillars', err);
-          return { pillars: [] };
+      const [resPhases, resProjects, resConfig] = await Promise.all([
+        fetch('/api/fases').then((r) => r.json()).catch((err) => {
+          AppLogger.error('UI:fetchPhases', 'Erro na requisição /api/fases', err);
+          return { phases: [] };
         }),
         fetch('/api/projects').then((r) => r.json()).catch((err) => {
           AppLogger.error('UI:fetchProjects', 'Erro na requisição /api/projects', err);
@@ -96,16 +96,16 @@ export default function HomePage() {
         }),
       ]);
 
-      if (resPillars?.tableMissing || resProjects?.tableMissing) {
+      if (resPhases?.tableMissing || resProjects?.tableMissing) {
         setApiErrorNotice({
-          message: 'Aviso Supabase: A tabela "projects" ou "pillars" não foi encontrada no banco. Clique para abrir Diagnóstico e ver o SQL de criação.',
+          message: 'Aviso Supabase: A tabela "projects" ou "fases" não foi encontrada no banco. Clique para abrir Diagnóstico e ver o SQL de criação.',
           action: () => setShowDiagnosticsModal(true),
         });
       }
 
-      if (resPillars && Array.isArray(resPillars.pillars)) {
-        setPhases(resPillars.pillars);
-        saveCustomPillarsToLocalStorage(resPillars.pillars);
+      if (resPhases && Array.isArray(resPhases.phases)) {
+        setPhases(resPhases.phases);
+        saveCustomPhasesToLocalStorage(resPhases.phases);
       }
 
       if (resProjects && Array.isArray(resProjects.projects)) {
@@ -146,7 +146,6 @@ export default function HomePage() {
       return false;
     }
   };
-
 
   // Sync on mount & setup periodic refresh for bidirectional database updates
   useEffect(() => {
@@ -203,24 +202,24 @@ export default function HomePage() {
     setExpandedCards([]);
   };
 
-  // Pillar actions (Create & Delete)
-  const handlePillarCreated = (newPillar: Phase) => {
+  // Phase actions (Create & Delete)
+  const handlePhaseCreated = (newPhase: Phase) => {
     setPhases((prev) => {
-      const exists = prev.some((p) => p.id === newPillar.id);
-      const updated = exists ? prev.map((p) => (p.id === newPillar.id ? newPillar : p)) : [...prev, newPillar];
-      saveCustomPillarsToLocalStorage(updated);
+      const exists = prev.some((p) => p.id === newPhase.id);
+      const updated = exists ? prev.map((p) => (p.id === newPhase.id ? newPhase : p)) : [...prev, newPhase];
+      saveCustomPhasesToLocalStorage(updated);
       return updated;
     });
-    setOpenPhases((prev) => [...prev, newPillar.id]);
+    setOpenPhases((prev) => [...prev, newPhase.id]);
     fetchDatabaseData();
   };
 
-  const deletePillar = async (phaseId: number) => {
+  const deletePhase = async (phaseId: number) => {
     setApiErrorNotice(null);
     // Optimistic UI update
     setPhases((prev) => {
       const updated = prev.filter((p) => p.id !== phaseId);
-      saveCustomPillarsToLocalStorage(updated);
+      saveCustomPhasesToLocalStorage(updated);
       return updated;
     });
     setTasks((prev) => {
@@ -230,17 +229,17 @@ export default function HomePage() {
     });
 
     try {
-      const res = await fetch(`/api/pillars/${phaseId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/fases/${phaseId}`, { method: 'DELETE' });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erro ao excluir pilar');
+        throw new Error(errData.error || 'Erro ao excluir fase');
       }
       fetchDatabaseData();
     } catch (err: any) {
-      AppLogger.error('UI:deletePillar', `Falha ao excluir pilar ID=${phaseId}`, err);
+      AppLogger.error('UI:deletePhase', `Falha ao excluir fase ID=${phaseId}`, err);
       setApiErrorNotice({
-        message: `Não foi possível excluir o pilar: ${err.message}`,
-        action: () => deletePillar(phaseId),
+        message: `Não foi possível excluir a fase: ${err.message}`,
+        action: () => deletePhase(phaseId),
       });
       fetchDatabaseData();
     }
@@ -361,7 +360,7 @@ export default function HomePage() {
   };
 
   const handleOpenAddTaskModal = (phaseId?: number) => {
-    setSelectedPillarForModal(phaseId);
+    setSelectedPhaseForModal(phaseId);
     setShowAddModal(true);
   };
 
@@ -434,7 +433,7 @@ export default function HomePage() {
         {(activeTab === 'roadmap' || activeTab === 'checklist') && (
           <ErrorBoundary
             scope="Tab:Roadmap"
-            fallbackTitle="Falha ao carregar o Roadmap de Pilares"
+            fallbackTitle="Falha ao carregar o Roadmap de Fases"
           >
             <RoadmapTab
               phases={phases}
@@ -455,12 +454,12 @@ export default function HomePage() {
               collapseAllCards={collapseAllCards}
               toggleTask={toggleTask}
               deleteTask={deleteTask}
-              deletePillar={deletePillar}
+              deletePhase={deletePhase}
               resetChecklist={resetChecklist}
               setShowAddModal={setShowAddModal}
               onOpenAddTaskModal={handleOpenAddTaskModal}
               setShowGithubModal={setShowGithubModal}
-              setShowPilarModal={setShowPilarModal}
+              setShowPhaseModal={setShowPhaseModal}
               onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
             />
           </ErrorBoundary>
@@ -495,13 +494,13 @@ export default function HomePage() {
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddNewTask}
         phases={phases}
-        initialPhaseId={selectedPillarForModal}
+        initialPhaseId={selectedPhaseForModal}
       />
 
-      <CreatePilarModal
-        show={showPilarModal}
-        onClose={() => setShowPilarModal(false)}
-        onPillarCreated={handlePillarCreated}
+      <CreatePhaseModal
+        show={showPhaseModal}
+        onClose={() => setShowPhaseModal(false)}
+        onPhaseCreated={handlePhaseCreated}
       />
 
       <GithubModal

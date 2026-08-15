@@ -4,8 +4,8 @@ import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 
 // Import Next.js API route handlers to test real integration logic
-import { GET as getPillars, POST as postPillars } from '../app/api/pillars/route';
-import { DELETE as deletePillarApi, PATCH as patchPillarApi } from '../app/api/pillars/[id]/route';
+import { GET as getPhases, POST as postPhases } from '../app/api/fases/route';
+import { DELETE as deletePhaseApi, PATCH as patchPhaseApi } from '../app/api/fases/[id]/route';
 import { GET as getProjects, POST as postProjects } from '../app/api/projects/route';
 import { DELETE as deleteProjectApi, PATCH as patchProjectApi } from '../app/api/projects/[id]/route';
 
@@ -25,7 +25,7 @@ vi.mock('../lib/supabase', () => {
 
 describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Specialist)', () => {
   // Mock dataset matching PostgreSQL Schema
-  const initialDbPillars = [
+  const initialDbPhases = [
     {
       id: 'a1111111-1111-1111-1111-111111111111',
       numeric_id: 1,
@@ -50,6 +50,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
     {
       id: 'p1111111-1111-1111-1111-111111111111',
       numeric_id: 1,
+      fase_id: 1,
       phase_id: 1,
       title: 'Painel de Sincronização com API REST do GitHub & Supabase',
       description: 'Integração via API REST',
@@ -62,6 +63,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
     {
       id: 'p4444444-4444-4444-4444-444444444444',
       numeric_id: 4,
+      fase_id: 1,
       phase_id: 1,
       title: 'Modais de Adição Dinâmica de Projetos e Configurações',
       description: 'Modais com validação em tempo real',
@@ -73,23 +75,23 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
     },
   ];
 
-  let currentDbPillars: Array<any>;
+  let currentDbPhases: Array<any>;
   let currentDbProjects: Array<any>;
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    currentDbPillars = [...initialDbPillars];
+    currentDbPhases = [...initialDbPhases];
     currentDbProjects = [...initialDbProjects];
 
     const mockFrom = supabase.from as unknown as Mock;
 
     // Helper to simulate Supabase chaining behavior
     mockFrom.mockImplementation((tableName: string) => {
-      if (tableName === 'pillars') {
+      if (tableName === 'fases' || tableName === 'pillars') {
         return {
           select: vi.fn().mockImplementation(() => ({
             order: vi.fn().mockImplementation((col: string, { ascending } = { ascending: true }) => {
-              const sorted = [...currentDbPillars].sort((a, b) =>
+              const sorted = [...currentDbPhases].sort((a, b) =>
                 ascending ? a.order - b.order : b.order - a.order
               );
               return {
@@ -101,17 +103,17 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
                 error: null,
               };
             }),
-            data: currentDbPillars,
+            data: currentDbPhases,
             error: null,
           })),
           insert: vi.fn().mockImplementation((records: Array<any>) => {
             const newRecords = records.map((r: any, idx: number) => ({
-              id: `gen-pillar-uuid-${Date.now()}-${idx}`,
-              numeric_id: currentDbPillars.length + 1,
+              id: `gen-phase-uuid-${Date.now()}-${idx}`,
+              numeric_id: currentDbPhases.length + 1,
               created_at: new Date().toISOString(),
               ...r,
             }));
-            currentDbPillars.push(...newRecords);
+            currentDbPhases.push(...newRecords);
             return {
               select: vi.fn().mockReturnValue({
                 data: newRecords,
@@ -121,16 +123,16 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
           }),
           delete: vi.fn().mockImplementation(() => ({
             eq: vi.fn().mockImplementation((col: string, val: any) => {
-              currentDbPillars = currentDbPillars.filter((p: any) => p[col] !== val);
+              currentDbPhases = currentDbPhases.filter((p: any) => p[col] !== val);
               return { error: null };
             }),
           })),
           update: vi.fn().mockImplementation((updateData: any) => ({
             eq: vi.fn().mockImplementation((col: string, val: any) => {
-              currentDbPillars = currentDbPillars.map((p: any) =>
+              currentDbPhases = currentDbPhases.map((p: any) =>
                 p[col] === val ? { ...p, ...updateData } : p
               );
-              const updated = currentDbPillars.filter((p: any) => p[col] === val);
+              const updated = currentDbPhases.filter((p: any) => p[col] === val);
               return {
                 select: vi.fn().mockReturnValue({ data: updated, error: null }),
                 data: updated,
@@ -202,14 +204,14 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
   });
 
   describe('1. Validação de Leitura (READ / GET)', () => {
-    it('deve buscar e formatar lista de pilares a partir da tabela Supabase', async () => {
-      const response = await getPillars();
+    it('deve buscar e formatar lista de fases a partir da tabela Supabase', async () => {
+      const response = await getPhases();
       const body = await response.json();
 
-      expect(supabase.from).toHaveBeenCalledWith('pillars');
-      expect(body.pillars).toBeDefined();
-      expect(body.pillars.length).toBe(2);
-      expect(body.pillars[0]).toEqual({
+      expect(supabase.from).toHaveBeenCalledWith('fases');
+      expect(body.phases).toBeDefined();
+      expect(body.phases.length).toBe(2);
+      expect(body.phases[0]).toEqual({
         id: 1,
         title: 'Fase 1 - Roadmap & Evolução do Portfólio',
         subtitle: 'Setup inicial e layout',
@@ -243,7 +245,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
   });
 
   describe('2. Validação de Inclusão (INSERT / POST)', () => {
-    it('deve incluir novo pilar no Supabase respeitando ordem e colunas do contrato', async () => {
+    it('deve incluir nova fase no Supabase respeitando ordem e colunas do contrato', async () => {
       const mockReq = {
         json: async () => ({
           title: 'Fase 5 - Arquitetura Cloud Native',
@@ -252,16 +254,16 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         }),
       } as any;
 
-      const response = await postPillars(mockReq);
+      const response = await postPhases(mockReq);
       const body = await response.json();
 
       expect(response.status).toBe(201);
-      expect(body.pillar.title).toBe('Fase 5 - Arquitetura Cloud Native');
-      expect(body.pillar.icon).toBe('☁️');
-      expect(body.pillar.order).toBe(3); // Calculated order = max(2) + 1
+      expect(body.phase.title).toBe('Fase 5 - Arquitetura Cloud Native');
+      expect(body.phase.icon).toBe('☁️');
+      expect(body.phase.order).toBe(3); // Calculated order = max(2) + 1
     });
 
-    it('deve rejeitar inclusão de pilar sem título válido (validação de integridade)', async () => {
+    it('deve rejeitar inclusão de fase sem título válido (validação de integridade)', async () => {
       const mockReq = {
         json: async () => ({
           title: '   ',
@@ -269,14 +271,14 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         }),
       } as any;
 
-      const response = await postPillars(mockReq);
+      const response = await postPhases(mockReq);
       const body = await response.json();
 
       expect(response.status).toBe(400);
       expect(body.error).toBe('Dados inválidos');
     });
 
-    it('deve incluir novo projeto vinculado ao pilar correto no Supabase', async () => {
+    it('deve incluir novo projeto vinculado à fase correta no Supabase', async () => {
       const mockReq = {
         json: async () => ({
           phase: 1,
@@ -314,7 +316,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const body = await response.json();
 
       expect(response.status).toBe(400);
-      expect(body.error).toBe('Título e Fase/Pilar são obrigatórios');
+      expect(body.error).toBe('Título e Fase são obrigatórios');
     });
 
     it('deve utilizar fallback resiliente em caso de erro na inserção do Supabase ao criar projeto', async () => {
@@ -375,7 +377,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       expect(targetInDb?.completed).toBe(true);
     });
 
-    it('deve atualizar os dados de um pilar por numeric_id no Supabase', async () => {
+    it('deve atualizar os dados de uma fase por numeric_id no Supabase', async () => {
       const mockReq = {
         json: async () => ({
           title: 'Fase 1 - Roadmap Atualizado',
@@ -384,15 +386,15 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       } as any;
 
       const params = Promise.resolve({ id: '1' });
-      const response = await patchPillarApi(mockReq, { params });
+      const response = await patchPhaseApi(mockReq, { params });
       const body = await response.json();
 
       expect(response.status).toBe(200);
       expect(body.success).toBe(true);
 
-      const targetPillar = currentDbPillars.find((p: any) => p.numeric_id === 1);
-      expect(targetPillar?.title).toBe('Fase 1 - Roadmap Atualizado');
-      expect(targetPillar?.subtitle).toBe('Subtítulo alterado via PATCH');
+      const targetPhase = currentDbPhases.find((p: any) => p.numeric_id === 1);
+      expect(targetPhase?.title).toBe('Fase 1 - Roadmap Atualizado');
+      expect(targetPhase?.subtitle).toBe('Subtítulo alterado via PATCH');
     });
   });
 
@@ -411,23 +413,23 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       expect(existsInDb).toBe(false);
     });
 
-    it('deve excluir um pilar (numeric_id = 2) do Supabase', async () => {
+    it('deve excluir uma fase (numeric_id = 2) do Supabase', async () => {
       const mockReq = {} as any;
       const params = Promise.resolve({ id: '2' });
 
-      const response = await deletePillarApi(mockReq, { params });
+      const response = await deletePhaseApi(mockReq, { params });
       const body = await response.json();
 
       expect(response.status).toBe(200);
       expect(body.success).toBe(true);
 
-      const existsInDb = currentDbPillars.some((p: any) => p.numeric_id === 2);
+      const existsInDb = currentDbPhases.some((p: any) => p.numeric_id === 2);
       expect(existsInDb).toBe(false);
     });
   });
 
   describe('5. Tratamento de Erros e Resiliência do Banco', () => {
-    it('deve retornar lista vazia de pilares sem quebrar em falha do Supabase', async () => {
+    it('deve retornar lista vazia de fases sem quebrar em falha do Supabase', async () => {
       const mockFrom = supabase.from as unknown as Mock;
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
@@ -438,13 +440,13 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         }),
       });
 
-      const response = await getPillars();
+      const response = await getPhases();
       const body = await response.json();
 
-      expect(body.pillars).toEqual([]);
+      expect(body.phases).toEqual([]);
     });
 
-    it('deve retornar status 500 ao tentar excluir pilar com erro no Supabase', async () => {
+    it('deve retornar status 500 ao tentar excluir fase com erro no Supabase', async () => {
       const mockFrom = supabase.from as unknown as Mock;
       mockFrom.mockReturnValueOnce({
         delete: vi.fn().mockReturnValue({
@@ -457,7 +459,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const mockReq = {} as any;
       const params = Promise.resolve({ id: '1' });
 
-      const response = await deletePillarApi(mockReq, { params });
+      const response = await deletePhaseApi(mockReq, { params });
       const body = await response.json();
 
       expect(response.status).toBe(500);
@@ -467,14 +469,14 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
   });
 
   describe('6. Integração da Interface (UI Component Lifecycle & State Binding)', () => {
-    it('deve carregar os dados das API Routes e renderizar pilares/projetos na tela', async () => {
+    it('deve carregar os dados das API Routes e renderizar fases/projetos na tela', async () => {
       // Mock global fetch para simular Next.js API Routes chamadas em app/page.tsx
       global.fetch = vi.fn().mockImplementation((url: string) => {
-        if (url.includes('/api/pillars')) {
+        if (url.includes('/api/fases') || url.includes('/api/pillars')) {
           return Promise.resolve({
             ok: true,
             json: async () => ({
-              pillars: [
+              phases: [
                 {
                   id: 1,
                   title: 'Fase 1 - Frontend & Backend',

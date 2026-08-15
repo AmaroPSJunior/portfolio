@@ -1,7 +1,23 @@
 'use client';
 
 import React from 'react';
-import { Phase, Task, GithubConfig, SiteConfig } from '@/types';
+import { Task, Phase, GithubConfig, SiteConfig } from '@/types';
+import { TaskCard } from './TaskCard';
+import {
+  ChevronDown,
+  ChevronRight,
+  Filter,
+  Plus,
+  RefreshCw,
+  FolderGit2,
+  ListFilter,
+  Layers,
+  Sparkles,
+  Info,
+  Maximize2,
+  Minimize2,
+  Trash2,
+} from 'lucide-react';
 
 interface RoadmapTabProps {
   phases: Phase[];
@@ -13,21 +29,21 @@ interface RoadmapTabProps {
   selectedStatusFilter: string;
   githubConfig: GithubConfig;
   siteConfig?: SiteConfig;
-  setSearchQuery: (q: string) => void;
-  setSelectedPhaseFilter: (f: string) => void;
-  setSelectedStatusFilter: (s: string) => void;
+  setSearchQuery: (query: string) => void;
+  setSelectedPhaseFilter: (phase: string) => void;
+  setSelectedStatusFilter: (status: string) => void;
   togglePhase: (phaseId: number) => void;
   toggleCard: (taskId: number) => void;
   expandAllCards: () => void;
   collapseAllCards: () => void;
   toggleTask: (taskId: number) => void;
   deleteTask: (taskId: number) => void;
-  deletePillar?: (phaseId: number) => void;
+  deletePhase?: (phaseId: number) => void;
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   onOpenAddTaskModal?: (phaseId?: number) => void;
   setShowGithubModal: (show: boolean) => void;
-  setShowPilarModal: (show: boolean) => void;
+  setShowPhaseModal?: (show: boolean) => void;
   onOpenDiagnostics?: () => void;
 }
 
@@ -50,463 +66,369 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   collapseAllCards,
   toggleTask,
   deleteTask,
-  deletePillar,
+  deletePhase,
   resetChecklist,
   setShowAddModal,
   onOpenAddTaskModal,
   setShowGithubModal,
-  setShowPilarModal,
+  setShowPhaseModal,
   onOpenDiagnostics,
 }) => {
-  const totalTasksCount = tasks.length;
-  const completedTasksCount = tasks.filter((t) => t.completed).length;
-  const overallPercentage =
-    totalTasksCount === 0 ? 0 : Math.round((completedTasksCount / totalTasksCount) * 100);
+  // Safe filtering logic
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      searchQuery.trim() === '' ||
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.badges.some((b) => b.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      task.requirements.some((r) => r.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const getPhaseTotalCount = (phaseId: number) => {
-    return tasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
-  };
+    const matchesPhase =
+      selectedPhaseFilter === 'all' || task.phase === Number(selectedPhaseFilter);
 
-  const getPhaseCompletedCount = (phaseId: number) => {
-    return tasks.filter((t) => Number(t.phase) === Number(phaseId) && t.completed).length;
-  };
+    const matchesStatus =
+      selectedStatusFilter === 'all' ||
+      (selectedStatusFilter === 'completed' && task.completed) ||
+      (selectedStatusFilter === 'pending' && !task.completed);
 
-  const getPhasePercentage = (phaseId: number) => {
-    const total = getPhaseTotalCount(phaseId);
-    if (total === 0) return 0;
-    return Math.round((getPhaseCompletedCount(phaseId) / total) * 100);
-  };
+    return matchesSearch && matchesPhase && matchesStatus;
+  });
 
-  const completedPhasesCount = phases.filter((p) => getPhasePercentage(p.id) === 100).length;
-
-  const filteredPhases =
-    selectedPhaseFilter === 'all'
-      ? phases
-      : phases.filter((p) => Number(p.id) === Number(selectedPhaseFilter));
-
-  const getTasksByPhase = (phaseId: number) => {
-    return tasks.filter((task) => {
-      if (Number(task.phase) !== Number(phaseId)) return false;
-
-      // Status filter
-      if (selectedStatusFilter === 'completed' && !task.completed) return false;
-      if (selectedStatusFilter === 'pending' && task.completed) return false;
-
-      // Search query filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        const matchesTitle = task.title.toLowerCase().includes(query);
-        const matchesDesc = task.description.toLowerCase().includes(query);
-        const matchesBadges = task.badges.some((b) => b.toLowerCase().includes(query));
-        const matchesReqs = task.requirements.some((r) => r.toLowerCase().includes(query));
-        if (!matchesTitle && !matchesDesc && !matchesBadges && !matchesReqs) return false;
-      }
-
-      return true;
-    });
-  };
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const completedPhasesCount = phases.filter((phase) => {
+    const phaseTasks = tasks.filter((t) => t.phase === phase.id);
+    return phaseTasks.length > 0 && phaseTasks.every((t) => t.completed);
+  }).length;
 
   return (
-    <div id="roadmap-evolucao-view">
-      {/* HERO & GENERAL PROGRESS HEADER */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 pt-6 pb-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* Title and Description (Loaded dynamically from database) */}
-            <div className="space-y-2 max-w-2xl">
-              <h2 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-                {siteConfig?.title || 'Projetos, Ideias & Requisitos de Evolução'}
-              </h2>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                {siteConfig?.subtitle ||
-                  'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.'}
-              </p>
-            </div>
+    <div id="roadmap-tab-container" className="space-y-6 animate-fadeIn">
+      {/* 1. Header Hero Banner - Configurações Dinâmicas vindas do Banco Supabase */}
+      <div className="p-6 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+            <h1 className="text-xl font-black text-white tracking-tight">
+              {siteConfig?.title || 'Projetos, Ideias & Requisitos de Evolução'}
+            </h1>
+          </div>
+          <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
+            {siteConfig?.subtitle ||
+              'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis.'}
+          </p>
+        </div>
 
-            {/* Overall Progress Widget */}
-            <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl min-w-[300px] flex flex-col gap-3">
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-xs text-slate-400 uppercase font-semibold">Progresso dos Entregáveis</span>
-                  <div className="text-3xl font-black text-cyan-400 flex items-center gap-1">
-                    {overallPercentage}%
-                    <span className="text-xs font-normal text-slate-400">
-                      ({completedTasksCount}/{totalTasksCount} itens)
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span
-                    className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                      overallPercentage === 100
-                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                        : 'bg-cyan-950 text-cyan-300 border border-cyan-800'
-                    }`}
-                  >
-                    {overallPercentage === 100 ? '🎉 Homologado' : '🚀 Em Evolução'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                <div
-                  className="h-full bg-cyan-500 transition-all duration-500 ease-out"
-                  style={{ width: `${overallPercentage}%` }}
-                ></div>
-              </div>
-
-              <div className="flex justify-between text-xs text-slate-400 pt-1">
-                <span>🎯 Total: {totalTasksCount} Projetos</span>
-                <span>Pilares Concluídos: {completedPhasesCount}/4</span>
-              </div>
-            </div>
+        {/* Global Progress pill */}
+        <div className="flex items-center gap-3 shrink-0 bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+          <div className="text-right">
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">
+              Progresso do Portfólio
+            </span>
+            <span className="text-lg font-black text-emerald-400">{overallProgress}%</span>
+            <span className="text-[10px] text-slate-400 block">
+              Fases Concluídas: {completedPhasesCount}/{phases.length || 4}
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-full border-4 border-slate-800 border-t-emerald-500 flex items-center justify-center font-bold text-xs text-white bg-slate-900 shadow-inner">
+            {completedTasks}/{totalTasks}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* MAIN CHECKLIST & CONTROLS */}
-      <main className="max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-6">
-        {/* Controls & Filters Bar */}
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          {/* Search Input */}
+      {/* 2. Control Toolbar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Search Bar */}
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
             <input
+              type="text"
+              placeholder="Pesquisar por título, requisitos, badges..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              type="text"
-              placeholder="Buscar por projeto, ideia, tecnologia ou requisito..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 pl-3 pr-8 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300 text-xs"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          {/* Filter Dropdowns & Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Phase / Pillar Filter */}
-            <select
-              value={selectedPhaseFilter}
-              onChange={(e) => setSelectedPhaseFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-            >
-              <option value="all">Todas as Fases / Pilares</option>
-              {phases.map((p) => (
-                <option key={p.id} value={String(p.id)}>
-                  {p.icon} {p.title}
+          {/* Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+            {/* Phase Selector Filter */}
+            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
+              <Filter className="w-3.5 h-3.5 text-emerald-400" />
+              <select
+                value={selectedPhaseFilter}
+                onChange={(e) => setSelectedPhaseFilter(e.target.value)}
+                className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900 text-slate-200">
+                  Todas as Fases
                 </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatusFilter}
-              onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="pending">💡 Ideias / Em Planejamento</option>
-              <option value="completed">🟢 Concluídos / Homologados</option>
-            </select>
-
-            {/* Global Accordion Toggle Controls */}
-            <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
-              <button
-                onClick={expandAllCards}
-                className="bg-slate-950 hover:bg-slate-800 text-cyan-300 text-xs px-2.5 py-2 rounded-lg border border-slate-800 transition-all"
-                title="Expandir todos os cards de projetos"
-              >
-                📂 Expandir
-              </button>
-              <button
-                onClick={collapseAllCards}
-                className="bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs px-2.5 py-2 rounded-lg border border-slate-800 transition-all"
-                title="Recolher todos os cards"
-              >
-                📁 Recolher
-              </button>
+                {phases.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-slate-900 text-slate-200">
+                    {p.icon} {p.title}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Action Buttons */}
-            <button
-              onClick={() => setShowPilarModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow"
-              title="Cadastrar novo pilar no Supabase"
-            >
-              <span>🏛️</span> Novo Pilar
-            </button>
-
-            <button
-              onClick={resetChecklist}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 border border-slate-700"
-              title="Restaurar lista padrão"
-            >
-              <span>🔄</span> Resetar
-            </button>
+            {/* Status Filter */}
+            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
+              <ListFilter className="w-3.5 h-3.5 text-emerald-400" />
+              <select
+                value={selectedStatusFilter}
+                onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900 text-slate-200">
+                  Todos os Status
+                </option>
+                <option value="completed" className="bg-slate-900 text-slate-200">
+                  Somente Concluídos
+                </option>
+                <option value="pending" className="bg-slate-900 text-slate-200">
+                  Somente Pendentes
+                </option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* EXPANDABLE PHASES / PILLARS SECTIONS IN MINIMALIST GRID */}
-        <div className="space-y-6">
-          {filteredPhases.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-xl">
-              <div className="w-16 h-16 bg-slate-950 text-cyan-400 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
-                🏛️
-              </div>
-              <h3 className="text-lg font-bold text-white">
-                Nenhum Pilar ou Projeto Encontrado no Banco de Dados
-              </h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                A sua base de dados Supabase ainda não possui registros salvos de pilares/projetos ou os filtros aplicados não retornaram resultados. Utilize as opções abaixo para cadastrar dados reais diretamente no banco de dados.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <button
-                  onClick={() => setShowPilarModal(true)}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5"
-                >
-                  <span>🏛️</span> Criar Pilar no Supabase
-                </button>
-                <button
-                  onClick={() => onOpenAddTaskModal ? onOpenAddTaskModal(1) : setShowAddModal(true)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2.5 rounded-xl transition-all border border-slate-700 flex items-center gap-1.5"
-                >
-                  <span>➕</span> Criar Projeto no Supabase
-                </button>
-                {onOpenDiagnostics && (
-                  <button
-                    onClick={onOpenDiagnostics}
-                    className="bg-purple-950/80 hover:bg-purple-900 text-purple-200 text-xs px-4 py-2.5 rounded-xl transition-all border border-purple-800/80 flex items-center gap-1.5"
-                  >
-                    <span>⚙️</span> Diagnóstico / Criar Tabelas SQL
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            filteredPhases.map((phase) => {
-            const phaseTasks = getTasksByPhase(phase.id);
-            const isPhaseOpen = openPhases.includes(phase.id);
+        {/* Actions Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={expandAllCards}
+              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
+            >
+              <Maximize2 className="w-3 h-3 text-slate-400" />
+              Expandir Tudo
+            </button>
+            <button
+              onClick={collapseAllCards}
+              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
+            >
+              <Minimize2 className="w-3 h-3 text-slate-400" />
+              Recolher
+            </button>
+            <button
+              onClick={resetChecklist}
+              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
+              title="Sincronizar dados com o banco de dados"
+            >
+              <RefreshCw className="w-3 h-3 text-emerald-400" />
+              Sincronizar Banco
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {setShowPhaseModal && (
+              <button
+                onClick={() => setShowPhaseModal(true)}
+                className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-xl transition-all font-semibold flex items-center gap-1.5 shadow-sm text-xs"
+                title="Cadastrar nova fase no Supabase"
+              >
+                <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                Nova Fase
+              </button>
+            )}
+
+            <button
+              onClick={() => (onOpenAddTaskModal ? onOpenAddTaskModal() : setShowAddModal(true))}
+              className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 rounded-xl transition-all font-bold flex items-center gap-1.5 shadow-sm text-xs"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              Novo Projeto
+            </button>
+
+            <button
+              onClick={() => setShowGithubModal(true)}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-colors flex items-center gap-1.5 border border-slate-700 text-xs"
+            >
+              <FolderGit2 className="w-3.5 h-3.5 text-cyan-400" />
+              Configurar Git
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Phases Accordion List */}
+      {phases.length === 0 ? (
+        <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+          <Info className="w-8 h-8 text-slate-500 mx-auto" />
+          <h3 className="text-base font-bold text-white">Nenhuma Fase ou Projeto Encontrado no Banco de Dados</h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            O banco de dados Supabase ainda não retornou fases ou projetos. Você pode cadastrar uma nova fase ou projeto diretamente utilizando os botões da barra superior.
+          </p>
+          <div className="pt-2 flex justify-center gap-3">
+            {setShowPhaseModal && (
+              <button
+                onClick={() => setShowPhaseModal(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all"
+              >
+                Criar Fase no Supabase
+              </button>
+            )}
+            <button
+              onClick={() => (onOpenAddTaskModal ? onOpenAddTaskModal() : setShowAddModal(true))}
+              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 rounded-xl text-xs font-bold transition-all"
+            >
+              Criar Primeiro Projeto
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {phases.map((phase) => {
+            const phaseTasks = filteredTasks.filter((t) => t.phase === phase.id);
+            const isOpen = openPhases.includes(phase.id);
+            const totalPhaseTasks = tasks.filter((t) => t.phase === phase.id).length;
+            const completedPhaseTasks = tasks.filter((t) => t.phase === phase.id && t.completed).length;
+            const phaseProgress =
+              totalPhaseTasks > 0 ? Math.round((completedPhaseTasks / totalPhaseTasks) * 100) : 0;
 
             return (
               <div
                 key={phase.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-md transition-all duration-300"
+                id={`phase-card-${phase.id}`}
+                className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-lg transition-all"
               >
-                {/* Phase Accordion Header Compacto */}
+                {/* Phase Accordion Header */}
                 <div
                   onClick={() => togglePhase(phase.id)}
-                  className="bg-slate-950/90 p-3.5 px-5 border-b border-slate-800 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-950 transition-colors group"
+                  className="px-6 py-4 bg-slate-900 hover:bg-slate-800/80 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/60 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">{phase.icon}</span>
+                    <button className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-950 border border-slate-800">
+                      {isOpen ? (
+                        <ChevronDown className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                      )}
+                    </button>
+                    <span className="text-xl p-2 bg-slate-950 border border-slate-800 rounded-xl shadow-inner">
+                      {phase.icon}
+                    </span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/80 border border-cyan-800/80 px-2 py-0.5 rounded">
-                          Pilar {phase.id}
+                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                          Fase {phase.id}
                         </span>
-                        <h3 className="text-sm md:text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
-                          {phase.title}
-                        </h3>
+                        <h2 className="text-base font-bold text-white">{phase.title}</h2>
                       </div>
+                      <p className="text-xs text-slate-400">{phase.subtitle}</p>
                     </div>
                   </div>
 
-                  {/* Metric & Phase Toggle */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono font-semibold text-slate-300 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
-                      {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} ({getPhasePercentage(phase.id)}%)
+                  <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-2 md:pt-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                        <div
+                          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
+                          style={{ width: `${phaseProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-slate-300 font-mono w-10 text-right">
+                        {phaseProgress}%
+                      </span>
+                    </div>
+
+                    <span className="text-xs px-2.5 py-1 bg-slate-950 text-slate-400 border border-slate-800 rounded-lg font-mono">
+                      {completedPhaseTasks}/{totalPhaseTasks}
                     </span>
-                    {deletePillar && (
+
+                    {/* Delete phase action */}
+                    {deletePhase && phase.id > 4 && (
                       <button
-                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`Deseja excluir o pilar "${phase.title}" e seus projetos do Supabase?`)) {
-                            deletePillar(phase.id);
+                          if (
+                            confirm(
+                              `Deseja excluir a fase "${phase.title}" e seus projetos do Supabase?`
+                            )
+                          ) {
+                            deletePhase(phase.id);
                           }
                         }}
-                        className="text-[11px] bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800 px-2 py-1 rounded transition-all"
-                        title="Excluir pilar do Supabase"
+                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Excluir fase do Supabase"
                       >
-                        🗑️ Excluir
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
-                    <span className="text-slate-400 group-hover:text-white transition-transform text-xs">
-                      {isPhaseOpen ? '▲' : '▼'}
-                    </span>
                   </div>
                 </div>
 
-                {/* Phase Body: Grid de Cards Sanfonados Minimalistas */}
-                {isPhaseOpen && (
-                  <div className="p-4 sm:p-5 space-y-4">
-                    {/* Header do Pilar Expandido com o Botão Novo Projeto */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-300">
-                          Projetos e Entregáveis do Pilar {phase.id}
-                        </span>
-                        <span className="text-xs text-slate-500 font-mono">
-                          ({getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} concluídos)
-                        </span>
-                      </div>
+                {/* Phase Content Area */}
+                {isOpen && (
+                  <div className="p-6 space-y-4 bg-slate-950/40">
+                    {/* Add Project Button inside expanded Phase */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                      <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                        Projetos e Entregáveis da Fase {phase.id} ({phaseTasks.length})
+                      </span>
+
                       <button
                         onClick={() =>
-                          onOpenAddTaskModal ? onOpenAddTaskModal(phase.id) : setShowAddModal(true)
+                          onOpenAddTaskModal
+                            ? onOpenAddTaskModal(phase.id)
+                            : setShowAddModal(true)
                         }
-                        className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow self-start sm:self-auto"
-                        title={`Adicionar novo projeto diretamente ao Pilar ${phase.id}`}
+                        className="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg transition-all text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                        title={`Adicionar novo projeto diretamente à Fase ${phase.id}`}
                       >
-                        <span>➕</span> Novo Projeto
+                        <Plus className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                        Novo Projeto
                       </button>
                     </div>
 
                     {phaseTasks.length === 0 ? (
-                      <div className="text-center py-6 text-xs text-slate-500 italic bg-slate-950/40 rounded-xl border border-slate-800">
-                        Nenhum projeto ou ideia encontrada neste pilar para os filtros aplicados.
+                      <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/40">
+                        <p className="text-xs text-slate-500 mb-2">
+                          Nenhum projeto ou ideia encontrada nesta fase para os filtros aplicados.
+                        </p>
+                        <button
+                          onClick={() =>
+                            onOpenAddTaskModal
+                              ? onOpenAddTaskModal(phase.id)
+                              : setShowAddModal(true)
+                          }
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3 stroke-[3]" />
+                          Adicionar Projeto nesta Fase
+                        </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {phaseTasks.map((task) => {
-                          const isExpanded = expandedCards.includes(task.id);
-
-                          return (
-                            <div
-                              key={task.id}
-                              className={`bg-slate-950/90 border rounded-xl transition-all flex flex-col justify-between ${
-                                task.completed
-                                  ? 'border-emerald-900/60 hover:border-emerald-500/50'
-                                  : 'border-slate-800 hover:border-cyan-500/50'
-                              }`}
-                            >
-                              {/* CLOSED CARD HEADER (EXTREMELY MINIMALIST) */}
-                              <div
-                                onClick={() => toggleCard(task.id)}
-                                className="p-4 cursor-pointer select-none space-y-3"
-                              >
-                                <div className="flex items-start justify-between gap-2">
-                                  {/* Title */}
-                                  <h4 className="text-sm font-bold text-white leading-snug hover:text-cyan-300 transition-colors">
-                                    {task.title}
-                                  </h4>
-
-                                  {/* Small visual status indicator */}
-                                  <span
-                                    className={`shrink-0 w-2.5 h-2.5 rounded-full mt-1 ${
-                                      task.completed ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-amber-400'
-                                    }`}
-                                    title={task.completed ? 'Concluído' : 'Em Planejamento'}
-                                  />
-                                </div>
-
-                                {/* Tech Badges */}
-                                <div className="flex flex-wrap items-center gap-1 pt-1">
-                                  {task.badges.map((badge, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="text-[10px] font-mono bg-slate-900 text-slate-300 border border-slate-800 px-2 py-0.5 rounded"
-                                    >
-                                      {badge}
-                                    </span>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-900">
-                                  <span className="font-mono">
-                                    {task.completed ? '🟢 Concluído' : '💡 Ideia Pendente'}
-                                  </span>
-                                  <span className="text-cyan-400 font-medium">
-                                    {isExpanded ? 'Recolher ▲' : 'Ver Detalhes ▼'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* EXPANDED DETAILS BODY */}
-                              {isExpanded && (
-                                <div className="p-4 pt-0 border-t border-slate-900 space-y-3 text-xs bg-slate-900/40 rounded-b-xl">
-                                  {/* Description */}
-                                  <p className="text-slate-300 leading-relaxed pt-3">
-                                    {task.description}
-                                  </p>
-
-                                  {/* Requirements Checklist */}
-                                  {task.requirements && task.requirements.length > 0 && (
-                                    <div className="space-y-1.5 pt-1">
-                                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                                        Requisitos & Entregáveis:
-                                      </p>
-                                      <ul className="space-y-1 pl-1">
-                                        {task.requirements.map((req, rIdx) => (
-                                          <li
-                                            key={rIdx}
-                                            className="text-slate-300 flex items-start gap-1.5 text-[11px]"
-                                          >
-                                            <span className="text-cyan-400 shrink-0">•</span>
-                                            <span>{req}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-
-                                  {/* Links & Actions Footer */}
-                                  <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex items-center gap-1.5">
-                                      {task.completed ? (
-                                        <a
-                                          href={`https://github.com/${githubConfig.owner || 'amaropedro'}/${
-                                            githubConfig.repo || 'painel-homologacao'
-                                          }`}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-2.5 py-1 rounded text-[11px] border border-emerald-800 flex items-center gap-1 font-mono"
-                                        >
-                                          <span>🚀</span> Ver no GitHub
-                                        </a>
-                                      ) : (
-                                        <button
-                                          onClick={() => setShowGithubModal(true)}
-                                          className="bg-slate-800 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded text-[11px] border border-amber-800/60 flex items-center gap-1 font-mono"
-                                        >
-                                          <span>💡</span> Conceito
-                                        </button>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5">
-                                      <button
-                                        onClick={() => toggleTask(task.id)}
-                                        className={`text-[11px] px-2.5 py-1 rounded border font-semibold transition-all flex items-center gap-1 ${
-                                          task.completed
-                                            ? 'bg-amber-950/40 text-amber-300 border-amber-800/80 hover:bg-amber-900/60'
-                                            : 'bg-emerald-950/40 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900/60'
-                                        }`}
-                                      >
-                                        {task.completed ? '⏪ Voltar a Pendente' : '✅ Marcar Concluído'}
-                                      </button>
-
-                                      <button
-                                        onClick={() => deleteTask(task.id)}
-                                        className="text-[11px] bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800 px-2 py-1 rounded transition-all"
-                                        title="Excluir projeto do Supabase"
-                                      >
-                                        🗑️ Excluir
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                        {phaseTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            isExpanded={expandedCards.includes(task.id)}
+                            onToggleExpand={() => toggleCard(task.id)}
+                            onToggleComplete={() => toggleTask(task.id)}
+                            onDelete={() => deleteTask(task.id)}
+                            githubConfig={githubConfig}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
                 )}
               </div>
             );
-          }))}
+          })}
         </div>
-      </main>
+      )}
     </div>
   );
 };

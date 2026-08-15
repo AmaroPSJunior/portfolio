@@ -11,7 +11,7 @@ export async function GET() {
 
   const startTime = Date.now();
   try {
-    const { count, error } = await supabase.from('pillars').select('*', { count: 'exact', head: true });
+    const { count, error } = await supabase.from('fases').select('*', { count: 'exact', head: true });
     dbLatencyMs = Date.now() - startTime;
 
     if (error) {
