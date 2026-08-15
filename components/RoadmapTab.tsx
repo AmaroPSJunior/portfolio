@@ -27,6 +27,7 @@ interface RoadmapTabProps {
   onOpenAddTaskModal?: (phaseId?: number) => void;
   setShowGithubModal: (show: boolean) => void;
   setShowPilarModal: (show: boolean) => void;
+  onOpenDiagnostics?: () => void;
 }
 
 export const RoadmapTab: React.FC<RoadmapTabProps> = ({
@@ -53,6 +54,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   onOpenAddTaskModal,
   setShowGithubModal,
   setShowPilarModal,
+  onOpenDiagnostics,
 }) => {
   const totalTasksCount = tasks.length;
   const completedTasksCount = tasks.filter((t) => t.completed).length;
@@ -271,9 +273,44 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
           </div>
         </div>
 
-        {/* 4 EXPANDABLE PHASES / PILLARS SECTIONS IN MINIMALIST GRID */}
+        {/* EXPANDABLE PHASES / PILLARS SECTIONS IN MINIMALIST GRID */}
         <div className="space-y-6">
-          {filteredPhases.map((phase) => {
+          {filteredPhases.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-xl">
+              <div className="w-16 h-16 bg-slate-950 text-cyan-400 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+                🏛️
+              </div>
+              <h3 className="text-lg font-bold text-white">
+                Nenhum Pilar ou Projeto Encontrado no Banco de Dados
+              </h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                A sua base de dados Supabase ainda não possui registros salvos de pilares/projetos ou os filtros aplicados não retornaram resultados. Utilize as opções abaixo para cadastrar dados reais diretamente no banco de dados.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => setShowPilarModal(true)}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                >
+                  <span>🏛️</span> Criar Pilar no Supabase
+                </button>
+                <button
+                  onClick={() => onOpenAddTaskModal ? onOpenAddTaskModal(1) : setShowAddModal(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2.5 rounded-xl transition-all border border-slate-700 flex items-center gap-1.5"
+                >
+                  <span>➕</span> Criar Projeto no Supabase
+                </button>
+                {onOpenDiagnostics && (
+                  <button
+                    onClick={onOpenDiagnostics}
+                    className="bg-purple-950/80 hover:bg-purple-900 text-purple-200 text-xs px-4 py-2.5 rounded-xl transition-all border border-purple-800/80 flex items-center gap-1.5"
+                  >
+                    <span>⚙️</span> Diagnóstico / Criar Tabelas SQL
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            filteredPhases.map((phase) => {
             const phaseTasks = getTasksByPhase(phase.id);
             const isPhaseOpen = openPhases.includes(phase.id);
 
@@ -495,7 +532,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 )}
               </div>
             );
-          })}
+          }))}
         </div>
       </main>
     </div>

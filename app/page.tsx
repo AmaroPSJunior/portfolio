@@ -11,7 +11,7 @@ import { GithubModal } from '@/components/GithubModal';
 import { CreatePilarModal } from '@/components/CreatePilarModal';
 import { DiagnosticsModal } from '@/components/DiagnosticsModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SKILLS_MATRIX, DEFAULT_TASKS, PHASES } from '@/data/constants';
+import { SKILLS_MATRIX } from '@/data/constants';
 import { Task, NewTaskForm, GithubConfig, Phase } from '@/types';
 import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
@@ -118,40 +118,6 @@ export default function HomePage() {
       } catch (e) {
         AppLogger.warn('UI:localStorage', 'Falha ao recuperar configurações salvas do GitHub');
       }
-    }
-
-    // Load custom tasks from LocalStorage on mount
-    try {
-      const savedTasksRaw = localStorage.getItem('amaro_custom_tasks_v2');
-      if (savedTasksRaw) {
-        const customTasks: Task[] = JSON.parse(savedTasksRaw);
-        if (customTasks.length > 0) {
-          setTasks((prev) => {
-            const existingIds = new Set(prev.map((t) => t.id));
-            const newTasks = customTasks.filter((t) => !existingIds.has(t.id));
-            return [...newTasks, ...prev];
-          });
-        }
-      }
-    } catch (e) {
-      AppLogger.warn('UI:localStorage', 'Falha ao carregar tarefas salvas do LocalStorage');
-    }
-
-    // Load custom pillars from LocalStorage on mount
-    try {
-      const savedPillarsRaw = localStorage.getItem('amaro_custom_pillars_v2');
-      if (savedPillarsRaw) {
-        const customPillars: Phase[] = JSON.parse(savedPillarsRaw);
-        if (customPillars.length > 0) {
-          setPhases((prev) => {
-            const existingIds = new Set(prev.map((p) => p.id));
-            const newPillars = customPillars.filter((p) => !existingIds.has(p.id));
-            return [...prev, ...newPillars];
-          });
-        }
-      }
-    } catch (e) {
-      AppLogger.warn('UI:localStorage', 'Falha ao carregar pilares salvos do LocalStorage');
     }
 
     fetchDatabaseData();
@@ -454,6 +420,7 @@ export default function HomePage() {
               onOpenAddTaskModal={handleOpenAddTaskModal}
               setShowGithubModal={setShowGithubModal}
               setShowPilarModal={setShowPilarModal}
+              onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
             />
           </ErrorBoundary>
         )}

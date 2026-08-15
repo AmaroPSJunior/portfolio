@@ -5,7 +5,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { validatePillarInput, calculateNextOrder } from './lib/validators';
 import { RoadmapTab } from './components/RoadmapTab';
 import { AddTaskModal } from './components/AddTaskModal';
-import { PHASES, DEFAULT_TASKS } from './data/constants';
+
+const TEST_PHASES = [
+  { id: 1, icon: '🚀', title: 'Fase 1 - Roadmap & Evolução do Portfólio', subtitle: 'Pilar 1' },
+  { id: 2, icon: '💼', title: 'Fase 2 - Projetos, Produtos e Serviços', subtitle: 'Pilar 2' },
+  { id: 3, icon: '🧪', title: 'Fase 3 - Tech Lab & Experimentos', subtitle: 'Pilar 3' },
+  { id: 4, icon: '🛡️', title: 'Fase 4 - QA & Testes de Habilidade', subtitle: 'Pilar 4' },
+];
+
+const TEST_TASKS = [
+  { id: 1, phase: 1, title: 'Setup Vercel', completed: true, badges: ['Next.js'], description: 'Setup', requirements: [] },
+  { id: 2, phase: 1, title: 'App Router Next.js 15', completed: true, badges: ['React'], description: 'App router', requirements: [] },
+  { id: 3, phase: 2, title: 'Homologação E-commerce', completed: true, badges: ['Java'], description: 'E-commerce', requirements: [] },
+  { id: 4, phase: 2, title: 'Homologação ERP', completed: false, badges: ['C#'], description: 'ERP', requirements: [] },
+];
 
 export function calculateProgress(tasks) {
   if (!tasks || tasks.length === 0) return 0;
@@ -112,8 +125,8 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
 
       return (
         <RoadmapTab
-          phases={PHASES}
-          tasks={DEFAULT_TASKS}
+          phases={TEST_PHASES}
+          tasks={TEST_TASKS}
           openPhases={openPhases}
           expandedCards={expandedCards}
           searchQuery=""
@@ -125,7 +138,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
           setSelectedStatusFilter={() => {}}
           togglePhase={togglePhase}
           toggleCard={toggleCard}
-          expandAllCards={() => setOpenPhases(PHASES.map((p) => p.id))}
+          expandAllCards={() => setOpenPhases(TEST_PHASES.map((p) => p.id))}
           collapseAllCards={() => setOpenPhases([])}
           toggleTask={() => {}}
           deleteTask={() => {}}
@@ -192,7 +205,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
           show={true}
           onClose={vi.fn()}
           onAdd={vi.fn()}
-          phases={PHASES}
+          phases={TEST_PHASES}
           initialPhaseId={3}
         />
       );

@@ -96,47 +96,61 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {phases.map((phase) => (
-            <div
-              key={phase.id}
-              className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all cursor-pointer group"
-              onClick={() => {
-                setSelectedPhaseFilter(String(phase.id));
-                setActiveTab('roadmap');
-              }}
+        {phases.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
+            <p className="text-xs text-slate-400">
+              Nenhum pilar cadastrado no banco de dados Supabase ainda.
+            </p>
+            <button
+              onClick={() => setActiveTab('roadmap')}
+              className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-2xl">{phase.icon}</span>
-                <span className="text-xs font-bold font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">
-                  {getPhasePercentage(phase.id)}%
-                </span>
-              </div>
+              📍 Ir para o Roadmap & Cadastrar Pilar
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {phases.map((phase) => (
+              <div
+                key={phase.id}
+                className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all cursor-pointer group"
+                onClick={() => {
+                  setSelectedPhaseFilter(String(phase.id));
+                  setActiveTab('roadmap');
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">{phase.icon}</span>
+                  <span className="text-xs font-bold font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">
+                    {getPhasePercentage(phase.id)}%
+                  </span>
+                </div>
 
-              <div>
-                <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
-                  {phase.title}
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 line-clamp-2">{phase.subtitle}</p>
-              </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {phase.title}
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{phase.subtitle}</p>
+                </div>
 
-              {/* Mini Progress bar */}
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-cyan-500 transition-all duration-300"
-                  style={{ width: `${getPhasePercentage(phase.id)}%` }}
-                ></div>
-              </div>
+                {/* Mini Progress bar */}
+                <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div
+                    className="h-full bg-cyan-500 transition-all duration-300"
+                    style={{ width: `${getPhasePercentage(phase.id)}%` }}
+                  ></div>
+                </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                <span>
-                  {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} itens
-                </span>
-                <span className="text-cyan-400 font-medium">Ver Projetos ➔</span>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                  <span>
+                    {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} itens
+                  </span>
+                  <span className="text-cyan-400 font-medium">Ver Projetos ➔</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
