@@ -33,4 +33,8 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          supabase db push -p "${{ secrets.SUPABASE_DB_PASSWORD }}"
+          # Tenta o push padrão com --include-all para sincronizar migrações locais pendentes
+          supabase db push --include-all -p "${{ secrets.SUPABASE_DB_PASSWORD }}" || \
+          (echo "⚠️ Divergência detectada no histórico de migrações remotas. Tentando sync seguro..." && \
+           supabase migration list -p "${{ secrets.SUPABASE_DB_PASSWORD }}" && \
+           supabase db push --include-all --linked -p "${{ secrets.SUPABASE_DB_PASSWORD }}")
