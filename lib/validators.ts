@@ -109,8 +109,8 @@ export function validateProjectInput(data: any): ProjectValidationResult {
       title,
       phaseId: !isNaN(phaseId) && phaseId > 0 ? phaseId : 1,
       description,
-      requirements: requirements.length > 0 ? requirements : ['Requisito padrão'],
-      badges: badges.length > 0 ? badges : ['Novo Projeto'],
+      requirements,
+      badges,
     },
   };
 }

@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError } from '@/lib/errorHandler';
 import { validateProjectInput } from '@/lib/validators';
-import { DEFAULT_TASKS } from '@/data/constants';
 import { Task } from '@/types';
 
 export const dynamic = 'force-dynamic';

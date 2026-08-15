@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { validatePillarInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError } from '@/lib/errorHandler';
-import { PHASES } from '@/data/constants';
 import { Phase } from '@/types';
 
 export const dynamic = 'force-dynamic';
