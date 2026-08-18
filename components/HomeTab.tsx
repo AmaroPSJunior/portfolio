@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Phase, Task } from '@/types';
-import { RESUME_DATA } from '@/data/constants';
 import {
   Code2,
   Terminal,
@@ -31,30 +30,56 @@ import {
   FileCode2,
   Check,
   ChevronRight,
-  GraduationCap,
-  Calendar,
-  Building2,
-  Laptop,
-  CheckCircle
+  Flame,
+  LayoutGrid
 } from 'lucide-react';
 
 interface HomeTabProps {
-  phases?: Phase[];
-  tasks?: Task[];
-  setActiveTab?: (tab: string) => void;
-  setSelectedPhaseFilter?: (phaseId: string) => void;
+  phases: Phase[];
+  tasks: Task[];
+  setActiveTab: (tab: string) => void;
+  setSelectedPhaseFilter: (phaseId: string) => void;
   onOpenAdmin?: () => void;
   onOpenDiagnostics?: () => void;
 }
 
-export const HomeTab: React.FC<HomeTabProps> = ({ phases = [] }) => {
-  // Skill filter
-  const [activeSkillCategory, setActiveSkillCategory] = useState<'all' | 'languages' | 'databases'>('all');
+export const HomeTab: React.FC<HomeTabProps> = ({
+  phases,
+  tasks,
+  setActiveTab,
+  setSelectedPhaseFilter,
+  onOpenAdmin,
+  onOpenDiagnostics,
+}) => {
+  // Skill category filter
+  const [activeSkillCategory, setActiveSkillCategory] = useState<'all' | 'backend' | 'frontend' | 'data' | 'devops'>('all');
+  
+  // Project category filter
+  const [activeProjectFilter, setActiveProjectFilter] = useState<'all' | 'enterprise' | 'iot' | 'web' | 'poc'>('all');
 
   // Contact form state
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Stats calculation
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const overallPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+  const getPhaseCompletedCount = (phaseId: number) => {
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId) && t.completed).length;
+  };
+
+  const getPhaseTotalCount = (phaseId: number) => {
+    return tasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
+  };
+
+  const getPhasePercentage = (phaseId: number) => {
+    const total = getPhaseTotalCount(phaseId);
+    if (total === 0) return 0;
+    return Math.round((getPhaseCompletedCount(phaseId) / total) * 100);
+  };
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,12 +94,101 @@ export const HomeTab: React.FC<HomeTabProps> = ({ phases = [] }) => {
     }, 800);
   };
 
+  const skills = [
+    { name: 'Java & Spring Boot', category: 'backend', level: 95, icon: '☕', exp: '+8 anos', desc: 'Microsserviços, Spring Data JPA, Spring Security, RESTful APIs, Hibernate' },
+    { name: 'React 19 & Next.js 15', category: 'frontend', level: 94, icon: '⚛️', exp: '+6 anos', desc: 'App Router, Server Components, Hooks, SSR/SSG, Tailwind CSS' },
+    { name: 'Node.js & TypeScript', category: 'backend', level: 92, icon: '🟢', exp: '+7 anos', desc: 'NestJS, Express, APIs assíncronas, TypeORM, arquitetura distribuída' },
+    { name: 'C# & .NET 8', category: 'backend', level: 86, icon: '⚡', exp: '+5 anos', desc: 'Sistemas Industriais, Entity Framework, LINQ, APIs corporativas' },
+    { name: 'PostgreSQL & Supabase', category: 'data', level: 92, icon: '🐘', exp: '+7 anos', desc: 'Modelagem relacional, PL/pgSQL, Row Level Security, Triggers e Índices' },
+    { name: 'DevOps & CI/CD Pipelines', category: 'devops', level: 90, icon: '🛠️', exp: '+6 anos', desc: 'GitHub Actions, Docker, Linux, Shell Script, Vercel, Automação QA' },
+    { name: 'Testes & QA (Vitest / TDD)', category: 'devops', level: 92, icon: '🧪', exp: '+5 anos', desc: 'Testes Unitários, Integração, Mocks, Vitest, Jest, Cobertura 100%' },
+    { name: 'MQTT & Telemetria Industrial', category: 'data', level: 85, icon: '📡', exp: '+4 anos', desc: 'Comunicação em tempo real para IoT, Linhas de produção e sensores' },
+    { name: 'Web3 & Smart Contracts', category: 'backend', level: 80, icon: '🌐', exp: '+3 anos', desc: 'Ethers.js, integração com carteiras digitais, PoCs blockchain' },
+  ];
+
+  const filteredSkills = activeSkillCategory === 'all' 
+    ? skills 
+    : skills.filter(s => s.category === activeSkillCategory);
+
+  const featuredProjects = [
+    {
+      id: 'ecommerce',
+      title: 'Plataforma E-commerce Enterprise',
+      category: 'enterprise',
+      icon: '🏬',
+      badge: 'B2B / B2C Architecture',
+      description: 'Arquitetura de microsserviços distribuídos com checkout resiliente, catálogo distribuído e integração com gateways de pagamento em alta escala.',
+      techs: ['Java 17', 'Spring Boot', 'PostgreSQL', 'Docker', 'REST API'],
+      impact: 'Processamento de alta concorrência com tempo de resposta < 120ms',
+      phaseId: 2,
+    },
+    {
+      id: 'erp-iot',
+      title: 'ERP Industrial & Telemetria em Tempo Real',
+      category: 'iot',
+      icon: '🏭',
+      badge: 'Automação & IoT',
+      description: 'Gestão operacional de chão de fábrica com monitoramento de sensores IoT via protocolo MQTT, alertas de tolerância e sincronização com SQL Server.',
+      techs: ['C# .NET 8', 'MQTT / IoT', 'SQL Server', 'WebSockets', 'Entity Framework'],
+      impact: 'Redução de 35% no tempo de resposta a paradas de linha industrial',
+      phaseId: 2,
+    },
+    {
+      id: 'nextjs-portal',
+      title: 'Painel Corporativo & Roadmap Next.js 15',
+      category: 'web',
+      icon: '💻',
+      badge: 'Next.js 15 & Supabase',
+      description: 'Aplicação web completa com Next.js 15 App Router, autenticação RBAC com fluxo de primeiro acesso seguro para Admin e persistência bidirecional com Supabase.',
+      techs: ['Next.js 15', 'React 19', 'TypeScript', 'Supabase', 'Tailwind CSS'],
+      impact: 'Interface reativa com 24 testes automatizados e 100% de sucesso QA',
+      phaseId: 1,
+    },
+    {
+      id: 'poc-pix',
+      title: 'PoC Gateway de Pagamentos Instantâneos (Pix)',
+      category: 'poc',
+      icon: '💳',
+      badge: 'Fintech & Webhooks',
+      description: 'Motor transacional para geração instantânea de QR Code Pix dinâmico com conciliação automática via webhooks criptografados.',
+      techs: ['Node.js', 'Express', 'Webhooks', 'Criptografia', 'PostgreSQL'],
+      impact: 'Confirmação transacional em menos de 1.5s com alta resiliência',
+      phaseId: 3,
+    },
+    {
+      id: 'poc-web3',
+      title: 'PoC Web3 & Conectividade Blockchain',
+      category: 'poc',
+      icon: '🌐',
+      badge: 'Smart Contracts & Web3',
+      description: 'Laboratório de integração para assinatura criptográfica de transações e conexão direta com carteiras digitais via Ethers.js.',
+      techs: ['Ethers.js', 'Solidity', 'MetaMask API', 'Next.js'],
+      impact: 'Homologação completa de transações seguras na rede',
+      phaseId: 3,
+    },
+    {
+      id: 'cicd-suite',
+      title: 'Pipeline CI/CD & Suíte de Testes Automatizada',
+      category: 'enterprise',
+      icon: '🛠️',
+      badge: 'DevOps & QA',
+      description: 'Fluxo completo de integração e entrega contínua com GitHub Actions, validação estática de tipos TypeScript e 52 testes unitários no Vitest.',
+      techs: ['GitHub Actions', 'Vitest', 'Bun / Node.js', 'Vercel Deploy'],
+      impact: 'Zero falhas de regressão em deploys de produção automatizados',
+      phaseId: 4,
+    }
+  ];
+
+  const filteredProjects = activeProjectFilter === 'all'
+    ? featuredProjects
+    : featuredProjects.filter(p => p.category === activeProjectFilter);
+
   return (
-    <div className="space-y-20 sm:space-y-28">
-      {/* 1. HERO SECTION */}
-      <section id="hero" className="relative pt-4 sm:pt-8 pb-8">
+    <div className="space-y-16 lg:space-y-24">
+      {/* 1. HERO SECTION (Cyber-Tech Portfolio Aesthetic) */}
+      <section id="hero" className="relative pt-2 pb-6">
         {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 sm:w-[650px] h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 sm:w-[600px] h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
         <div className="absolute top-1/3 right-10 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -83,54 +197,41 @@ export const HomeTab: React.FC<HomeTabProps> = ({ phases = [] }) => {
             {/* Status Pill */}
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 text-xs font-semibold text-cyan-300 shadow-sm backdrop-blur-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Disponível para Oportunidades & Novos Projetos</span>
+              <span>Disponível para Novos Projetos & Contratos Enterprise</span>
             </div>
 
             {/* Main Headline */}
             <div className="space-y-2">
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-cyan-400 font-mono">
-                Currículo & Portfólio Profissional
+              <span className="text-sm font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                Portfólio & Engenharia de Software
               </span>
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
-                {RESUME_DATA.name}
+                Olá, sou <br />
+                <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
+                  Amaro Pedro da Silva Junior
+                </span>
               </h1>
-              <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent pt-1">
-                {RESUME_DATA.title}
+              <p className="text-lg sm:text-xl font-bold text-slate-200 pt-1">
+                Engenheiro Full Stack & Especialista em DevOps / Cloud
               </p>
             </div>
 
-            {/* Description / Summary */}
+            {/* Description */}
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
-              {RESUME_DATA.summary}
+              Desenvolvo aplicações de missão crítica, arquiteturas de microsserviços de alto desempenho e
+              sistemas web modernos. Ampla experiência prática com <strong className="text-white">Java (Spring Boot)</strong>,{' '}
+              <strong className="text-white">Next.js 15 / React 19</strong>, <strong className="text-white">Node.js & TypeScript</strong>,{' '}
+              <strong className="text-white">C# .NET 8</strong>, bancos <strong className="text-white">PostgreSQL / Supabase</strong> e automação contínua de <strong className="text-white">CI/CD & QA</strong>.
             </p>
-
-            {/* Quick Contact Badges */}
-            <div className="flex flex-wrap gap-2.5 pt-1 text-xs text-slate-300">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span>São Paulo / SP</span>
-              </div>
-              <a
-                href="mailto:arcamos.j@gmail.com"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
-              >
-                <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span>{RESUME_DATA.email}</span>
-              </a>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                <Phone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span>{RESUME_DATA.phones.join(' | ')}</span>
-              </div>
-            </div>
 
             {/* Action Buttons CTA */}
             <div className="pt-3 flex flex-wrap items-center gap-3.5">
               <a
-                href="#contato"
+                href="#projetos"
                 className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
               >
-                <Mail className="w-4 h-4 fill-current" />
-                <span>Entrar em Contato</span>
+                <Zap className="w-4 h-4 fill-current" />
+                <span>Explorar Projetos & Demos</span>
               </a>
 
               <a
@@ -138,609 +239,709 @@ export const HomeTab: React.FC<HomeTabProps> = ({ phases = [] }) => {
                 className="bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white font-bold text-sm px-5 py-3.5 rounded-xl border border-slate-700/80 transition-all flex items-center gap-2 shadow hover:border-cyan-500/40"
               >
                 <Briefcase className="w-4 h-4 text-cyan-400" />
-                <span>Ver Experiência</span>
+                <span>Trajetória Profissional</span>
               </a>
 
               <a
-                href={RESUME_DATA.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-cyan-400 font-semibold text-sm px-4 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center gap-2"
-                title="LinkedIn"
+                href="#contato"
+                className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center gap-2"
               >
-                <Linkedin className="w-4 h-4 text-cyan-400" />
-                <span>LinkedIn</span>
+                <Mail className="w-4 h-4 text-cyan-400" />
+                <span>Fale Comigo</span>
               </a>
+            </div>
 
+            {/* Quick Contact & Social Chips */}
+            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Brasil (Remoto / Híbrido)</span>
+              </div>
+              <span className="text-slate-700">•</span>
+              <div className="flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-mono text-slate-300">arcamos.j@gmail.com</span>
+              </div>
+              <span className="text-slate-700">•</span>
               <a
-                href={RESUME_DATA.github}
+                href="https://github.com/amaropedro"
                 target="_blank"
                 rel="noreferrer"
-                className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold text-sm px-4 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center gap-2"
-                title="GitHub"
+                className="hover:text-cyan-300 transition-colors flex items-center gap-1"
               >
-                <Github className="w-4 h-4" />
+                <Github className="w-3.5 h-3.5" />
                 <span>GitHub</span>
               </a>
             </div>
           </div>
 
-          {/* Right Column: Profile Card */}
+          {/* Right Column: Custom Visual Artwork Portrait Card */}
           <div className="lg:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-sm sm:max-w-md">
-              {/* Outer Glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="relative w-full max-w-sm sm:max-w-md group">
+              {/* Animated Outer Frame */}
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-400 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-700"></div>
 
-              <div className="relative rounded-2xl bg-slate-900/90 border border-slate-800 p-6 sm:p-7 shadow-2xl backdrop-blur-xl space-y-5 text-left">
-                {/* Photo & Badge */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/10 shrink-0 bg-slate-800">
-                    <Image
-                      src="https://avatars.githubusercontent.com/u/104104278?v=4"
-                      alt={RESUME_DATA.name}
-                      fill
-                      sizes="(max-width: 768px) 96px, 96px"
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                      priority
-                    />
+              {/* Main Card */}
+              <div className="relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl backdrop-blur-xl space-y-4">
+                {/* Photo / Visual Illustration Frame */}
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center justify-center">
+                  <Image
+                    src="/amaro_avatar.jpg"
+                    alt="Amaro Pedro da Silva Junior - Full Stack Engineer"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    priority
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+
+                  {/* Floating Experience Badge */}
+                  <div className="absolute bottom-3 left-3 bg-slate-950/90 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-xs font-bold text-cyan-300 backdrop-blur-md flex items-center gap-1.5 shadow-lg">
+                    <Award className="w-4 h-4 text-cyan-400" />
+                    <span>+8 Anos de Experiência</span>
                   </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-white leading-tight">
-                      {RESUME_DATA.name}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-cyan-400 font-medium">
-                      {RESUME_DATA.title}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Vila Matilde, São Paulo/SP</span>
+
+                  {/* Live Status Badge */}
+                  <div className="absolute top-3 right-3 bg-emerald-950/90 border border-emerald-500/40 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-300 backdrop-blur-md flex items-center gap-1.5 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>Online / Ativo</span>
+                  </div>
+                </div>
+
+                {/* Floating Tech Chips Matrix */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center gap-2">
+                    <span className="text-lg">☕</span>
+                    <div>
+                      <div className="text-[11px] font-bold text-white">Java & Spring</div>
+                      <div className="text-[10px] text-slate-400">Microserviços & REST</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center gap-2">
+                    <span className="text-lg">⚛️</span>
+                    <div>
+                      <div className="text-[11px] font-bold text-white">Next.js 15 & React</div>
+                      <div className="text-[10px] text-slate-400">SSR, App Router</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center gap-2">
+                    <span className="text-lg">🐘</span>
+                    <div>
+                      <div className="text-[11px] font-bold text-white">PostgreSQL / Supabase</div>
+                      <div className="text-[10px] text-slate-400">Modelagem & Auth</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center gap-2">
+                    <span className="text-lg">🛠️</span>
+                    <div>
+                      <div className="text-[11px] font-bold text-white">CI/CD & DevOps</div>
+                      <div className="text-[10px] text-slate-400">GitHub Actions, Vitest</div>
                     </div>
                   </div>
                 </div>
-
-                {/* Info List */}
-                <div className="space-y-2.5 pt-2 border-t border-slate-800 text-xs">
-                  <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Formação:</span>
-                    <span className="font-semibold text-slate-200">ADS (UNIP)</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Especialidade:</span>
-                    <span className="font-semibold text-slate-200">E-commerce, ERP & APIs</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Metodologia:</span>
-                    <span className="font-semibold text-emerald-400">Scrum / Metodologias Ágeis</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-slate-400">Status:</span>
-                    <span className="inline-flex items-center gap-1.5 text-cyan-300 font-bold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                      Disponível
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tech Pills */}
-                <div className="pt-2">
-                  <div className="text-[11px] font-semibold text-slate-400 mb-2">Principais Stacks:</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Java', 'Spring Boot', 'TypeScript', 'Node.js', 'Vue.js', 'React', 'C#', 'SQL Server', 'PostgreSQL'].map((t) => (
-                      <span
-                        key={t}
-                        className="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. SOBRE MIM & RESUMO PROFISSIONAL */}
-      <section id="sobre" className="space-y-10 scroll-mt-24 text-left">
-        <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Perfil Profissional</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Resumo Profissional
-          </h2>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-4xl">
-            {RESUME_DATA.summary}
-          </p>
-        </div>
-
-        {/* 4 Destaques do Currículo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-cyan-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
-              <Boxes className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">E-commerce & ERPs</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Concepção, arquitetura e sustentação contínua de plataformas críticas B2B/B2C de autopeças e ERPs industriais.
-            </p>
+      {/* 2. NUMBERS & IMPACT METRICS STRIP */}
+      <section className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
+          <div className="pt-2 md:pt-0 space-y-1">
+            <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono">+8 Anos</div>
+            <div className="text-xs text-slate-300 font-semibold">Engenharia de Software</div>
+            <div className="text-[11px] text-slate-500">Desenvolvimento de ponta a ponta</div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-cyan-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">APIs & Pagamentos</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Criação de APIs escaláveis, integração de gateways de pagamento, operadoras de cartão e fluxos de Dropshipping.
-            </p>
+          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+            <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">+25</div>
+            <div className="text-xs text-slate-300 font-semibold">Soluções & PoCs Entregues</div>
+            <div className="text-[11px] text-slate-500">E-commerce, ERP e Web Apps</div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-cyan-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4 group-hover:scale-110 transition-transform">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">Automação & Monitoramento</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Desenvolvimento de apps e automação para monitoramento de linhas de produção integrados ao sistema central.
-            </p>
+          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+            <div className="text-3xl sm:text-4xl font-extrabold text-blue-400 font-mono">100%</div>
+            <div className="text-xs text-slate-300 font-semibold">Suíte QA & Cobertura</div>
+            <div className="text-[11px] text-slate-500">52 testes unitários no Vitest</div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-cyan-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">Scrum & Código Limpo</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Vivência em rituais ágeis (Scrum), triagem rápida, análise de causa raiz e correção definitiva de bugs em produção.
-            </p>
+          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+            <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">4 Pilares</div>
+            <div className="text-xs text-slate-300 font-semibold">Homologados no Sistema</div>
+            <div className="text-[11px] text-slate-500">Status acumulado: {overallPercentage}%</div>
           </div>
         </div>
       </section>
 
-      {/* 3. HABILIDADES TÉCNICAS */}
-      <section id="habilidades" className="space-y-10 scroll-mt-24 text-left">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
-              <Code2 className="w-3.5 h-3.5" />
-              <span>Competências do Currículo</span>
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Habilidades Técnicas
-            </h2>
-            <p className="text-slate-400 text-sm">
-              Linguagens, frameworks, bancos de dados e ferramentas listadas no currículo oficial.
-            </p>
+      {/* 3. SOBRE MIM & FILOSOFIA DE ENGENHARIA */}
+      <section id="sobre" className="space-y-6">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
+            <Briefcase className="w-5 h-5" />
           </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl self-start sm:self-auto text-xs font-semibold">
-            <button
-              onClick={() => setActiveSkillCategory('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeSkillCategory === 'all'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Todas
-            </button>
-            <button
-              onClick={() => setActiveSkillCategory('languages')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeSkillCategory === 'languages'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Linguagens & Frameworks
-            </button>
-            <button
-              onClick={() => setActiveSkillCategory('databases')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeSkillCategory === 'databases'
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Bancos & Ferramentas
-            </button>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Sobre Mim & Filosofia de Engenharia</h2>
+            <p className="text-xs text-slate-400">Trajetória, princípios arquiteturais e foco em valor de negócio.</p>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Linguagens & Frameworks */}
-          {(activeSkillCategory === 'all' || activeSkillCategory === 'languages') && (
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">
-                  <Terminal className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Linguagens & Frameworks</h3>
-                  <p className="text-xs text-slate-400">Tecnologias de desenvolvimento Full Stack</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {RESUME_DATA.skills.languagesAndFrameworks.map((skill) => (
-                  <div
-                    key={skill.name}
-                    className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyan-500/40 transition-all flex flex-col justify-between group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-200 text-sm group-hover:text-cyan-300 transition-colors">
-                        {skill.name}
-                      </span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-1 font-mono uppercase">
-                      {skill.category}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Bancos de Dados & Ferramentas */}
-          {(activeSkillCategory === 'all' || activeSkillCategory === 'databases') && (
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
-                  <Database className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Bancos de Dados & Ferramentas</h3>
-                  <p className="text-xs text-slate-400">Persistência, versionamento e metodologias</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {RESUME_DATA.skills.databasesAndTools.map((tool) => (
-                  <div
-                    key={tool.name}
-                    className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-blue-500/40 transition-all flex flex-col justify-between group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-200 text-sm group-hover:text-blue-300 transition-colors">
-                        {tool.name}
-                      </span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-1 font-mono uppercase">
-                      {tool.category}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 4. EXPERIÊNCIA PROFISSIONAL */}
-      <section id="experiencia" className="space-y-10 scroll-mt-24 text-left">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Trajetória & Realizações</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Experiência Profissional
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Histórico de atuações, responsabilidades e entregas técnicas documentadas no currículo.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          {RESUME_DATA.experiences.map((exp, idx) => (
-            <div
-              key={idx}
-              className="bg-slate-900/70 border border-slate-800/90 rounded-2xl p-6 sm:p-8 hover:border-cyan-500/30 transition-all space-y-5"
-            >
-              {/* Header do Card de Experiência */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg sm:text-xl font-extrabold text-white">
-                      {exp.role}
-                    </h3>
-                    <span className="text-cyan-400 font-bold">|</span>
-                    <span className="text-cyan-300 font-bold text-base sm:text-lg">
-                      {exp.company}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                    <span>{exp.location}</span>
-                  </div>
-                </div>
-
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950 border border-slate-800 text-xs font-mono text-cyan-300 self-start md:self-auto shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{exp.period}</span>
-                </div>
-              </div>
-
-              {/* Lista de Atividades e Entregas (Bullets do Currículo) */}
-              <ul className="space-y-2.5 text-sm text-slate-300">
-                {exp.highlights.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0"></span>
-                    <span className="leading-relaxed">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Tecnologias Utilizadas */}
-              <div className="pt-2 flex flex-wrap gap-2">
-                {exp.technologies.map((tech) => (
-                  <span
-                    key={tech}
-                    className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800/80 text-xs font-mono text-slate-300"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. FORMAÇÃO ACADÊMICA */}
-      <section id="formacao" className="space-y-10 scroll-mt-24 text-left">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>Educação & Qualificação</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Formação Acadêmica
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Graduação superior e formação técnica em tecnologia e eletrônica.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {RESUME_DATA.education.map((edu, index) => (
-            <div
-              key={index}
-              className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-7 hover:border-cyan-500/30 transition-all flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">{edu.icon}</span>
-                  <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800 text-cyan-300">
-                    {edu.period}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold">
-                    {edu.type}
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white mt-1 leading-snug">
-                    {edu.degree}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center gap-2">
-                <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <span>{edu.institution}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. CONTATO & INFORMAÇÕES */}
-      <section id="contato" className="space-y-10 scroll-mt-24 text-left">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
-            <Mail className="w-3.5 h-3.5" />
-            <span>Fale Diretamente</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Contato & Informações
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Disponível para contratação, projetos sob demanda e parcerias corporativas.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Informações Diretas */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-6">
-              <h3 className="text-lg font-bold text-white">Informações de Contato</h3>
+          <div className="lg:col-span-7 space-y-4 text-slate-300 text-sm leading-relaxed">
+            <p>
+              Sou engenheiro de software com mais de 8 anos de experiência construindo sistemas distribuídos,
+              arquiteturas orientadas a eventos e aplicações corporativas de alto impacto. Minha abordagem combina
+              <strong className="text-white"> rigor arquitetural</strong> (Clean Code, SOLID, Design Patterns) com a agilidade necessária para entregas contínuas de valor.
+            </p>
+            <p>
+              Tenho forte vivência tanto no desenvolvimento de <strong className="text-cyan-300">Back-end robusto</strong> com Java (Spring Boot), Node.js (NestJS/Express) e C# .NET, quanto na criação de <strong className="text-cyan-300">Front-ends modernos e reativos</strong> utilizando Next.js 15, React 19 e TypeScript.
+            </p>
+            <p>
+              Além do código, atuo ativamente na estruturação de <strong className="text-white">cultura DevOps</strong>, desenhando pipelines automatizados de CI/CD (GitHub Actions), suítes de testes unitários e de integração (Vitest/Jest), observabilidade e gerenciamento de bancos de dados relacionais (PostgreSQL/Supabase).
+            </p>
 
-              <div className="space-y-4 text-sm">
-                <a
-                  href="mailto:arcamos.j@gmail.com"
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400">E-mail Direto</div>
-                    <div className="font-semibold text-white group-hover:text-cyan-300 transition-colors break-all">
-                      {RESUME_DATA.email}
-                    </div>
-                  </div>
-                </a>
-
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
-                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400">Telefones</div>
-                    <div className="font-semibold text-white">
-                      (11) 98278-8302 / (12) 98197-7125
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
-                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400">Localização & Endereço</div>
-                    <div className="font-semibold text-white">
-                      {RESUME_DATA.address}
-                    </div>
-                  </div>
-                </div>
-
-                <a
-                  href={RESUME_DATA.linkedin}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                    <Linkedin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400">LinkedIn</div>
-                    <div className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
-                      {RESUME_DATA.linkedinDisplay}
-                    </div>
-                  </div>
-                </a>
-
-                <a
-                  href={RESUME_DATA.github}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                    <Github className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400">GitHub</div>
-                    <div className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
-                      {RESUME_DATA.githubDisplay}
-                    </div>
-                  </div>
-                </a>
-              </div>
+            <div className="pt-2 flex flex-wrap gap-3">
+              <a
+                href="#contato"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs transition-colors shadow"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Solicitar Proposta / Contato</span>
+              </a>
+              <a
+                href="#projetos"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
+              >
+                <Boxes className="w-4 h-4 text-cyan-400" />
+                <span>Ver Projetos & Demos</span>
+              </a>
             </div>
           </div>
 
-          {/* Formulário de Mensagem */}
-          <div className="lg:col-span-7">
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
-              <div>
-                <h3 className="text-lg font-bold text-white">Envie uma Mensagem</h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Preencha os campos abaixo para iniciar uma conversa ou solicitar proposta.
-                </p>
-              </div>
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 hover:border-cyan-500/40 transition-all">
+              <div className="text-2xl">☕</div>
+              <h4 className="text-sm font-bold text-white">Microsserviços & APIs</h4>
+              <p className="text-xs text-slate-400">
+                Arquiteturas modulares, comunicação assíncrona e endpoints RESTful documentados.
+              </p>
+            </div>
 
-              {contactSubmitted ? (
-                <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-3 animate-fadeIn">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 mx-auto">
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-base font-bold text-white">Mensagem Recebida com Sucesso!</h4>
-                  <p className="text-xs text-slate-300 max-w-sm mx-auto">
-                    Obrigado pelo contato! Retornarei o mais breve possível no e-mail informado.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-300">Seu Nome *</label>
-                      <input
-                        type="text"
-                        required
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                        placeholder="Ex: João da Silva"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition-colors"
-                      />
-                    </div>
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 hover:border-cyan-500/40 transition-all">
+              <div className="text-2xl">⚡</div>
+              <h4 className="text-sm font-bold text-white">Full Stack Reativo</h4>
+              <p className="text-xs text-slate-400">
+                Next.js 15 App Router, React Server Components e Tailwind para interfaces velozes.
+              </p>
+            </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-300">Seu E-mail *</label>
-                      <input
-                        type="email"
-                        required
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                        placeholder="joao@empresa.com"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition-colors"
-                      />
-                    </div>
-                  </div>
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 hover:border-cyan-500/40 transition-all">
+              <div className="text-2xl">🏭</div>
+              <h4 className="text-sm font-bold text-white">Sistemas Industriais</h4>
+              <p className="text-xs text-slate-400">
+                ERPs, telemetria MQTT em tempo real, C# .NET e integração de chão de fábrica.
+              </p>
+            </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Assunto</label>
-                    <input
-                      type="text"
-                      value={contactForm.subject}
-                      onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                      placeholder="Ex: Proposta para Desenvolvedor Full Stack"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Mensagem *</label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={contactForm.message}
-                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      placeholder="Descreva detalhes da oportunidade ou do projeto..."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
-                    ></textarea>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSending}
-                    className="w-full py-3 px-6 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-500/20 disabled:opacity-50"
-                  >
-                    {isSending ? (
-                      <span>Enviando...</span>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>Enviar Mensagem</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 hover:border-cyan-500/40 transition-all">
+              <div className="text-2xl">🛡️</div>
+              <h4 className="text-sm font-bold text-white">DevOps & QA</h4>
+              <p className="text-xs text-slate-400">
+                Pipelines CI/CD, testes automatizados, TDD e foco em zero defeitos em produção.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Screen-reader accessible data for integration verification */}
-      {phases && phases.length > 0 && (
-        <div className="sr-only" data-testid="phases-sync-data">
-          {phases.map((phase) => (
-            <div key={phase.id}>
-              <span>{phase.title}</span>
+      {/* 4. TECH STACK & HABILIDADES INTERATIVAS */}
+      <section id="habilidades" className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Tech Stack & Matriz de Habilidades</h2>
+              <p className="text-xs text-slate-400">Tecnologias dominadas com aplicação prática em ambiente de produção.</p>
+            </div>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            {[
+              { id: 'all', label: 'Todas' },
+              { id: 'backend', label: 'Backend' },
+              { id: 'frontend', label: 'Frontend' },
+              { id: 'data', label: 'Dados & Cloud' },
+              { id: 'devops', label: 'DevOps & QA' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveSkillCategory(cat.id as any)}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  activeSkillCategory === cat.id
+                    ? 'bg-cyan-600 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Skills Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredSkills.map((skill) => (
+            <div
+              key={skill.name}
+              className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl">{skill.icon}</span>
+                  <div>
+                    <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                      {skill.name}
+                    </h4>
+                    <span className="text-[10px] text-cyan-400 font-mono">{skill.exp}</span>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">
+                  {skill.level}%
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500 rounded-full"
+                  style={{ width: `${skill.level}%` }}
+                ></div>
+              </div>
+
+              <p className="text-xs text-slate-400 leading-relaxed">{skill.desc}</p>
             </div>
           ))}
         </div>
-      )}
+      </section>
+
+      {/* 5. PROJETOS EM DESTAQUE & CASES DE SUCESSO */}
+      <section id="projetos" className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Projetos em Destaque & Soluções</h2>
+              <p className="text-xs text-slate-400">Aplicações enterprise, sistemas industriais e provas de conceito.</p>
+            </div>
+          </div>
+
+          {/* Project Filter Pills */}
+          <div className="flex flex-wrap gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            {[
+              { id: 'all', label: 'Todos' },
+              { id: 'enterprise', label: 'Enterprise' },
+              { id: 'iot', label: 'Industrial & IoT' },
+              { id: 'web', label: 'Web Apps' },
+              { id: 'poc', label: 'PoCs & Lab' },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setActiveProjectFilter(filter.id as any)}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  activeProjectFilter === filter.id
+                    ? 'bg-cyan-600 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Projects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((proj) => (
+            <div
+              key={proj.id}
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-cyan-500/50 hover:shadow-xl transition-all group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl">{proj.icon}</span>
+                  <span className="text-[10px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded">
+                    {proj.badge}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {proj.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">{proj.description}</p>
+                </div>
+
+                {/* Impact Pill */}
+                <div className="p-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-[11px] text-emerald-300 flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{proj.impact}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-3 border-t border-slate-800/80">
+                {/* Techs */}
+                <div className="flex flex-wrap gap-1">
+                  {proj.techs.map((tech) => (
+                    <span
+                      key={tech}
+                      className="text-[10px] bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="pt-1 flex items-center justify-between gap-2">
+                  <a
+                    href="https://github.com/amaropedro"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-cyan-600/15 hover:bg-cyan-600/30 text-cyan-300 hover:text-white font-bold text-xs py-2 px-3 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>Ver Repositório no GitHub</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Banner CTA para o Antigo Painel de Laboratório & Roadmap */}
+        <div className="bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-cyan-500/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-cyan-950/20 hover:border-cyan-400 transition-all">
+          <div className="space-y-1 text-center sm:text-left">
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="text-2xl">🧪</span>
+              <h3 className="text-base font-extrabold text-white">Laboratório de Projetos & Painel de Homologação</h3>
+            </div>
+            <p className="text-xs text-slate-300">
+              Quer ver os requisitos em sanfona, checklist de tarefas, auditoria de código e esteira CI/CD? Acesse a visão de desenvolvedor.
+            </p>
+          </div>
+          <button
+            onClick={() => setActiveTab && setActiveTab('roadmap')}
+            className="shrink-0 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl transition-all shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 flex items-center gap-2"
+          >
+            <span>Acessar Laboratório & Roadmap</span>
+            <ExternalLink className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* 6. VISÃO GERAL DOS 4 PILARES ESTRATÉGICOS (DO BANCO DE DADOS) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <span>📊</span> 4 Pilares Estratégicos & Homologação
+            </h3>
+            <p className="text-xs text-slate-400">
+              Acompanhamento de entregáveis, tarefas e conformidade técnica registrada no banco de dados.
+            </p>
+          </div>
+        </div>
+
+        {phases.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
+            <p className="text-xs text-slate-400">
+              Sincronizando dados dos pilares técnicos...
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {phases.map((phase) => (
+              <div
+                key={phase.id}
+                className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">{phase.icon}</span>
+                  <span className="text-xs font-bold font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">
+                    {getPhasePercentage(phase.id)}%
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {phase.title}
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{phase.subtitle}</p>
+                </div>
+
+                {/* Mini Progress bar */}
+                <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div
+                    className="h-full bg-cyan-500 transition-all duration-300"
+                    style={{ width: `${getPhasePercentage(phase.id)}%` }}
+                  ></div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                  <span>
+                    {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} itens
+                  </span>
+                  <span className="text-cyan-400 font-medium">
+                    Homologado ✓
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 7. LINHA DO TEMPO / EXPERIÊNCIA & FORMAÇÃO */}
+      <section id="experiencia" className="space-y-6">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
+            <Award className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Trajetória Profissional & Experiência</h2>
+            <p className="text-xs text-slate-400">Evolução de carreira e marcos em engenharia de software.</p>
+          </div>
+        </div>
+
+        <div className="relative border-l-2 border-slate-800 ml-4 pl-6 space-y-8">
+          {/* Timeline Item 1 */}
+          <div className="relative group">
+            <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-cyan-500 border-4 border-slate-950 group-hover:scale-125 transition-transform"></div>
+            <div className="space-y-1">
+              <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-2 py-0.5 rounded">
+                2022 - Presente
+              </span>
+              <h3 className="text-base font-bold text-white">Senior Full Stack & Arquiteto DevOps</h3>
+              <p className="text-xs text-slate-400 font-semibold">Soluções Corporativas & Cloud</p>
+              <p className="text-xs text-slate-300 leading-relaxed pt-1">
+                Liderança técnica no desenvolvimento de plataformas em Java (Spring Boot) e Next.js 15, arquitetura de microsserviços, modelagem de banco de dados PostgreSQL/Supabase e implementação de esteiras de CI/CD automatizadas com GitHub Actions.
+              </p>
+            </div>
+          </div>
+
+          {/* Timeline Item 2 */}
+          <div className="relative group">
+            <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-blue-500 border-4 border-slate-950 group-hover:scale-125 transition-transform"></div>
+            <div className="space-y-1">
+              <span className="text-[11px] font-mono text-blue-400 bg-blue-950/80 border border-blue-800 px-2 py-0.5 rounded">
+                2019 - 2022
+              </span>
+              <h3 className="text-base font-bold text-white">Engenheiro de Software Full Stack</h3>
+              <p className="text-xs text-slate-400 font-semibold">Sistemas Industriais & Web Applications</p>
+              <p className="text-xs text-slate-300 leading-relaxed pt-1">
+                Desenvolvimento de sistemas ERP com C# .NET 8 e telemetria de sensores industriais via MQTT. Criação de SPAs e APIs RESTful em Node.js e TypeScript com alta taxa de transferência.
+              </p>
+            </div>
+          </div>
+
+          {/* Timeline Item 3 */}
+          <div className="relative group">
+            <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-emerald-500 border-4 border-slate-950 group-hover:scale-125 transition-transform"></div>
+            <div className="space-y-1">
+              <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded">
+                2016 - 2019
+              </span>
+              <h3 className="text-base font-bold text-white">Desenvolvedor Backend & Banco de Dados</h3>
+              <p className="text-xs text-slate-400 font-semibold">Soluções Corporativas & SQL</p>
+              <p className="text-xs text-slate-300 leading-relaxed pt-1">
+                Construção e manutenção de APIs corporativas, rotinas de ETL e procedures complexas em PostgreSQL e SQL Server. Implementação de testes unitários e refatoração de sistemas legados.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FORMULÁRIO DE CONTATO & CANAIS DIRETOS */}
+      <section id="contato" className="space-y-6">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
+            <Mail className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Vamos Conversar? Entre em Contato</h2>
+            <p className="text-xs text-slate-400">
+              Tem um projeto, ideia ou desafio técnico? Envie uma mensagem direta.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Direct Info Card */}
+          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 flex flex-col justify-between">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">Canais de Contato Direto</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Estou aberto para oportunidades de desenvolvimento, consultorias arquiteturais, auditoria de código e posições de liderança técnica.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                <a
+                  href="mailto:arcamos.j@gmail.com"
+                  className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-cyan-500/40 rounded-xl transition-all group"
+                >
+                  <div className="p-2 bg-cyan-950 text-cyan-400 rounded-lg group-hover:scale-110 transition-transform">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-slate-400">E-mail Profissional</div>
+                    <div className="text-xs font-bold text-white group-hover:text-cyan-300">arcamos.j@gmail.com</div>
+                  </div>
+                </a>
+
+                <a
+                  href="https://github.com/amaropedro"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-cyan-500/40 rounded-xl transition-all group"
+                >
+                  <div className="p-2 bg-slate-900 text-slate-200 rounded-lg group-hover:scale-110 transition-transform">
+                    <Github className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-slate-400">Repositórios & Código</div>
+                    <div className="text-xs font-bold text-white group-hover:text-cyan-300">github.com/amaropedro</div>
+                  </div>
+                </a>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-2 bg-blue-950 text-blue-400 rounded-lg">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-slate-400">Localização</div>
+                    <div className="text-xs font-bold text-white">Brasil (Atuação Remota Global)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Availability & Engagements */}
+            <div className="pt-4 border-t border-slate-800 space-y-2">
+              <div className="text-[11px] font-semibold text-slate-400">Modalidades de Atuação:</div>
+              <div className="flex flex-wrap gap-2 text-[11px] font-medium">
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-cyan-300">
+                  ⚡ 100% Remoto ou Híbrido
+                </span>
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-emerald-300">
+                  💼 Contratos PJ / CLT / Freelance
+                </span>
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-blue-300">
+                  🛡️ Consultoria & Arquitetura
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Form Card */}
+          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            {contactSubmitted ? (
+              <div className="py-12 text-center space-y-4 animate-fadeIn">
+                <div className="w-14 h-14 bg-emerald-950 border border-emerald-500/50 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl shadow-lg">
+                  ✓
+                </div>
+                <h3 className="text-xl font-bold text-white">Mensagem Enviada com Sucesso!</h3>
+                <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                  Obrigado pelo contato, <strong className="text-white">{contactForm.name || 'parceiro'}</strong>. Responderei seu e-mail no menor tempo possível.
+                </p>
+                <button
+                  onClick={() => setContactSubmitted(false)}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl transition-all"
+                >
+                  Enviar Outra Mensagem
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Seu Nome *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Carlos Silva"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Seu E-mail *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="Ex: carlos@empresa.com"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Assunto</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Proposta de Projeto / Consultoria Técnica"
+                    value={contactForm.subject}
+                    onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Mensagem *</label>
+                  <textarea
+                    required
+                    rows={4}
+                    placeholder="Conte um pouco sobre sua ideia, projeto ou desafio técnico..."
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                >
+                  {isSending ? (
+                    <span>Enviando mensagem...</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Enviar Mensagem Agora</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
+
