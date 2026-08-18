@@ -60,10 +60,23 @@ CREATE TABLE IF NOT EXISTS public.site_config (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Ativar RLS
+-- 4. Tabela de Administradores (Primeiro Acesso e Autenticação)
+CREATE TABLE IF NOT EXISTS public.admins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT,
+  first_access BOOLEAN NOT NULL DEFAULT true,
+  first_access_token TEXT UNIQUE,
+  first_access_expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 5. Ativar RLS
 ALTER TABLE public.fases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 
 -- 5. Políticas RLS
 DROP POLICY IF EXISTS "Permitir leitura de fases" ON public.fases;

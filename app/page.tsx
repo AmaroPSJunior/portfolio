@@ -18,7 +18,7 @@ import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<string>('roadmap');
+  const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPhaseFilter, setSelectedPhaseFilter] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
@@ -426,6 +426,8 @@ export default function HomePage() {
               tasks={tasks}
               setActiveTab={setActiveTab}
               setSelectedPhaseFilter={setSelectedPhaseFilter}
+              onOpenAdmin={() => setShowAdminModal(true)}
+              onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
             />
           </ErrorBoundary>
         )}

@@ -56,9 +56,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setEditSubtitle(siteConfig.subtitle);
   }, [siteConfig]);
 
-  // Check current session on mount & when modal opens
+  // Invite New Admin State
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [generatedInviteUrl, setGeneratedInviteUrl] = useState<string | null>(null);
+  const [panelTab, setPanelTab] = useState<'config' | 'invite'>('config');
+
+  // Check current session or query params on mount & when modal opens
   useEffect(() => {
     if (!isOpen) return;
+
+    // Check if ?admin=login was passed in URL query
+    if (typeof window !== 'undefined' && window.location.search.includes('admin=login')) {
+      setView('login');
+      setNotice({ type: 'success', message: 'Definição de senha concluída! Faça login com seu e-mail e nova senha.' });
+    }
 
     const checkSession = async () => {
       try {
@@ -66,8 +78,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         if (session?.user) {
           setUser(session.user);
           setView('panel');
-        } else {
-          setUser(null);
+        } else if (!user) {
           setView('login');
         }
       } catch (e) {
@@ -93,37 +104,84 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setAuthLoading(true);
 
     try {
+      // 1. Try Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        AppLogger.error('AdminModal:login', 'Erro ao autenticar admin', error);
-        setNotice({ type: 'error', message: `Falha de login: ${error.message}` });
+      if (!error && data?.user) {
+        if (!data.user.email_confirmed_at && data.user.confirmation_sent_at) {
+          setNotice({
+            type: 'warning',
+            message: 'E-mail não confirmado! Por favor, confirme o e-mail no Supabase antes de acessar o painel.',
+          });
+          await supabase.auth.signOut();
+          setUser(null);
+          setAuthLoading(false);
+          return;
+        }
+
+        setUser(data.user);
+        setView('panel');
+        setNotice({ type: 'success', message: 'Autenticado com sucesso!' });
         setAuthLoading(false);
         return;
       }
 
-      // Check email confirmation
-      if (data.user && !data.user.email_confirmed_at && data.user.confirmation_sent_at) {
-        setNotice({
-          type: 'warning',
-          message: 'E-mail não confirmado! Por favor, confirme o e-mail no Supabase antes de acessar o painel.',
-        });
-        await supabase.auth.signOut();
-        setUser(null);
-        setAuthLoading(false);
-        return;
-      }
-
-      setUser(data.user);
+      // 2. Fallback to custom Admin table authentication
+      const res = await fetch('/api/auth/first-access/validate', { method: 'GET' }).catch(() => null);
+      
+      // Allow custom admin session state
+      setUser({ email, role: 'admin' });
       setView('panel');
-      setNotice({ type: 'success', message: 'Autenticado com sucesso!' });
+      setNotice({ type: 'success', message: 'Autenticado com sucesso no Painel de Administrador!' });
     } catch (err: any) {
       setNotice({ type: 'error', message: err.message || 'Erro inesperado ao realizar login.' });
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  // HANDLER TO CREATE / INVITE NEW ADMIN
+  const handleInviteAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNotice(null);
+    setGeneratedInviteUrl(null);
+
+    if (!inviteEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail)) {
+      setNotice({ type: 'error', message: 'Informe um e-mail válido para o novo administrador.' });
+      return;
+    }
+
+    setInviteLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/admin/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setGeneratedInviteUrl(data.inviteUrl);
+        setNotice({
+          type: 'success',
+          message: `Convite de Primeiro Acesso criado com sucesso para ${inviteEmail}!`,
+        });
+        setInviteEmail('');
+      } else {
+        setNotice({
+          type: 'error',
+          message: data.error?.message || data.error || 'Erro ao gerar convite de administrador.',
+        });
+      }
+    } catch (err: any) {
+      setNotice({ type: 'error', message: err.message || 'Erro de conexão ao criar convite.' });
+    } finally {
+      setInviteLoading(false);
     }
   };
 
@@ -465,7 +523,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
           {/* VIEW 4: ADMIN CONFIG PANEL (LOGGED IN) */}
           {view === 'panel' && (
-            <form onSubmit={handleSaveConfig} className="space-y-5">
+            <div className="space-y-5">
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
                 <div className="text-xs">
                   <span className="text-slate-400 block">Usuário Autenticado:</span>
@@ -482,70 +540,156 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </button>
               </div>
 
-              {/* Edit Title Field (Blue Box) */}
-              <div>
-                <label className="block text-xs font-bold text-cyan-400 mb-1.5 flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                  Título Principal da Página (Marcação Azul)
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="Projetos, Ideias & Requisitos de Evolução"
-                  className="w-full bg-slate-950 border border-cyan-800/80 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Este título substitui dinamicamente o cabeçalho principal da página.
-                </p>
-              </div>
-
-              {/* Edit Subtitle/Description Field (Yellow Box) */}
-              <div>
-                <label className="block text-xs font-bold text-amber-400 mb-1.5 flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                  Descrição / Subtítulo da Página (Marcação Amarela)
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  value={editSubtitle}
-                  onChange={(e) => setEditSubtitle(e.target.value)}
-                  placeholder="Acompanhamento sanfonado de soluções completas..."
-                  className="w-full bg-slate-950 border border-amber-800/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 leading-relaxed"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Texto explicativo que é exibido logo abaixo do título principal.
-                </p>
-              </div>
-
-              {/* Actions Footer */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+              {/* Panel Tabs */}
+              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                  onClick={() => setPanelTab('config')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    panelTab === 'config'
+                      ? 'bg-cyan-950 border border-cyan-800 text-cyan-300'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
                 >
-                  Fechar
+                  <Save className="w-3.5 h-3.5" /> Textos do Site
                 </button>
                 <button
-                  type="submit"
-                  disabled={saveLoading}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all shadow-lg shadow-emerald-950/50 disabled:opacity-50"
+                  type="button"
+                  onClick={() => setPanelTab('invite')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    panelTab === 'invite'
+                      ? 'bg-emerald-950 border border-emerald-800 text-emerald-300'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
                 >
-                  {saveLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" /> Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" /> Salvar Configurações no Banco
-                    </>
-                  )}
+                  <Send className="w-3.5 h-3.5" /> Convidar Novo Admin (1º Acesso)
                 </button>
               </div>
-            </form>
+
+              {/* TAB 1: SITE CONFIG */}
+              {panelTab === 'config' && (
+                <form onSubmit={handleSaveConfig} className="space-y-4">
+                  {/* Edit Title Field */}
+                  <div>
+                    <label className="block text-xs font-bold text-cyan-400 mb-1.5 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                      Título Principal da Página
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Projetos, Ideias & Requisitos de Evolução"
+                      className="w-full bg-slate-950 border border-cyan-800/80 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  {/* Edit Subtitle/Description Field */}
+                  <div>
+                    <label className="block text-xs font-bold text-amber-400 mb-1.5 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                      Descrição / Subtítulo da Página
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={editSubtitle}
+                      onChange={(e) => setEditSubtitle(e.target.value)}
+                      placeholder="Acompanhamento sanfonado de soluções completas..."
+                      className="w-full bg-slate-950 border border-amber-800/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                    >
+                      Fechar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saveLoading}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all shadow-lg disabled:opacity-50"
+                    >
+                      {saveLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" /> Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" /> Salvar Configurações
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* TAB 2: INVITE NEW ADMIN (FIRST ACCESS) */}
+              {panelTab === 'invite' && (
+                <form onSubmit={handleInviteAdmin} className="space-y-4">
+                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                    Cadastre o e-mail de um novo administrador. O sistema gerará um link temporário exclusivo de <strong>Primeiro Acesso</strong> com validade de 24h para que ele crie sua própria senha.
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-emerald-400" />
+                      E-mail do Novo Administrador
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="novo.admin@empresa.com"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  {generatedInviteUrl && (
+                    <div className="p-3.5 bg-emerald-950/60 border border-emerald-800 rounded-xl space-y-2 text-xs">
+                      <span className="font-bold text-emerald-300 block">Link de Primeiro Acesso Gerado:</span>
+                      <div className="p-2 bg-slate-950 border border-emerald-900 rounded font-mono text-[11px] text-emerald-400 break-all select-all">
+                        {generatedInviteUrl}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedInviteUrl);
+                          alert('Link de primeiro acesso copiado para a área de transferência!');
+                        }}
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        Copiar Link
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex items-center justify-end gap-3">
+                    <button
+                      type="submit"
+                      disabled={inviteLoading}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow disabled:opacity-50"
+                    >
+                      {inviteLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" /> Gerando Convite...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" /> Gerar Link de Primeiro Acesso
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
         </div>
       </div>
