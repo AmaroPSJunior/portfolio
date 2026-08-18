@@ -1,6 +1,6 @@
 {
-  "name": "Painel de Homologação & Evolução",
-  "description": "Painel de Homologação, Checklist de Evolução do Projeto e Portfólio Dev para Amaro Pedro da Silva Junior.",
+  "name": "Amaro Pedro - Portfólio Full Stack",
+  "description": "Portfólio profissional e currículo de Amaro Pedro da Silva Junior - Desenvolvedor Full Stack.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

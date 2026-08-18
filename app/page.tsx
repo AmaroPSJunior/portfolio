@@ -523,12 +523,20 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4 w-full">
           <div className="flex items-center gap-2">
             <span>
-              © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong> — Engenheiro de Software Full Stack & DevOps.
+              © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong> — Desenvolvedor Full Stack.
             </span>
           </div>
           <div className="flex items-center gap-6">
             <a
-              href="https://github.com/amaropedro"
+              href="https://www.linkedin.com/in/amaro-pedro-jr-53146810b"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-cyan-400 transition-colors"
+            >
+              LinkedIn
+            </a>
+            <a
+              href="https://github.com/AmaroPSJunior"
               target="_blank"
               rel="noreferrer"
               className="hover:text-cyan-400 transition-colors"

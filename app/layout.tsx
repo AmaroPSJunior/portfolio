@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Portfólio & Laboratório de Projetos - Amaro Pedro',
-  description: 'Painel de Homologação, Roadmap e Portfólio de Projetos por Amaro Pedro da Silva Junior',
+  title: 'Amaro Pedro da Silva Junior | Desenvolvedor Full Stack',
+  description: 'Portfólio profissional e currículo de Amaro Pedro da Silva Junior - Desenvolvedor Full Stack especializado em E-commerce, ERPs, APIs escaláveis e automação.',
 };
 
 export default function RootLayout({

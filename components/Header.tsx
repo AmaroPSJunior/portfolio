@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Mail, Github, ArrowUpRight } from 'lucide-react';
+import { Menu, X, Mail, Github, Linkedin, ArrowUpRight } from 'lucide-react';
+import { RESUME_DATA } from '@/data/constants';
 
 interface HeaderProps {
   activeTab?: string;
@@ -16,14 +17,14 @@ export const Header: React.FC<HeaderProps> = () => {
 
   const navLinks = [
     { label: 'Sobre', href: '#sobre' },
-    { label: 'Experiência', href: '#experiencia' },
     { label: 'Habilidades', href: '#habilidades' },
-    { label: 'Projetos', href: '#projetos' },
+    { label: 'Experiência', href: '#experiencia' },
+    { label: 'Formação', href: '#formacao' },
     { label: 'Contato', href: '#contato' },
   ];
 
   return (
-    <header className="bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50 transition-all">
+    <header className="bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         {/* Brand & Identity */}
         <a href="#hero" className="flex items-center gap-3 group">
@@ -35,7 +36,7 @@ export const Header: React.FC<HeaderProps> = () => {
               Amaro Pedro da Silva Junior
             </div>
             <div className="text-[11px] text-slate-400 font-medium">
-              Engenheiro Full Stack & Arquiteto DevOps
+              {RESUME_DATA.title}
             </div>
           </div>
         </a>
@@ -54,9 +55,19 @@ export const Header: React.FC<HeaderProps> = () => {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2.5">
           <a
-            href="https://github.com/amaropedro"
+            href={RESUME_DATA.linkedin}
+            target="_blank"
+            rel="noreferrer"
+            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-cyan-400 transition-all shadow-sm"
+            title="LinkedIn de Amaro Pedro"
+          >
+            <Linkedin className="w-4 h-4" />
+          </a>
+
+          <a
+            href={RESUME_DATA.github}
             target="_blank"
             rel="noreferrer"
             className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-all shadow-sm"
@@ -67,7 +78,7 @@ export const Header: React.FC<HeaderProps> = () => {
 
           <a
             href="#contato"
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 ml-1"
           >
             <Mail className="w-3.5 h-3.5" />
             <span>Fale Comigo</span>
@@ -103,14 +114,22 @@ export const Header: React.FC<HeaderProps> = () => {
           </nav>
           <div className="pt-2 border-t border-slate-800/80 flex items-center gap-3">
             <a
-              href="https://github.com/amaropedro"
+              href={RESUME_DATA.linkedin}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-slate-800"
+            >
+              <Linkedin className="w-4 h-4 text-cyan-400" />
+              <span>LinkedIn</span>
+            </a>
+            <a
+              href={RESUME_DATA.github}
               target="_blank"
               rel="noreferrer"
               className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-slate-800"
             >
               <Github className="w-4 h-4" />
               <span>GitHub</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
             </a>
             <a
               href="#contato"
@@ -118,7 +137,7 @@ export const Header: React.FC<HeaderProps> = () => {
               className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow"
             >
               <Mail className="w-3.5 h-3.5" />
-              <span>Fale Comigo</span>
+              <span>Contato</span>
             </a>
           </div>
         </div>
@@ -126,4 +145,5 @@ export const Header: React.FC<HeaderProps> = () => {
     </header>
   );
 };
+
 
