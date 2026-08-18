@@ -519,23 +519,35 @@ export default function HomePage() {
       />
 
       {/* Footer */}
-      <footer className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 py-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4 w-full">
-        <div>
-          <span>
-            👨‍💻 Desenvolvido por{' '}
-            <strong className="text-slate-300">Amaro Pedro da Silva Junior</strong>
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setShowDiagnosticsModal(true)}
-            className="hover:text-emerald-400 transition-colors underline decoration-slate-700"
-          >
-            📊 Diagnóstico de Erros
-          </button>
-          <span>🚀 Vercel & Next.js 15 App Router</span>
-          <span>🐘 Supabase PostgreSQL</span>
-          <span>⚡ Tailwind CSS</span>
+      <footer className="border-t border-slate-800/80 bg-slate-950 mt-16 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4 w-full">
+          <div className="flex items-center gap-2">
+            <span>
+              © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong> — Engenheiro de Software Full Stack & DevOps.
+            </span>
+          </div>
+          <div className="flex items-center gap-6">
+            <a
+              href="https://github.com/amaropedro"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-cyan-400 transition-colors"
+            >
+              GitHub
+            </a>
+            <a
+              href="mailto:arcamos.j@gmail.com"
+              className="hover:text-cyan-400 transition-colors"
+            >
+              arcamos.j@gmail.com
+            </a>
+            <a
+              href="#hero"
+              className="hover:text-cyan-400 transition-colors"
+            >
+              Voltar ao topo ↑
+            </a>
+          </div>
         </div>
       </footer>
     </div>

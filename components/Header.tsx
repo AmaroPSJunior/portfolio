@@ -1,123 +1,129 @@
 'use client';
 
-import React from 'react';
-import { Activity, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, X, Mail, Github, ArrowUpRight } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  setShowGithubModal: (show: boolean) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  setShowGithubModal?: (show: boolean) => void;
   onOpenDiagnostics?: () => void;
   onOpenAdmin?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  setActiveTab,
-  setShowGithubModal,
-  onOpenDiagnostics,
-  onOpenAdmin,
-}) => {
+export const Header: React.FC<HeaderProps> = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { label: 'Sobre', href: '#sobre' },
+    { label: 'Experiência', href: '#experiencia' },
+    { label: 'Habilidades', href: '#habilidades' },
+    { label: 'Projetos', href: '#projetos' },
+    { label: 'Contato', href: '#contato' },
+  ];
+
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <header className="bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50 transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         {/* Brand & Identity */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-          <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-xl shadow-inner">
-            👨‍💻
+        <a href="#hero" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center font-mono font-black text-cyan-400 text-base shadow-sm group-hover:border-cyan-400 transition-colors">
+            AP
           </div>
           <div>
-            <h1 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className="text-sm sm:text-base font-extrabold text-white tracking-tight group-hover:text-cyan-300 transition-colors">
               Amaro Pedro da Silva Junior
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">
-                Next.js 15
-              </span>
-            </h1>
-            <p className="text-xs text-slate-400">
-              Desenvolvedor Full Stack • Portfólio & Laboratório de Projetos
-            </p>
+            </div>
+            <div className="text-[11px] text-slate-400 font-medium">
+              Engenheiro Full Stack & Arquiteto DevOps
+            </div>
           </div>
+        </a>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+          {navLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="hover:text-cyan-400 transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          <a
+            href="https://github.com/amaropedro"
+            target="_blank"
+            rel="noreferrer"
+            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-all shadow-sm"
+            title="GitHub de Amaro Pedro"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+
+          <a
+            href="#contato"
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Fale Comigo</span>
+          </a>
         </div>
 
-        {/* Main Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
-          <nav className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'home'
-                  ? 'bg-cyan-600 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span>🏠</span> Home
-            </button>
-            <button
-              onClick={() => setActiveTab('roadmap')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'roadmap' || activeTab === 'checklist'
-                  ? 'bg-cyan-600 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span>📍</span> Roadmap & Metadados
-            </button>
-            <button
-              onClick={() => setActiveTab('cicd')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'cicd'
-                  ? 'bg-cyan-600 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span>⚙️</span> CI/CD & Tests
-            </button>
-            <button
-              onClick={() => setActiveTab('portfolio')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'portfolio'
-                  ? 'bg-cyan-600 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span>💼</span> Produtos & Tech Lab
-            </button>
-          </nav>
-
-          {onOpenAdmin && (
-            <button
-              id="btn-open-admin"
-              onClick={onOpenAdmin}
-              className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-              title="Abrir Área Administrativa (Login/Edição de Conteúdo)"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin</span>
-            </button>
-          )}
-
-          {onOpenDiagnostics && (
-            <button
-              id="btn-open-diagnostics"
-              onClick={onOpenDiagnostics}
-              className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-              title="Abrir Painel de Diagnóstico de Erros e Saúde do Sistema"
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Diagnóstico</span>
-            </button>
-          )}
-
+        {/* Mobile Hamburger Toggle */}
+        <div className="md:hidden flex items-center">
           <button
-            onClick={() => setShowGithubModal(true)}
-            className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-            title="Configurar Repositório e Sincronização GitHub"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
+            aria-label="Abrir menu de navegação"
           >
-            <span>🐙</span> GitHub Sync
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-3 animate-fadeIn">
+          <nav className="flex flex-col space-y-2">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <div className="pt-2 border-t border-slate-800/80 flex items-center gap-3">
+            <a
+              href="https://github.com/amaropedro"
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-slate-800"
+            >
+              <Github className="w-4 h-4" />
+              <span>GitHub</span>
+              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+            </a>
+            <a
+              href="#contato"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Fale Comigo</span>
+            </a>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
+

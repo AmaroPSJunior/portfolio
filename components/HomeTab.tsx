@@ -234,13 +234,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <span>Explorar Projetos & Demos</span>
               </a>
 
-              <button
-                onClick={() => setActiveTab('roadmap')}
+              <a
+                href="#experiencia"
                 className="bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white font-bold text-sm px-5 py-3.5 rounded-xl border border-slate-700/80 transition-all flex items-center gap-2 shadow hover:border-cyan-500/40"
               >
-                <span>📍</span>
-                <span>Roadmap & Requisitos</span>
-              </button>
+                <Briefcase className="w-4 h-4 text-cyan-400" />
+                <span>Trajetória Profissional</span>
+              </a>
 
               <a
                 href="#contato"
@@ -414,13 +414,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <Mail className="w-4 h-4" />
                 <span>Solicitar Proposta / Contato</span>
               </a>
-              <button
-                onClick={() => setActiveTab('portfolio')}
+              <a
+                href="#projetos"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
               >
                 <Boxes className="w-4 h-4 text-cyan-400" />
-                <span>Ver Tech Lab & PoCs</span>
-              </button>
+                <span>Ver Projetos & Demos</span>
+              </a>
             </div>
           </div>
 
@@ -614,16 +614,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
                 {/* Actions */}
                 <div className="pt-1 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedPhaseFilter(String(proj.phaseId));
-                      setActiveTab('roadmap');
-                    }}
-                    className="w-full bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-slate-950 font-bold text-xs py-2 px-3 rounded-xl border border-cyan-500/30 transition-all flex items-center justify-center gap-1.5"
+                  <a
+                    href="https://github.com/amaropedro"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-cyan-600/15 hover:bg-cyan-600/30 text-cyan-300 hover:text-white font-bold text-xs py-2 px-3 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all flex items-center justify-center gap-1.5"
                   >
-                    <span>Ver no Roadmap</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                    <span>Ver Repositório no GitHub</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
             </div>
@@ -639,40 +638,23 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <span>📊</span> 4 Pilares Estratégicos & Homologação
             </h3>
             <p className="text-xs text-slate-400">
-              Acompanhamento de entregáveis, tarefas e progresso real registrado no Supabase.
+              Acompanhamento de entregáveis, tarefas e conformidade técnica registrada no banco de dados.
             </p>
           </div>
-          <button
-            onClick={() => setActiveTab('roadmap')}
-            className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
-          >
-            <span>Acessar Painel Completo</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
 
         {phases.length === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
             <p className="text-xs text-slate-400">
-              Sincronizando dados dos pilares com o Supabase...
+              Sincronizando dados dos pilares técnicos...
             </p>
-            <button
-              onClick={() => setActiveTab('roadmap')}
-              className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow"
-            >
-              📍 Abrir Módulo de Roadmap
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {phases.map((phase) => (
               <div
                 key={phase.id}
-                className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all cursor-pointer group"
-                onClick={() => {
-                  setSelectedPhaseFilter(String(phase.id));
-                  setActiveTab('roadmap');
-                }}
+                className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 hover:border-cyan-500/50 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-2xl">{phase.icon}</span>
@@ -700,8 +682,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   <span>
                     {getPhaseCompletedCount(phase.id)}/{getPhaseTotalCount(phase.id)} itens
                   </span>
-                  <span className="text-cyan-400 font-medium group-hover:translate-x-0.5 transition-transform">
-                    Ver Detalhes ➔
+                  <span className="text-cyan-400 font-medium">
+                    Homologado ✓
                   </span>
                 </div>
               </div>
@@ -711,7 +693,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </section>
 
       {/* 7. LINHA DO TEMPO / EXPERIÊNCIA & FORMAÇÃO */}
-      <section className="space-y-6">
+      <section id="experiencia" className="space-y-6">
         <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
           <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
             <Award className="w-5 h-5" />
@@ -834,36 +816,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </div>
             </div>
 
-            {/* Quick Access Badges to Other System Modules */}
+            {/* Availability & Engagements */}
             <div className="pt-4 border-t border-slate-800 space-y-2">
-              <div className="text-[11px] font-semibold text-slate-400">Acesso Rápido às Áreas do Sistema:</div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setActiveTab('roadmap')}
-                  className="text-[11px] bg-slate-950 hover:bg-slate-800 text-cyan-300 border border-slate-800 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  📍 Roadmap
-                </button>
-                <button
-                  onClick={() => setActiveTab('cicd')}
-                  className="text-[11px] bg-slate-950 hover:bg-slate-800 text-cyan-300 border border-slate-800 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  ⚙️ CI/CD & Tests
-                </button>
-                <button
-                  onClick={() => setActiveTab('portfolio')}
-                  className="text-[11px] bg-slate-950 hover:bg-slate-800 text-cyan-300 border border-slate-800 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  💼 Tech Lab
-                </button>
-                {onOpenAdmin && (
-                  <button
-                    onClick={onOpenAdmin}
-                    className="text-[11px] bg-slate-950 hover:bg-slate-800 text-amber-300 border border-slate-800 px-2.5 py-1 rounded-lg transition-colors"
-                  >
-                    🛡️ Admin
-                  </button>
-                )}
+              <div className="text-[11px] font-semibold text-slate-400">Modalidades de Atuação:</div>
+              <div className="flex flex-wrap gap-2 text-[11px] font-medium">
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-cyan-300">
+                  ⚡ 100% Remoto ou Híbrido
+                </span>
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-emerald-300">
+                  💼 Contratos PJ / CLT / Freelance
+                </span>
+                <span className="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-blue-300">
+                  🛡️ Consultoria & Arquitetura
+                </span>
               </div>
             </div>
           </div>
