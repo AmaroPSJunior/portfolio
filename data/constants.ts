@@ -19,29 +19,10 @@ export const RESUME_DATA = {
 
   skills: {
     languagesAndFrameworks: [
-      { name: "Java", category: "Backend" },
-      { name: "JavaScript", category: "Frontend / Fullstack" },
-      { name: "TypeScript", category: "Frontend / Fullstack" },
-      { name: "C#", category: "Backend / Desktop" },
-      { name: "PHP", category: "Backend" },
-      { name: "Spring Boot", category: "Backend" },
-      { name: "Maven", category: "Ferramenta / Build" },
-      { name: "Node.js", category: "Backend" },
-      { name: "Vue.js", category: "Frontend" },
-      { name: "React", category: "Frontend" },
-      { name: "React Native", category: "Mobile" },
+      "Java", "JavaScript", "TypeScript", "C#", "PHP", "Spring Boot", "Maven", "Node.js", "Vue.js", "React", "React Native"
     ],
     databasesAndTools: [
-      { name: "SQL Server", category: "Banco de Dados" },
-      { name: "MySQL", category: "Banco de Dados" },
-      { name: "PostgreSQL", category: "Banco de Dados" },
-      { name: "PL/SQL", category: "Banco de Dados" },
-      { name: "Git", category: "Versionamento" },
-      { name: "GitHub", category: "Versionamento / CI/CD" },
-      { name: "VS Code", category: "IDE / Ferramenta" },
-      { name: "IntelliJ", category: "IDE / Ferramenta" },
-      { name: "TFS", category: "Gestão / Versionamento" },
-      { name: "Scrum", category: "Metodologia Ágil" },
+      "SQL Server", "MySQL", "PostgreSQL", "PL/SQL", "Git", "GitHub", "VS Code", "IntelliJ", "TFS", "Scrum"
     ]
   },
 
@@ -69,7 +50,7 @@ export const RESUME_DATA = {
         "Atuação no desenvolvimento ponta a ponta de soluções personalizadas e sistemas corporativos sob demanda para empresas parceiras.",
         "Integração ágil de interfaces modernas com serviços e regras de negócio usando Node.js, React, React Native e jQuery."
       ],
-      technologies: ["Node.js", "React", "React Native", "jQuery", "JavaScript", "TypeScript"]
+      technologies: ["Node.js", "React", "React Native", "jQuery", "JavaScript"]
     },
     {
       role: "Desenvolvedor Front-end / Full Stack",
@@ -100,16 +81,59 @@ export const RESUME_DATA = {
       type: "Ensino Técnico",
       icon: "⚡"
     }
+  ],
+
+  projects: [
+    {
+      id: "ecommerce-solutiontrue",
+      title: "Plataformas E-Commerce B2B/B2C (Setor de Autopeças)",
+      company: "SolutionTrue – São Paulo/SP",
+      description: "Desenvolvimento e manutenção contínua de plataformas críticas de e-commerce B2B/B2C do setor de autopeças e sistemas internos de ERP industriais.",
+      techs: ["Java", "Spring Boot", "Maven", "Vue.js", "TypeScript"],
+      badge: "E-Commerce & ERP"
+    },
+    {
+      id: "dropshipping-payments",
+      title: "Integração de Gateway de Pagamentos & Dropshipping",
+      company: "SolutionTrue – São Paulo/SP",
+      description: "Implementação de novos fluxos de negócio como Dropshipping e integração segura de APIs de pagamentos e operadoras de cartão de crédito.",
+      techs: ["Java", "Spring Boot", "APIs de Pagamento", "TypeScript"],
+      badge: "Fintech & Pagamentos"
+    },
+    {
+      id: "industrial-automation",
+      title: "Automação & Monitoramento de Linhas de Produção",
+      company: "SolutionTrue – São Paulo/SP",
+      description: "Concepção de soluções e apps de automação e monitoramento de linhas de produção integrados diretamente ao sistema central.",
+      techs: ["Java", "Spring Boot", "Vue.js", "TypeScript", "ERP Industrial"],
+      badge: "Automação Industrial"
+    },
+    {
+      id: "custom-corporate-apps",
+      title: "Sistemas Corporativos Sob Demanda",
+      company: "Amaro Pedro da Silva Junior Informatica ME",
+      description: "Atuação no desenvolvimento ponta a ponta de soluções personalizadas e sistemas corporativos sob demanda para empresas parceiras.",
+      techs: ["Node.js", "React", "React Native", "jQuery", "JavaScript"],
+      badge: "Soluções PJ / Autônomo"
+    },
+    {
+      id: "academic-portals-mvc",
+      title: "Portais Acadêmicos & Sistemas Web MVC",
+      company: "Centro de Ensino São Lucas LTDA – Caçapava/SP",
+      description: "Construção de componentes em sistemas web e portais acadêmicos utilizando arquitetura MVC com a stack técnica da Microsoft (C#, SQL Server, HTML/CSS, Razor).",
+      techs: ["C#", "SQL Server", "HTML/CSS", "JavaScript", "Razor", "MVC"],
+      badge: "Microsoft Stack & MVC"
+    }
   ]
 };
 
 export const SKILLS_MATRIX: Skill[] = [
-  { name: 'Java & Spring Boot', level: 95, icon: '☕', experience: 'Microserviços, Maven, Spring Boot, REST APIs' },
-  { name: 'Node.js & TypeScript', level: 90, icon: '🟢', experience: 'APIs escaláveis, Express, TypeScript, JavaScript' },
-  { name: 'React & Vue.js', level: 92, icon: '⚛️', experience: 'React, React Native, Vue.js, Interfaces Responsivas' },
-  { name: 'C# & .NET MVC', level: 88, icon: '⚡', experience: 'Arquitetura MVC, Razor, Regras de Negócio, Automação' },
+  { name: 'Java & Spring Boot', level: 95, icon: '☕', experience: 'Java, Spring Boot, Maven, APIs escaláveis' },
+  { name: 'JavaScript & TypeScript', level: 92, icon: '⚡', experience: 'TypeScript, JavaScript, Node.js, Vue.js, React' },
+  { name: 'C# & Stack Microsoft', level: 88, icon: '🔷', experience: 'C#, SQL Server, Arquitetura MVC, Razor' },
+  { name: 'Node.js, Vue.js & React', level: 90, icon: '⚛️', experience: 'Node.js, Vue.js, React, React Native, jQuery' },
   { name: 'Bancos de Dados SQL', level: 90, icon: '🐘', experience: 'SQL Server, MySQL, PostgreSQL, PL/SQL' },
-  { name: 'DevOps & Ferramentas', level: 88, icon: '🛠️', experience: 'Git, GitHub, TFS, VS Code, IntelliJ, Scrum' }
+  { name: 'Ferramentas & Metodologias', level: 90, icon: '🛠️', experience: 'Git, GitHub, VS Code, IntelliJ, TFS, Scrum' }
 ];
 
 export const WORKFLOW_YAML = `name: CI/CD Pipeline - Vercel & QA Validation
