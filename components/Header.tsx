@@ -136,6 +136,15 @@ export const Header: React.FC<HeaderProps> = ({
 
           <a
             href="#contato"
+            onClick={(e) => {
+              if (activeTab !== 'home' && setActiveTab) {
+                e.preventDefault();
+                setActiveTab('home');
+                setTimeout(() => {
+                  document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }
+            }}
             className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
           >
             <Mail className="w-3.5 h-3.5" />
@@ -209,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Acessar Painel de Projetos
               </button>
             )}
-            <div className="flex gap-2">
+                        <div className="flex gap-2">
               <a
                 href="https://github.com/AmaroPSJunior"
                 target="_blank"
@@ -219,15 +228,30 @@ export const Header: React.FC<HeaderProps> = ({
                 <Github className="w-4 h-4" />
                 <span>GitHub</span>
               </a>
-              <a
+                            <a
                 href="#contato"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  if (activeTab !== 'home' && setActiveTab) {
+                    e.preventDefault();
+                    setActiveTab('home');
+                    // Aguarda o estado mudar e tenta scrollar para o contato
+                    setTimeout(() => {
+                      const contactSection = document.getElementById('contato');
+                      if (contactSection) {
+                        contactSection.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 100);
+                  }
+                  setMobileMenuOpen(false);
+                }}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow"
               >
                 <Mail className="w-3.5 h-3.5" />
                 <span>Contato</span>
               </a>
+
             </div>
+
           </div>
         </div>
       )}
