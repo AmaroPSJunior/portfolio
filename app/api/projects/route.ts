@@ -78,7 +78,7 @@ export async function GET() {
   }
 }
 
-// POST: Cadastrar novo projeto vinculado a uma Fase/Pilar
+// POST: Cadastrar novo projeto vinculado a uma Fase
 export async function POST(request: NextRequest) {
   const scope = 'projects:POST';
   try {

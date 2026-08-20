@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- Migração do Banco de Dados Supabase (PostgreSQL)
--- Tabela: projects (Projetos e Requisitos vinculados aos Pilares)
+-- Tabela: projects (Projetos e Requisitos vinculados às Fases)
 -- Autor: Amaro Pedro da Silva Junior
 -- Data: 2026-08-13
 -- ==============================================================================
@@ -43,10 +43,10 @@ CREATE POLICY "Permitir deleção de projetos"
   ON public.projects FOR DELETE
   USING (true);
 
--- 4. Adicionar política de deleção para 'pillars' se ainda não existir
-DROP POLICY IF EXISTS "Permitir deleção de pilares" ON public.pillars;
-CREATE POLICY "Permitir deleção de pilares"
-  ON public.pillars FOR DELETE
+-- 4. Garantir política de deleção para 'fases'
+DROP POLICY IF EXISTS "Permitir deleção de fases" ON public.fases;
+CREATE POLICY "Permitir deleção de fases"
+ON public.fases FOR DELETE
   USING (true);
 
 -- 5. Se a tabela 'projects' estiver vazia, popular com os dados iniciais padrão

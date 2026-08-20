@@ -15,7 +15,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({ skillsMatrix }) => {
         <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>🛒</span> Produtos & Serviços Enterprise (Pilar 2)
+              <span>🛒</span> Produtos & Serviços Enterprise (Fase 2)
             </h3>
             <p className="text-xs text-slate-400">
               Soluções completas desenvolvidas com alta performance e arquitetura robusta.
@@ -115,7 +115,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({ skillsMatrix }) => {
         <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>🧪</span> Tech Lab & Experimentos (Pilar 3)
+              <span>🧪</span> Tech Lab & Experimentos (Fase 3)
             </h3>
             <p className="text-xs text-slate-400">
               Provas de Conceito, testes de novas tecnologias e experimentos ativamente homologados.
@@ -166,7 +166,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({ skillsMatrix }) => {
       <section className="space-y-4">
         <div className="border-b border-slate-800 pb-3">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>🎯</span> Matriz Visual de Habilidades Unitárias (Skills Lab - Pilar 4)
+            <span>🎯</span> Matriz Visual de Habilidades Unitárias (Skills Lab - Fase 4)
           </h3>
           <p className="text-xs text-slate-400">
             Proficiência técnica e aplicações práticas do desenvolvedor Amaro Pedro da Silva Junior.

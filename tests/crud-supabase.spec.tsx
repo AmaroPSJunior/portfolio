@@ -87,7 +87,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
 
     // Helper to simulate Supabase chaining behavior
     mockFrom.mockImplementation((tableName: string) => {
-      if (tableName === 'fases' || tableName === 'pillars') {
+      if (tableName === 'fases') {
         return {
           select: vi.fn().mockImplementation(() => ({
             order: vi.fn().mockImplementation((col: string, { ascending } = { ascending: true }) => {
@@ -472,7 +472,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
     it('deve carregar os dados das API Routes e renderizar fases/projetos na tela', async () => {
       // Mock global fetch para simular Next.js API Routes chamadas em app/page.tsx
       global.fetch = vi.fn().mockImplementation((url: string) => {
-        if (url.includes('/api/fases') || url.includes('/api/pillars')) {
+        if (url.includes('/api/fases')) {
           return Promise.resolve({
             ok: true,
             json: async () => ({

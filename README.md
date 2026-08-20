@@ -17,7 +17,7 @@ Este repositório contém o **Painel de Homologação e Checklist de Evolução 
 
 ### 🌟 Funcionalidades Principais
 
-- **📋 Sincronização em Tempo Real com Supabase**: Persistência bidirecional de Pilares (`pillars`) e Projetos/Requisitos (`projects`) diretamente em banco PostgreSQL.
+- **📋 Sincronização em Tempo Real com Supabase**: Persistência bidirecional de Fases (`fases`) e Projetos/Requisitos (`projects`) diretamente em banco PostgreSQL.
 - **🛡️ Suíte Completa de QA & Testes de Integração**: 24 testes unitários e de integração cobrindo componentes React, validadores e o fluxo CRUD completo das API Routes do Supabase.
 - **⚙️ Automação de CI/CD**: Workflows em `.github/workflows/` para linting (`tsc --noEmit`), execução do Vitest e automação de migrações de banco.
 - **💼 Portfólio & Tech Lab (PoCs)**: Projetos e aplicações completas (E-commerce, ERP Industrial, Web3, Pix e WebSockets).
@@ -29,12 +29,12 @@ Este repositório contém o **Painel de Homologação e Checklist de Evolução 
 
 O projeto possui duas suítes de testes automatizadas no diretório raiz e em `tests/`:
 
-1. **`app.spec.jsx`**: Testes unitários para cálculo de progresso geral, cálculo por pilar e comportamentos da UI/Accordions (12 testes).
+1. **`app.spec.jsx`**: Testes unitários para cálculo de progresso geral, cálculo por fase e comportamentos da UI/Accordions (12 testes).
 2. **`tests/crud-supabase.spec.tsx`**: Testes de integração e validação do contrato do banco de dados Supabase/PostgreSQL cobrindo o ciclo de vida CRUD completo (12 testes):
-   - **READ (Fetch)**: Formatação das respostas das API Routes de Pilares e Projetos.
-   - **INSERT (POST)**: Criação de novos pilares e projetos com validação de schemas e cálculo de ordenação.
+   - **READ (Fetch)**: Formatação das respostas das API Routes de Fases e Projetos.
+   - **INSERT (POST)**: Criação de novas fases e projetos com validação de schemas e cálculo de ordenação.
    - **UPDATE (PATCH)**: Atualização reativa de status `completed` e metadados.
-   - **DELETE**: Exclusão de itens no Supabase (`numeric_id = 4`, pilares) e atualização da interface.
+   - **DELETE**: Exclusão de itens no Supabase (`numeric_id = 4`, fases) e atualização da interface.
    - **Tratamento de Erros**: Resiliência contra queda de conexão ou violações de integridade.
 
 ### Executando os Testes Localmente

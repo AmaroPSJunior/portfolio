@@ -216,7 +216,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               {/* Main Card */}
               <div className="relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl backdrop-blur-xl space-y-4">
                 {/* Photo */}
-                <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center justify-center">
+                <a
+                  href={RESUME_DATA.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Ir para o LinkedIn de Amaro Pedro"
+                  aria-label="Abrir o LinkedIn de Amaro Pedro"
+                  className="relative block w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 cursor-pointer"
+                >
                   <Image
                     src="/amaro_avatar.jpg"
                     alt="Amaro Pedro da Silva Junior - Desenvolvedor Full Stack"
@@ -229,7 +236,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-                </div>
+                </a>
 
                 {/* Main Tech Highlights */}
                 <div className="grid grid-cols-2 gap-2 pt-1">

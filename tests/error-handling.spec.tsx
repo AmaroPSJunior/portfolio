@@ -111,21 +111,21 @@ describe('Suíte de Testes - Sistema Centralizado de Tratamento de Erros e Logs'
 
   describe('3. Formatação Padronizada de Resposta de API (handleApiError)', () => {
     it('deve formatar erro AppError em resposta JSON com estrutura padronizada e registrar no AppLogger', async () => {
-      const customErr = new ValidationError('Título do pilar é obrigatório', ['Min 3 caracteres']);
-      const response = handleApiError(customErr, 'pillars:POST');
+      const customErr = new ValidationError('Título da fase é obrigatório', ['Min 3 caracteres']);
+      const response = handleApiError(customErr, 'fases:POST');
 
       expect(response.status).toBe(400);
       const json = await response.json();
 
       expect(json.success).toBe(false);
       expect(json.error.code).toBe('VALIDATION_ERROR');
-      expect(json.error.message).toBe('Título do pilar é obrigatório');
-      expect(json.error.scope).toBe('pillars:POST');
+      expect(json.error.message).toBe('Título da fase é obrigatório');
+      expect(json.error.scope).toBe('fases:POST');
       expect(json.error.timestamp).toBeDefined();
 
       const logs = AppLogger.getRecentLogs(1, 'ERROR');
       expect(logs).toHaveLength(1);
-      expect(logs[0].scope).toBe('pillars:POST');
+      expect(logs[0].scope).toBe('fases:POST');
     });
   });
 
