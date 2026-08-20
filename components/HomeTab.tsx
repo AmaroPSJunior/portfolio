@@ -148,65 +148,68 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               {RESUME_DATA.summary}
             </p>
 
-            {/* Action Buttons CTA */}
-            <div className="pt-3 flex flex-wrap items-center gap-3.5">
+                        {/* Action Buttons CTA */}
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
               <a
                 href="#projetos"
-                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
+                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
               >
                 <Zap className="w-4 h-4 fill-current" />
-                <span>Ver Projetos & Realizações</span>
+                <span>Ver Projetos</span>
               </a>
 
               <a
                 href="#experiencia"
-                className="bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white font-bold text-sm px-5 py-3.5 rounded-xl border border-slate-700/80 transition-all flex items-center gap-2 shadow hover:border-cyan-500/40"
+                className="bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white font-bold text-sm px-5 py-3.5 rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-2 shadow hover:border-cyan-500/40"
               >
                 <Briefcase className="w-4 h-4 text-cyan-400" />
-                <span>Experiência Profissional</span>
+                <span>Experiência</span>
               </a>
 
               <a
                 href="#contato"
-                className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center gap-2"
+                className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center justify-center gap-2"
               >
                 <Mail className="w-4 h-4 text-cyan-400" />
                 <span>Fale Comigo</span>
               </a>
             </div>
 
-            {/* Quick Contact & Social Chips */}
-            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
+
+                        {/* Quick Contact & Social Chips */}
+            <div className="pt-2 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-x-4 gap-y-2 text-xs text-slate-400">
               <div className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Vila Matilde – São Paulo/SP</span>
+                <span>São Paulo/SP</span>
               </div>
-              <span className="text-slate-700">•</span>
+              <span className="hidden sm:inline text-slate-700">•</span>
               <div className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="font-mono text-slate-300">{RESUME_DATA.email}</span>
+                <span className="font-mono text-slate-300 break-all">{RESUME_DATA.email}</span>
               </div>
-              <span className="text-slate-700">•</span>
-              <a
-                href={RESUME_DATA.github}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-cyan-300 transition-colors flex items-center gap-1"
-              >
-                <Github className="w-3.5 h-3.5" />
-                <span>{RESUME_DATA.githubDisplay}</span>
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href={RESUME_DATA.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-cyan-300 transition-colors flex items-center gap-1"
-              >
-                <Linkedin className="w-3.5 h-3.5 text-blue-400" />
-                <span>LinkedIn</span>
-              </a>
+              <span className="hidden sm:inline text-slate-700">•</span>
+              <div className="flex gap-4">
+                <a
+                  href={RESUME_DATA.github}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-cyan-300 transition-colors flex items-center gap-1"
+                >
+                  <Github className="w-3.5 h-3.5" />
+                  <span>GitHub</span>
+                </a>
+                <a
+                  href={RESUME_DATA.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-cyan-300 transition-colors flex items-center gap-1"
+                >
+                  <Linkedin className="w-3.5 h-3.5 text-blue-400" />
+                  <span>LinkedIn</span>
+                </a>
+              </div>
             </div>
+
           </div>
 
           {/* Right Column: Avatar Frame */}
@@ -280,34 +283,35 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
       </section>
 
-      {/* 2. NUMBERS & HIGHLIGHTS */}
+            {/* 2. NUMBERS & HIGHLIGHTS */}
       <section className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
-          <div className="pt-2 md:pt-0 space-y-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+          <div className="py-2 lg:py-0 space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono">Full Stack</div>
             <div className="text-xs text-slate-300 font-semibold">Perfil Técnico</div>
             <div className="text-[11px] text-slate-500">Desenvolvimento de ponta a ponta</div>
           </div>
 
-          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">SolutionTrue</div>
             <div className="text-xs text-slate-300 font-semibold">2020 – 2025</div>
             <div className="text-[11px] text-slate-500">E-Commerce & ERP Industrial</div>
           </div>
 
-          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-blue-400 font-mono">ADS</div>
             <div className="text-xs text-slate-300 font-semibold">UNIP – Conclusão 2019</div>
             <div className="text-[11px] text-slate-500">Análise e Des. de Sistemas</div>
           </div>
 
-          <div className="pt-4 md:pt-0 md:pl-6 space-y-1">
+          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">Scrum</div>
             <div className="text-xs text-slate-300 font-semibold">Metodologias Ágeis</div>
             <div className="text-[11px] text-slate-500">Git, TFS, CI/CD e Código Limpo</div>
           </div>
         </div>
       </section>
+
 
       {/* 3. RESUMO PROFISSIONAL */}
       <section id="sobre" className="space-y-6">

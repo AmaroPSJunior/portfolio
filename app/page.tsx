@@ -539,17 +539,20 @@ export default function HomePage() {
         onClose={() => setShowDiagnosticsModal(false)}
       />
 
-      {/* Footer */}
+            {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 mt-16 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4 w-full">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-[10px] sm:text-xs text-slate-400 gap-6 w-full">
+          <div className="flex flex-col items-center md:items-start gap-2 text-center md:text-left">
             <span>
-              © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong> — Engenheiro de Software Full Stack & DevOps.
+              © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong>
+            </span>
+            <span className="text-slate-500">
+              Engenheiro de Software Full Stack & DevOps.
             </span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
             <a
-              href="https://github.com/amaropedro"
+              href="https://github.com/AmaroPSJunior"
               target="_blank"
               rel="noreferrer"
               className="hover:text-cyan-400 transition-colors"
@@ -564,13 +567,14 @@ export default function HomePage() {
             </a>
             <a
               href="#hero"
-              className="hover:text-cyan-400 transition-colors"
+              className="hover:text-cyan-400 transition-colors flex items-center gap-1"
             >
               Voltar ao topo ↑
             </a>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }

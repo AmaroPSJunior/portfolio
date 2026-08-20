@@ -155,43 +155,83 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer Navigation */}
+            {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-3 animate-fadeIn">
-          <nav className="flex flex-col space-y-2">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
+          <nav className="flex flex-col space-y-1">
+            {activeTab === 'home' ? (
+              navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setActiveTab && setActiveTab('home');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-cyan-400 hover:bg-slate-900 transition-colors"
+                >
+                  ← Voltar para Início
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab && setActiveTab('roadmap');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'roadmap' ? 'bg-cyan-500/10 text-cyan-300' : 'text-slate-300 hover:bg-slate-900'
+                  }`}
+                >
+                  Roadmap & Fases
+                </button>
+              </>
+            )}
           </nav>
-          <div className="pt-2 border-t border-slate-800/80 flex items-center gap-3">
-            <a
-              href="https://github.com/amaropedro"
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-slate-800"
-            >
-              <Github className="w-4 h-4" />
-              <span>GitHub</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
-            </a>
-            <a
-              href="#contato"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Fale Comigo</span>
-            </a>
+          
+          <div className="pt-3 border-t border-slate-800/80 flex flex-col gap-2">
+            {activeTab === 'home' && setActiveTab && (
+              <button
+                onClick={() => {
+                  setActiveTab('roadmap');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-900 text-cyan-300 text-xs font-bold flex items-center justify-center gap-2 border border-slate-700"
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                Acessar Painel de Projetos
+              </button>
+            )}
+            <div className="flex gap-2">
+              <a
+                href="https://github.com/AmaroPSJunior"
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-slate-800"
+              >
+                <Github className="w-4 h-4" />
+                <span>GitHub</span>
+              </a>
+              <a
+                href="#contato"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Contato</span>
+              </a>
+            </div>
           </div>
         </div>
       )}
+
     </header>
   );
 };
