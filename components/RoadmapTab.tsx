@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Task, Phase, GithubConfig, SiteConfig } from '@/types';
 import { TaskCard } from './TaskCard';
+import { DeletePhaseModal } from './DeletePhaseModal';
 import {
   ChevronDown,
   ChevronRight,
@@ -74,6 +75,14 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   setShowPhaseModal,
   onOpenDiagnostics,
 }) => {
+  const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
+
+  const handleDeletePhase = () => {
+    if (!phaseToDelete || !deletePhase) return;
+    deletePhase(phaseToDelete.id);
+    setPhaseToDelete(null);
+  };
+
   // Safe filtering logic
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
@@ -349,13 +358,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (
-                            confirm(
-                              `Deseja excluir a fase "${phase.title}" e seus projetos do Supabase?`
-                            )
-                          ) {
-                            deletePhase(phase.id);
-                          }
+                          setPhaseToDelete(phase);
                         }}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="Excluir fase do Supabase"
@@ -429,6 +432,12 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
           })}
         </div>
       )}
+
+      <DeletePhaseModal
+        phase={phaseToDelete}
+        onClose={() => setPhaseToDelete(null)}
+        onConfirm={handleDeletePhase}
+      />
     </div>
   );
 };
