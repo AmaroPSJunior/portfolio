@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Phase, Task } from '@/types';
 import { RESUME_DATA, SKILLS_MATRIX } from '@/data/constants';
+import { isDisabledStatus, isTaskFinished } from '@/lib/validators';
 import {
   Code2,
   Terminal,
@@ -66,16 +67,17 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [isSending, setIsSending] = useState(false);
 
   // Stats calculation
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.completed).length;
+  const activeTasks = tasks.filter((task) => !isDisabledStatus(task.status));
+  const totalTasks = activeTasks.length;
+  const completedTasks = activeTasks.filter(isTaskFinished).length;
   const overallPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
   const getPhaseCompletedCount = (phaseId: number) => {
-    return tasks.filter((t) => Number(t.phase) === Number(phaseId) && t.completed).length;
+    return activeTasks.filter((t) => Number(t.phase) === Number(phaseId) && isTaskFinished(t)).length;
   };
 
   const getPhaseTotalCount = (phaseId: number) => {
-    return tasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
+    return activeTasks.filter((t) => Number(t.phase) === Number(phaseId)).length;
   };
 
   const getPhasePercentage = (phaseId: number) => {

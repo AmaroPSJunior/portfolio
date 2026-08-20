@@ -22,15 +22,16 @@ const TEST_TASKS = [
 
 export function calculateProgress(tasks) {
   if (!tasks || tasks.length === 0) return 0;
-  const completed = tasks.filter(t => t.completed).length;
-  return Math.round((completed / tasks.length) * 100);
+  const activeTasks = tasks.filter(t => t.status !== 'disabled');
+  const completed = activeTasks.filter(t => t.completed || t.status === 'completed').length;
+  return Math.round((completed / activeTasks.length) * 100);
 }
 
 export function calculatePhaseProgress(tasks, phaseId) {
   if (!tasks || tasks.length === 0) return 0;
-  const phaseTasks = tasks.filter(t => t.phase === Number(phaseId));
+  const phaseTasks = tasks.filter(t => t.phase === Number(phaseId) && t.status !== 'disabled');
   if (phaseTasks.length === 0) return 0;
-  const completed = phaseTasks.filter(t => t.completed).length;
+  const completed = phaseTasks.filter(t => t.completed || t.status === 'completed').length;
   return Math.round((completed / phaseTasks.length) * 100);
 }
 
@@ -59,6 +60,17 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
     expect(calculatePhaseProgress(mockTasks, 2)).toBe(50);
     expect(calculatePhaseProgress(mockTasks, 3)).toBe(50);
     expect(calculatePhaseProgress(mockTasks, 4)).toBe(100);
+  });
+
+  it('deve ignorar itens desativados e contar status concluído nos indicadores', () => {
+    const tasks = [
+      { id: 1, phase: 1, completed: false, status: 'completed' },
+      { id: 2, phase: 1, completed: false, status: 'pending' },
+      { id: 3, phase: 1, completed: true, status: 'disabled' },
+    ];
+
+    expect(calculateProgress(tasks)).toBe(50);
+    expect(calculatePhaseProgress(tasks, 1)).toBe(50);
   });
 
   describe('Validação e Ordenação do Cadastro de Fases (Supabase Integration)', () => {

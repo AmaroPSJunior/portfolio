@@ -6,6 +6,7 @@ import { TaskCard } from './TaskCard';
 import { DeletePhaseModal } from './DeletePhaseModal';
 import { DeleteProjectModal } from './DeleteProjectModal';
 import { STATUS_OPTIONS } from '@/data/constants';
+import { isDisabledStatus, isTaskFinished } from '@/lib/validators';
 import {
   ChevronDown,
   ChevronRight,
@@ -114,12 +115,13 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     return matchesSearch && matchesPhase && matchesStatus;
   });
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.completed).length;
+  const activeTasks = tasks.filter((task) => !isDisabledStatus(task.status));
+  const totalTasks = activeTasks.length;
+  const completedTasks = activeTasks.filter(isTaskFinished).length;
   const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const completedPhasesCount = phases.filter((phase) => {
-    const phaseTasks = tasks.filter((t) => t.phase === phase.id);
-    return phaseTasks.length > 0 && phaseTasks.every((t) => t.completed);
+    const phaseTasks = activeTasks.filter((t) => t.phase === phase.id);
+    return phaseTasks.length > 0 && phaseTasks.every(isTaskFinished);
   }).length;
 
   return (
@@ -291,8 +293,9 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
             const phaseStatusLabel =
               STATUS_OPTIONS.find((option) => option.value === phaseStatus)?.label || 'Pendente';
             const isOpen = openPhases.includes(phase.id);
-            const totalPhaseTasks = tasks.filter((t) => t.phase === phase.id).length;
-            const completedPhaseTasks = tasks.filter((t) => t.phase === phase.id && t.completed).length;
+            const phaseActiveTasks = activeTasks.filter((t) => t.phase === phase.id);
+            const totalPhaseTasks = phaseActiveTasks.length;
+            const completedPhaseTasks = phaseActiveTasks.filter(isTaskFinished).length;
             const phaseProgress =
               totalPhaseTasks > 0 ? Math.round((completedPhaseTasks / totalPhaseTasks) * 100) : 0;
 

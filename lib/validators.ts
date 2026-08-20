@@ -13,6 +13,14 @@ export function isValidWorkStatus(value: unknown): value is WorkStatus {
   return typeof value === 'string' && WORK_STATUS_VALUES.includes(value as WorkStatus);
 }
 
+export function isDisabledStatus(status?: WorkStatus): boolean {
+  return status === 'disabled';
+}
+
+export function isTaskFinished(task: { completed: boolean; status?: WorkStatus }): boolean {
+  return task.completed || task.status === 'completed';
+}
+
 export interface PhaseInput {
   title?: string;
   subtitle?: string;
