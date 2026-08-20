@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Task, Phase, GithubConfig, SiteConfig } from '@/types';
 import { TaskCard } from './TaskCard';
 import { DeletePhaseModal } from './DeletePhaseModal';
+import { DeleteProjectModal } from './DeleteProjectModal';
 import {
   ChevronDown,
   ChevronRight,
@@ -76,11 +77,18 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   onOpenDiagnostics,
 }) => {
   const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Task | null>(null);
 
   const handleDeletePhase = () => {
     if (!phaseToDelete || !deletePhase) return;
     deletePhase(phaseToDelete.id);
     setPhaseToDelete(null);
+  };
+
+  const handleDeleteProject = () => {
+    if (!projectToDelete) return;
+    deleteTask(projectToDelete.id);
+    setProjectToDelete(null);
   };
 
   // Safe filtering logic
@@ -360,7 +368,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                       </button>
                     )}
 
-                    {deletePhase && (
+                    {deletePhase && !tasks.some((task) => task.phase === phase.id) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -426,7 +434,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                             isExpanded={expandedCards.includes(task.id)}
                             onToggleExpand={() => toggleCard(task.id)}
                             onToggleComplete={() => toggleTask(task.id)}
-                            onDelete={() => deleteTask(task.id)}
+                            onDelete={() => setProjectToDelete(task)}
                             githubConfig={githubConfig}
                           />
                         ))}
@@ -444,6 +452,12 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
         phase={phaseToDelete}
         onClose={() => setPhaseToDelete(null)}
         onConfirm={handleDeletePhase}
+      />
+
+      <DeleteProjectModal
+        project={projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        onConfirm={handleDeleteProject}
       />
     </div>
   );

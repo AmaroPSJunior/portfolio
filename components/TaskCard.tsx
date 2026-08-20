@@ -76,9 +76,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (confirm(`Deseja excluir o projeto "${task.title}"?`)) {
-                  onDelete();
-                }
+                onDelete();
               }}
               className="p-1 text-slate-500 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
               title="Excluir projeto"
