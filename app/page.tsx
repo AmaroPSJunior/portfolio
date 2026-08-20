@@ -137,7 +137,7 @@ export default function HomePage() {
     }
   };
 
-  // Sync on mount & setup periodic refresh for bidirectional database updates
+  // Load database data once on mount. Refreshes happen through explicit actions.
   useEffect(() => {
     const savedGithub = localStorage.getItem('amaro_github_config_v1');
     if (savedGithub) {
@@ -149,13 +149,6 @@ export default function HomePage() {
     }
 
     fetchDatabaseData();
-
-    // Periodic auto-sync every 10 seconds to ensure bidirectional sync with DB
-    const syncInterval = setInterval(() => {
-      fetchDatabaseData();
-    }, 10000);
-
-    return () => clearInterval(syncInterval);
   }, [fetchDatabaseData]);
 
   // Save github config
