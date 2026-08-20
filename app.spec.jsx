@@ -158,17 +158,15 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
       expect(screen.getAllByText('Fase 1').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Fase 2').length).toBeGreaterThan(0);
 
-      // Apenas 1 botão "Novo Projeto" (na barra de ações global)
-      const novoProjetoButtons = screen.getAllByText('Novo Projeto');
-      expect(novoProjetoButtons.length).toBe(1);
+      // Nenhum botão de projeto aparece enquanto as fases estão fechadas.
+      expect(screen.queryByText('Novo Projeto')).toBeNull();
     });
 
     it('b) Botão "Novo Projeto" específico da Fase NÃO está presente quando a fase está contraída', () => {
       render(<RoadmapTabTestWrapper />);
 
-      // Apenas a barra global possui o botão quando as fases estão fechadas
-      const novoProjetoBtns = screen.getAllByText('Novo Projeto');
-      expect(novoProjetoBtns.length).toBe(1);
+      // O botão contextual só aparece depois que a fase é expandida.
+      expect(screen.queryByText('Novo Projeto')).toBeNull();
     });
 
     it('c) O clique na fase expande o conteúdo e exibe o botão "Novo Projeto" adicional dentro da fase', () => {
@@ -179,9 +177,9 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
       const fase1Header = fase1Elements[fase1Elements.length - 1];
       fireEvent.click(fase1Header);
 
-      // Agora temos 2 botões "Novo Projeto" (Global + Dentro da Fase 1)
+      // Agora existe apenas o botão contextual da Fase 1.
       const novoProjetoBtns = screen.getAllByText('Novo Projeto');
-      expect(novoProjetoBtns.length).toBe(2);
+      expect(novoProjetoBtns.length).toBe(1);
     });
 
     it('d) Clicar em "Novo Projeto" da fase passa o fase_id correspondente', () => {
@@ -193,9 +191,9 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
       const fase2Header = fase2Elements[fase2Elements.length - 1];
       fireEvent.click(fase2Header);
 
-      // Clica no segundo botão "Novo Projeto" (o da Fase 2)
+      // Clica no botão contextual da Fase 2.
       const novoProjetoBtns = screen.getAllByText('Novo Projeto');
-      fireEvent.click(novoProjetoBtns[1]);
+      fireEvent.click(novoProjetoBtns[0]);
 
       expect(handleOpenAddModal).toHaveBeenCalledWith(2);
     });

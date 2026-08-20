@@ -260,14 +260,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               </button>
             )}
 
-            <button
-              onClick={() => (onOpenAddTaskModal ? onOpenAddTaskModal() : setShowAddModal(true))}
-              className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 rounded-xl transition-all font-bold flex items-center gap-1.5 shadow-sm text-xs"
-            >
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
-              Novo Projeto
-            </button>
-
           </div>
         </div>
       </div>
@@ -289,12 +281,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 Criar Fase no Supabase
               </button>
             )}
-            <button
-              onClick={() => (onOpenAddTaskModal ? onOpenAddTaskModal() : setShowAddModal(true))}
-              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 rounded-xl text-xs font-bold transition-all"
-            >
-              Criar Primeiro Projeto
-            </button>
           </div>
         </div>
       ) : (

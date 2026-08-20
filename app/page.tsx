@@ -5,7 +5,6 @@ import { Header } from '@/components/Header';
 import { HomeTab } from '@/components/HomeTab';
 import { RoadmapTab } from '@/components/RoadmapTab';
 import { ProductsTab } from '@/components/ProductsTab';
-import { CicdTab } from '@/components/CicdTab';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { GithubModal } from '@/components/GithubModal';
 import { CreatePhaseModal } from '@/components/CreatePhaseModal';
@@ -488,12 +487,6 @@ export default function HomePage() {
               setShowPhaseModal={setShowPhaseModal}
               onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
             />
-          </ErrorBoundary>
-        )}
-
-        {activeTab === 'cicd' && (
-          <ErrorBoundary scope="Tab:CICD" fallbackTitle="Falha no painel de CI/CD">
-            <CicdTab />
           </ErrorBoundary>
         )}
 

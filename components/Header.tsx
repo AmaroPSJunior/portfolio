@@ -82,14 +82,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Roadmap & Fases
             </button>
-            <button
-              onClick={() => setActiveTab && setActiveTab('cicd')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'cicd' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              CI/CD Pipeline
-            </button>
           </div>
         )}
 
