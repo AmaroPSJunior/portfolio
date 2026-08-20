@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 // Import Next.js API route handlers to test real integration logic
 import { GET as getPhases, POST as postPhases } from '../app/api/fases/route';
@@ -511,6 +511,9 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       });
 
       render(<HomePage />);
+
+      expect(screen.getByText('Desenvolvedor Full Stack')).toBeTruthy();
+      fireEvent.click(screen.getByText('Painel Dev & Laboratório'));
 
       await waitFor(() => {
         expect(screen.getByText('Fase 1 - Frontend & Backend')).toBeTruthy();
