@@ -16,6 +16,7 @@ import {
   Info,
   Maximize2,
   Minimize2,
+  Pencil,
   Trash2,
 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ interface RoadmapTabProps {
   toggleTask: (taskId: number) => void;
   deleteTask: (taskId: number) => void;
   deletePhase?: (phaseId: number) => void;
+  onEditPhase?: (phase: Phase) => void;
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   onOpenAddTaskModal?: (phaseId?: number) => void;
@@ -66,6 +68,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   toggleTask,
   deleteTask,
   deletePhase,
+  onEditPhase,
   resetChecklist,
   setShowAddModal,
   onOpenAddTaskModal,
@@ -343,15 +346,29 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                       {completedPhaseTasks}/{totalPhaseTasks}
                     </span>
 
-                    {/* Delete phase action */}
-                    {deletePhase && phase.id > 4 && (
+                    {onEditPhase && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditPhase(phase);
+                        }}
+                        className="p-1.5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                        title="Editar fase"
+                        aria-label={`Editar fase ${phase.title}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {deletePhase && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setPhaseToDelete(phase);
                         }}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Excluir fase do Supabase"
+                        title="Excluir fase sem projetos associados"
+                        aria-label={`Excluir fase ${phase.title}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

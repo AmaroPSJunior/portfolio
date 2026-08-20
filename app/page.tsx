@@ -28,6 +28,7 @@ export default function HomePage() {
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState<boolean>(false);
   const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
   const [selectedPhaseForModal, setSelectedPhaseForModal] = useState<number | undefined>(undefined);
+  const [phaseToEdit, setPhaseToEdit] = useState<Phase | null>(null);
 
   // Dynamic Site Config for Roadmap Page Title & Subtitle from Database
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
@@ -203,26 +204,35 @@ export default function HomePage() {
     fetchDatabaseData();
   };
 
+  const handleEditPhase = (phase: Phase) => {
+    setPhaseToEdit(phase);
+    setShowPhaseModal(true);
+  };
+
   const deletePhase = async (phaseId: number) => {
     setApiErrorNotice(null);
-    // Optimistic UI update
-    setPhases((prev) => {
-      const updated = prev.filter((p) => p.id !== phaseId);
-      saveCustomPhasesToLocalStorage(updated);
-      return updated;
-    });
-    setTasks((prev) => {
-      const updated = prev.filter((t) => t.phase !== phaseId);
-      saveCustomTasksToLocalStorage(updated);
-      return updated;
-    });
 
     try {
       const res = await fetch(`/api/fases/${phaseId}`, { method: 'DELETE' });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Erro ao excluir fase');
+        const message =
+          typeof errData.error === 'string'
+            ? errData.error
+            : errData.error?.message || errData.message || 'Erro ao excluir fase';
+        throw new Error(message);
       }
+
+      setPhases((prev) => {
+        const updated = prev.filter((p) => p.id !== phaseId);
+        saveCustomPhasesToLocalStorage(updated);
+        return updated;
+      });
+      setTasks((prev) => {
+        const updated = prev.filter((t) => t.phase !== phaseId);
+        saveCustomTasksToLocalStorage(updated);
+        return updated;
+      });
       fetchDatabaseData();
     } catch (err: any) {
       AppLogger.error('UI:deletePhase', `Falha ao excluir fase ID=${phaseId}`, err);
@@ -446,6 +456,7 @@ export default function HomePage() {
               toggleTask={toggleTask}
               deleteTask={deleteTask}
               deletePhase={deletePhase}
+              onEditPhase={handleEditPhase}
               resetChecklist={resetChecklist}
               setShowAddModal={setShowAddModal}
               onOpenAddTaskModal={handleOpenAddTaskModal}
@@ -489,8 +500,12 @@ export default function HomePage() {
 
       <CreatePhaseModal
         show={showPhaseModal}
-        onClose={() => setShowPhaseModal(false)}
-        onPhaseCreated={handlePhaseCreated}
+        phase={phaseToEdit}
+        onClose={() => {
+          setShowPhaseModal(false);
+          setPhaseToEdit(null);
+        }}
+        onPhaseSaved={handlePhaseCreated}
       />
 
       <GithubModal

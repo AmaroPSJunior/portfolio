@@ -155,6 +155,10 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
                 error: null,
               };
             }),
+            eq: vi.fn().mockImplementation((col: string, val: any) => ({
+              data: currentDbProjects.filter((project: any) => project[col] === val),
+              error: null,
+            })),
             data: currentDbProjects,
             error: null,
           })),
@@ -426,6 +430,18 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const existsInDb = currentDbPhases.some((p: any) => p.numeric_id === 2);
       expect(existsInDb).toBe(false);
     });
+
+    it('deve impedir a exclusão de uma fase com projetos associados', async () => {
+      const mockReq = {} as any;
+      const params = Promise.resolve({ id: '1' });
+
+      const response = await deletePhaseApi(mockReq, { params });
+      const body = await response.json();
+
+      expect(response.status).toBe(409);
+      expect(body.error.code).toBe('PHASE_HAS_PROJECTS');
+      expect(currentDbPhases.some((phase: any) => phase.numeric_id === 1)).toBe(true);
+    });
   });
 
   describe('5. Tratamento de Erros e Resiliência do Banco', () => {
@@ -449,7 +465,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
     it('deve retornar status 500 ao tentar excluir fase com erro no Supabase', async () => {
       const mockFrom = supabase.from as unknown as Mock;
       mockFrom.mockReturnValueOnce({
-        delete: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             error: { message: 'Foreign Key Constraint Violation' },
           }),

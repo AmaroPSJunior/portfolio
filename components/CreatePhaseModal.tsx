@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Phase } from '@/types';
 import { validatePhaseInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
@@ -8,19 +8,30 @@ import { AppLogger } from '@/lib/logger';
 interface CreatePhaseModalProps {
   show: boolean;
   onClose: () => void;
-  onPhaseCreated: (newPhase: Phase) => void;
+  onPhaseSaved: (phase: Phase) => void;
+  phase?: Phase | null;
 }
 
 export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
   show,
   onClose,
-  onPhaseCreated,
+  onPhaseSaved,
+  phase,
 }) => {
-  const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
-  const [emoji, setEmoji] = useState('🚀');
+  const isEditing = Boolean(phase);
+  const [title, setTitle] = useState(phase?.title || '');
+  const [subtitle, setSubtitle] = useState(phase?.subtitle || '');
+  const [emoji, setEmoji] = useState(phase?.icon || '🚀');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!show) return;
+    setTitle(phase?.title || '');
+    setSubtitle(phase?.subtitle || '');
+    setEmoji(phase?.icon || '🚀');
+    setErrorMsg(null);
+  }, [show, phase]);
 
   if (!show) return null;
 
@@ -36,8 +47,8 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
 
     setLoading(true);
     try {
-      const response = await fetch('/api/fases', {
-        method: 'POST',
+      const response = await fetch(isEditing ? `/api/fases/${phase?.id}` : '/api/fases', {
+        method: isEditing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(validation.sanitized),
       });
@@ -45,17 +56,30 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
       const data = await response.json();
 
       if ((response.ok || response.status === 201) && data.phase) {
-        onPhaseCreated(data.phase);
-        setTitle('');
-        setSubtitle('');
-        setEmoji('🚀');
+        const savedPhase: Phase = {
+          id: Number(data.phase.numeric_id ?? phase?.id),
+          title: data.phase.title || title,
+          subtitle: data.phase.subtitle || subtitle,
+          icon: data.phase.icon || data.phase.emoji || emoji,
+          order: data.phase.order ?? phase?.order,
+          uuid: data.phase.id || phase?.uuid,
+          created_at: data.phase.created_at || phase?.created_at,
+        };
+        onPhaseSaved(savedPhase);
         onClose();
-        AppLogger.info('UI:CreatePhaseModal', `Fase "${data.phase.title}" criada com sucesso`);
+        AppLogger.info(
+          'UI:CreatePhaseModal',
+          `Fase "${savedPhase.title}" ${isEditing ? 'atualizada' : 'criada'} com sucesso`
+        );
       } else {
         throw new Error(data.error || 'Erro ao criar fase no Supabase');
       }
     } catch (err: any) {
-      AppLogger.error('UI:CreatePhaseModal', 'Falha ao incluir nova fase', err);
+      AppLogger.error(
+        'UI:CreatePhaseModal',
+        `Falha ao ${isEditing ? 'atualizar' : 'incluir'} fase`,
+        err
+      );
       setErrorMsg(err.message || 'Falha ao conectar com o banco de dados.');
     } finally {
       setLoading(false);
@@ -67,7 +91,7 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>🏛️</span> Cadastrar Nova Fase no Supabase
+            <span>🏛️</span> {isEditing ? 'Editar Fase' : 'Cadastrar Nova Fase'}
           </h3>
           <button
             onClick={onClose}
@@ -147,7 +171,7 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
               disabled={loading}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
-              {loading ? 'Salvando...' : 'Criar Fase no Supabase'}
+              {loading ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Fase no Supabase'}
             </button>
           </div>
         </form>

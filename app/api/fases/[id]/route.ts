@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
-import { handleApiError, DatabaseError } from '@/lib/errorHandler';
+import { handleApiError, AppError, DatabaseError } from '@/lib/errorHandler';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +16,57 @@ export async function DELETE(
     const isNumeric = !isNaN(Number(id));
 
     AppLogger.info(scope, `Excluindo fase ID=${id}`, { isNumeric });
+
+    let phaseNumericId = isNumeric ? Number(id) : undefined;
+    if (phaseNumericId === undefined) {
+      const { data: phase, error: phaseError } = await supabase
+        .from('fases')
+        .select('numeric_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (phaseError) {
+        throw new DatabaseError(
+          phaseError.message || 'Erro ao localizar fase',
+          phaseError.code,
+          500,
+          phaseError,
+          { id }
+        );
+      }
+
+      phaseNumericId = phase?.numeric_id;
+    }
+
+    if (phaseNumericId === undefined || Number.isNaN(Number(phaseNumericId))) {
+      throw new AppError('Fase não encontrada.', 'NOT_FOUND_ERROR', 404, true, undefined, { id });
+    }
+
+    const { data: associatedProjects, error: projectsError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('phase_id', Number(phaseNumericId));
+
+    if (projectsError) {
+      throw new DatabaseError(
+        projectsError.message || 'Erro ao verificar projetos associados',
+        projectsError.code,
+        500,
+        projectsError,
+        { id, phaseNumericId }
+      );
+    }
+
+    if (associatedProjects && associatedProjects.length > 0) {
+      throw new AppError(
+        'Não é possível excluir esta fase porque existem projetos associados a ela.',
+        'PHASE_HAS_PROJECTS',
+        409,
+        true,
+        { projectCount: associatedProjects.length },
+        { id, phaseNumericId }
+      );
+    }
 
     const query = supabase.from('fases').delete();
     const { error } = isNumeric

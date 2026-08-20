@@ -52,7 +52,7 @@ export const DeletePhaseModal: React.FC<DeletePhaseModalProps> = ({
                 Excluir fase?
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Esta ação removerá a fase e os projetos vinculados a ela.
+                A fase só poderá ser removida se não houver projetos associados.
               </p>
             </div>
           </div>
