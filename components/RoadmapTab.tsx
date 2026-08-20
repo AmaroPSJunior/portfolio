@@ -10,7 +10,6 @@ import {
   Filter,
   Plus,
   RefreshCw,
-  FolderGit2,
   ListFilter,
   Layers,
   Sparkles,
@@ -43,7 +42,6 @@ interface RoadmapTabProps {
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   onOpenAddTaskModal?: (phaseId?: number) => void;
-  setShowGithubModal: (show: boolean) => void;
   setShowPhaseModal?: (show: boolean) => void;
   onOpenDiagnostics?: () => void;
 }
@@ -71,7 +69,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   resetChecklist,
   setShowAddModal,
   onOpenAddTaskModal,
-  setShowGithubModal,
   setShowPhaseModal,
   onOpenDiagnostics,
 }) => {
@@ -257,13 +254,6 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               Novo Projeto
             </button>
 
-            <button
-              onClick={() => setShowGithubModal(true)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-colors flex items-center gap-1.5 border border-slate-700 text-xs"
-            >
-              <FolderGit2 className="w-3.5 h-3.5 text-cyan-400" />
-              Configurar Git
-            </button>
           </div>
         </div>
       </div>

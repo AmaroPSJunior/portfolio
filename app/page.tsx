@@ -449,7 +449,6 @@ export default function HomePage() {
               resetChecklist={resetChecklist}
               setShowAddModal={setShowAddModal}
               onOpenAddTaskModal={handleOpenAddTaskModal}
-              setShowGithubModal={setShowGithubModal}
               setShowPhaseModal={setShowPhaseModal}
               onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
             />
