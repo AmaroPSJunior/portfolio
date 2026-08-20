@@ -43,6 +43,12 @@ interface HomeTabProps {
   onOpenDiagnostics?: () => void;
 }
 
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current">
+    <path d="M12.04 2C6.58 2 2.15 6.39 2.15 11.82c0 1.96.57 3.86 1.65 5.48L2 22l4.89-1.57a9.8 9.8 0 0 0 5.15 1.58h.01c5.46 0 9.89-4.39 9.89-9.82A9.86 9.86 0 0 0 12.04 2Zm5.31 13.83c-.23.66-1.34 1.24-1.86 1.31-.48.07-1.08.09-3.47-.74-2.94-.83-4.83-3.2-4.98-3.35-.15-.15-1.22-1.62-1.22-3.09 0-1.47.77-2.2 1.04-2.5.27-.29.59-.36.79-.36h.57c.18 0 .43.01.66.5.27.56.92 1.94.99 2.08.08.14.13.3.03.48-.1.18-.15.29-.3.46-.15.17-.32.39-.45.52-.15.15-.3.31-.13.61.17.3.75 1.24 1.61 2 1.1.98 2.04 1.28 2.34 1.43.3.15.47.13.64-.08.17-.2.73-.85.93-1.14.2-.29.4-.24.67-.14.27.1 1.72.81 2.02.96.3.15.5.22.57.35.07.13.07.75-.16 1.41Z" />
+  </svg>
+);
+
 export const HomeTab: React.FC<HomeTabProps> = ({
   phases,
   tasks,
@@ -78,17 +84,37 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     return Math.round((getPhaseCompletedCount(phaseId) / total) * 100);
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.email || !contactForm.message) return;
 
     setIsSending(true);
-    setTimeout(() => {
-      setIsSending(false);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contactForm),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || 'Não foi possível enviar a mensagem.');
+      }
+
       setContactSubmitted(true);
       setContactForm({ name: '', email: '', subject: '', message: '' });
       setTimeout(() => setContactSubmitted(false), 6000);
-    }, 800);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível enviar a mensagem.';
+      setContactSubmitted(false);
+      alert(message);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -102,19 +128,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Bio & Intro */}
           <div className="lg:col-span-7 space-y-6 text-left">
-            {/* Status Pill */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 text-xs font-semibold text-cyan-300 shadow-sm backdrop-blur-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Disponível para Oportunidades & Contratos Full Stack</span>
-            </div>
 
             {/* Main Headline */}
             <div className="space-y-2">
-              <span className="text-sm font-bold uppercase tracking-widest text-cyan-400 font-mono">
-                Currículo Profissional
-              </span>
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
-                Olá, sou <br />
                 <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
                   {RESUME_DATA.name}
                 </span>
@@ -212,18 +229,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-
-                  {/* Experience Badge */}
-                  <div className="absolute bottom-3 left-3 bg-slate-950/90 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-xs font-bold text-cyan-300 backdrop-blur-md flex items-center gap-1.5 shadow-lg">
-                    <Award className="w-4 h-4 text-cyan-400" />
-                    <span>Experiência Comprovada</span>
-                  </div>
-
-                  {/* Live Status Badge */}
-                  <div className="absolute top-3 right-3 bg-emerald-950/90 border border-emerald-500/40 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-300 backdrop-blur-md flex items-center gap-1.5 shadow-lg">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span>Disponível</span>
-                  </div>
                 </div>
 
                 {/* Main Tech Highlights */}
@@ -552,15 +557,20 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   </div>
                 </a>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                  <div className="p-2 bg-emerald-950 text-emerald-400 rounded-lg">
-                    <Phone className="w-4 h-4" />
+                <a
+                  href={RESUME_DATA.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-emerald-500/40 rounded-xl transition-all group"
+                >
+                  <div className="p-2 bg-emerald-950 text-emerald-400 rounded-lg group-hover:scale-110 transition-transform">
+                    <WhatsAppIcon />
                   </div>
                   <div>
-                    <div className="text-[11px] text-slate-400">Telefones</div>
-                    <div className="text-xs font-bold text-white">{RESUME_DATA.phones.join(' / ')}</div>
+                    <div className="text-[11px] text-slate-400">WhatsApp</div>
+                    <div className="text-xs font-bold text-white group-hover:text-emerald-300">{RESUME_DATA.phones.join(' / ')}</div>
                   </div>
-                </div>
+                </a>
 
                 <a
                   href={RESUME_DATA.linkedin}
