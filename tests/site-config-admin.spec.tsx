@@ -33,7 +33,7 @@ describe('Suíte de Testes - Configurações Dinâmicas e Gestão Admin (site_co
     const mockMaybeSingle = vi.fn().mockResolvedValue({
       data: {
         page_key: 'roadmap',
-        title: 'Projetos, Ideias & Requisitos de Evolução',
+        title: 'Projetos, Ideias e Testes em Evolução',
         subtitle: 'Subtítulo do banco de dados',
       },
       error: null,
@@ -50,7 +50,7 @@ describe('Suíte de Testes - Configurações Dinâmicas e Gestão Admin (site_co
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.config.title).toBe('Projetos, Ideias & Requisitos de Evolução');
+    expect(json.config.title).toBe('Projetos, Ideias e Testes em Evolução');
     expect(json.config.subtitle).toBe('Subtítulo do banco de dados');
   });
 

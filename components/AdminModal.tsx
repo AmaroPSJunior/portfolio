@@ -580,7 +580,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       required
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      placeholder="Projetos, Ideias & Requisitos de Evolução"
+                      placeholder="Projetos, Ideias e Testes em Evolução"
                       className="w-full bg-slate-950 border border-cyan-800/80 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>

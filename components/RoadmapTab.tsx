@@ -110,7 +110,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-emerald-400" />
             <h1 className="text-xl font-black text-white tracking-tight">
-              {siteConfig?.title || 'Projetos, Ideias & Requisitos de Evolução'}
+              {siteConfig?.title || 'Projetos, Ideias e Testes em Evolução'}
             </h1>
           </div>
           <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">

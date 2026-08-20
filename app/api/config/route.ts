@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const DEFAULT_CONFIGS: Record<string, { title: string; subtitle: string }> = {
   roadmap: {
-    title: 'Projetos, Ideias & Requisitos de Evolução',
+    title: 'Projetos, Ideias e Testes em Evolução',
     subtitle:
       'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.',
   },

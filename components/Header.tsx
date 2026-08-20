@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Acessar o antigo painel de laboratório e homologação de projetos"
             >
               <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Painel Dev & Laboratório</span>
+              <span>Projetos</span>
             </button>
           )}
 

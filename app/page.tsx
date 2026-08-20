@@ -32,7 +32,7 @@ export default function HomePage() {
   // Dynamic Site Config for Roadmap Page Title & Subtitle from Database
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
     page_key: 'roadmap',
-    title: 'Projetos, Ideias & Requisitos de Evolução',
+    title: 'Projetos, Ideias e Testes em Evolução',
     subtitle:
       'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.',
   });

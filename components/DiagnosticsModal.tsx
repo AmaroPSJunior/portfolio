@@ -113,7 +113,7 @@ CREATE POLICY "Permitir escrita em site_config" ON public.site_config FOR ALL US
 INSERT INTO public.site_config (page_key, title, subtitle)
 VALUES (
   'roadmap',
-  'Projetos, Ideias & Requisitos de Evolução',
+  'Projetos, Ideias e Testes em Evolução',
   'Acompanhamento sanfonado de soluções completas, provas de conceito e próximos entregáveis. Clique sobre os Cards de Projeto na grade para expandir requisitos detalhados e links.'
 ) ON CONFLICT (page_key) DO NOTHING;`;
 
