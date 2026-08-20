@@ -512,7 +512,7 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
 
       render(<HomePage />);
 
-      expect(screen.getByText('Desenvolvedor Full Stack')).toBeTruthy();
+      expect(screen.getAllByText('Desenvolvedor Full Stack').length).toBeGreaterThan(0);
       fireEvent.click(screen.getByText('Painel Dev & Laboratório'));
 
       await waitFor(() => {
