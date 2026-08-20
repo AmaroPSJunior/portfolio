@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
-import { Task, GithubConfig } from '@/types';
+import React, { useEffect, useState } from 'react';
+import { Task, GithubConfig, WorkStatus } from '@/types';
+import { STATUS_OPTIONS } from '@/data/constants';
 import {
   CheckCircle2,
   Circle,
@@ -19,6 +20,7 @@ interface TaskCardProps {
   onToggleExpand: () => void;
   onToggleComplete: () => void;
   onDelete: () => void;
+  onStatusChange?: (status: WorkStatus, statusReason: string) => void;
   githubConfig?: GithubConfig;
 }
 
@@ -28,8 +30,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onToggleExpand,
   onToggleComplete,
   onDelete,
+  onStatusChange,
   githubConfig,
 }) => {
+  const status = task.status || (task.completed ? 'completed' : 'pending');
+  const [statusReason, setStatusReason] = useState(task.statusReason || '');
+
+  useEffect(() => {
+    setStatusReason(task.statusReason || '');
+  }, [task.statusReason]);
+
   return (
     <div
       id={`project-card-${task.id}`}
@@ -84,6 +94,35 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+          <label className="flex items-center gap-2 text-cyan-300 font-semibold">
+            Status:
+            <select
+              value={status}
+              onChange={(event) =>
+                onStatusChange?.(event.target.value as WorkStatus, statusReason)
+              }
+              className="min-w-0 flex-1 bg-slate-950 border border-cyan-500/30 rounded px-2 py-1 text-[10px] text-slate-200 font-normal focus:outline-none focus:border-cyan-400"
+              aria-label={`Status do projeto ${task.title}`}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            type="text"
+            value={statusReason}
+            onChange={(event) => setStatusReason(event.target.value)}
+            onBlur={() => onStatusChange?.(status, statusReason)}
+            placeholder="Justificativa do status"
+            className="min-w-0 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-cyan-500"
+            aria-label={`Justificativa do status do projeto ${task.title}`}
+          />
         </div>
 
         {/* Short description preview */}

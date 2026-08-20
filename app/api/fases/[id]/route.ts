@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, AppError, DatabaseError } from '@/lib/errorHandler';
+import { isValidWorkStatus } from '@/lib/validators';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,13 @@ export async function PATCH(
     if (body.title !== undefined) updateData.title = body.title;
     if (body.subtitle !== undefined) updateData.subtitle = body.subtitle;
     if (body.emoji !== undefined) updateData.emoji = body.emoji;
+    if (body.status !== undefined) {
+      if (!isValidWorkStatus(body.status)) {
+        throw new AppError('Status de fase inválido.', 'VALIDATION_ERROR', 400);
+      }
+      updateData.status = body.status;
+    }
+    if (body.statusReason !== undefined) updateData.status_reason = String(body.statusReason).trim();
     if (body.order !== undefined) updateData.order = Number(body.order);
 
     AppLogger.info(scope, `Atualizando fase ID=${id}`, { updateData });

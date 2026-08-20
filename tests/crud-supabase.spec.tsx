@@ -32,6 +32,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       title: 'Fase 1 - Roadmap & Evolução do Portfólio',
       subtitle: 'Setup inicial e layout',
       emoji: '🚀',
+      status: 'in_progress',
+      status_reason: 'Implementação inicial do roadmap',
       order: 1,
       created_at: '2026-08-13T00:00:00Z',
     },
@@ -41,6 +43,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       title: 'Fase 2 - Projetos, Produtos e Serviços',
       subtitle: 'Aplicações completas',
       emoji: '💼',
+      status: 'pending',
+      status_reason: '',
       order: 2,
       created_at: '2026-08-13T00:00:00Z',
     },
@@ -57,6 +61,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       requirements: ['Layout responsivo', 'Conexão Supabase'],
       badges: ['GitHub REST API', 'Supabase'],
       completed: true,
+      status: 'completed',
+      status_reason: 'Entrega validada em produção',
       is_custom: false,
       created_at: '2026-08-13T00:00:00Z',
     },
@@ -70,6 +76,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       requirements: ['Adição de novos projetos', 'Formulários responsivos'],
       badges: ['Next.js Modals', 'Forms'],
       completed: false,
+      status: 'paused',
+      status_reason: 'Aguardando definição do escopo',
       is_custom: true,
       created_at: '2026-08-13T00:00:00Z',
     },
@@ -220,6 +228,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         title: 'Fase 1 - Roadmap & Evolução do Portfólio',
         subtitle: 'Setup inicial e layout',
         icon: '🚀',
+        status: 'in_progress',
+        statusReason: 'Implementação inicial do roadmap',
         order: 1,
         uuid: 'a1111111-1111-1111-1111-111111111111',
         created_at: '2026-08-13T00:00:00Z',
@@ -242,6 +252,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         badges: ['GitHub REST API', 'Supabase'],
         completed: true,
         isCustom: false,
+        status: 'completed',
+        statusReason: 'Entrega validada em produção',
         uuid: 'p1111111-1111-1111-1111-111111111111',
         created_at: '2026-08-13T00:00:00Z',
       });
@@ -255,6 +267,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
           title: 'Fase 5 - Arquitetura Cloud Native',
           subtitle: 'Microserviços & Kubernetes',
           emoji: '☁️',
+          status: 'blocked',
+          statusReason: 'Aguardando ambiente cloud',
         }),
       } as any;
 
@@ -264,6 +278,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       expect(response.status).toBe(201);
       expect(body.phase.title).toBe('Fase 5 - Arquitetura Cloud Native');
       expect(body.phase.icon).toBe('☁️');
+      expect(body.phase.status).toBe('blocked');
+      expect(body.phase.statusReason).toBe('Aguardando ambiente cloud');
       expect(body.phase.order).toBe(3); // Calculated order = max(2) + 1
     });
 
@@ -290,6 +306,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
           description: 'Automação de testes em CI/CD',
           requirementsInput: 'Suíte de testes; Relatórios HTML',
           badgesInput: 'Playwright, QA, CI/CD',
+          status: 'in_progress',
+          statusReason: 'Executando a primeira suíte automatizada',
         }),
       } as any;
 
@@ -306,6 +324,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       ]);
       expect(body.project.badges).toEqual(['Playwright', 'QA', 'CI/CD']);
       expect(body.project.isCustom).toBe(true);
+      expect(body.project.status).toBe('in_progress');
+      expect(body.project.statusReason).toBe('Executando a primeira suíte automatizada');
     });
 
     it('deve rejeitar criação de projeto sem título ou sem fase informada (status 400)', async () => {
@@ -367,6 +387,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const mockReq = {
         json: async () => ({
           completed: true,
+          status: 'completed',
+          statusReason: 'Validação concluída pelo QA',
         }),
       } as any;
 
@@ -379,6 +401,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
 
       const targetInDb = currentDbProjects.find((p: any) => p.numeric_id === 4);
       expect(targetInDb?.completed).toBe(true);
+      expect(targetInDb?.status).toBe('completed');
+      expect(targetInDb?.status_reason).toBe('Validação concluída pelo QA');
     });
 
     it('deve atualizar os dados de uma fase por numeric_id no Supabase', async () => {
@@ -386,6 +410,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
         json: async () => ({
           title: 'Fase 1 - Roadmap Atualizado',
           subtitle: 'Subtítulo alterado via PATCH',
+          status: 'paused',
+          statusReason: 'Repriorização temporária do roadmap',
         }),
       } as any;
 
@@ -399,6 +425,8 @@ describe('Suíte de Testes de Integração & CRUD Supabase / PostgreSQL (QA Spec
       const targetPhase = currentDbPhases.find((p: any) => p.numeric_id === 1);
       expect(targetPhase?.title).toBe('Fase 1 - Roadmap Atualizado');
       expect(targetPhase?.subtitle).toBe('Subtítulo alterado via PATCH');
+      expect(targetPhase?.status).toBe('paused');
+      expect(targetPhase?.status_reason).toBe('Repriorização temporária do roadmap');
     });
   });
 

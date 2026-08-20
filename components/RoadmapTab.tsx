@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Task, Phase, GithubConfig, SiteConfig } from '@/types';
+import { Task, Phase, GithubConfig, SiteConfig, WorkStatus } from '@/types';
 import { TaskCard } from './TaskCard';
 import { DeletePhaseModal } from './DeletePhaseModal';
 import { DeleteProjectModal } from './DeleteProjectModal';
+import { STATUS_OPTIONS } from '@/data/constants';
 import {
   ChevronDown,
   ChevronRight,
@@ -39,6 +40,7 @@ interface RoadmapTabProps {
   expandAllCards: () => void;
   collapseAllCards: () => void;
   toggleTask: (taskId: number) => void;
+  onStatusChange?: (taskId: number, status: WorkStatus, statusReason: string) => void;
   deleteTask: (taskId: number) => void;
   deletePhase?: (phaseId: number) => void;
   onEditPhase?: (phase: Phase) => void;
@@ -67,6 +69,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   expandAllCards,
   collapseAllCards,
   toggleTask,
+  onStatusChange,
   deleteTask,
   deletePhase,
   onEditPhase,
@@ -298,6 +301,9 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
         <div className="space-y-4">
           {phases.map((phase) => {
             const phaseTasks = filteredTasks.filter((t) => t.phase === phase.id);
+            const phaseStatus = phase.status || 'pending';
+            const phaseStatusLabel =
+              STATUS_OPTIONS.find((option) => option.value === phaseStatus)?.label || 'Pendente';
             const isOpen = openPhases.includes(phase.id);
             const totalPhaseTasks = tasks.filter((t) => t.phase === phase.id).length;
             const completedPhaseTasks = tasks.filter((t) => t.phase === phase.id && t.completed).length;
@@ -334,6 +340,14 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                         <h2 className="text-base font-bold text-white">{phase.title}</h2>
                       </div>
                       <p className="text-xs text-slate-400">{phase.subtitle}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px]">
+                        <span className="px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/60 text-emerald-300 font-semibold">
+                          Status: {phaseStatusLabel}
+                        </span>
+                        {phase.statusReason && (
+                          <span className="text-slate-500">{phase.statusReason}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -435,6 +449,9 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                             onToggleExpand={() => toggleCard(task.id)}
                             onToggleComplete={() => toggleTask(task.id)}
                             onDelete={() => setProjectToDelete(task)}
+                            onStatusChange={(status, statusReason) =>
+                              onStatusChange?.(task.id, status, statusReason)
+                            }
                             githubConfig={githubConfig}
                           />
                         ))}

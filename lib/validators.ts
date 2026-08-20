@@ -1,7 +1,24 @@
+import { WorkStatus } from '@/types';
+
+export const WORK_STATUS_VALUES: WorkStatus[] = [
+  'pending',
+  'in_progress',
+  'paused',
+  'blocked',
+  'completed',
+  'disabled',
+];
+
+export function isValidWorkStatus(value: unknown): value is WorkStatus {
+  return typeof value === 'string' && WORK_STATUS_VALUES.includes(value as WorkStatus);
+}
+
 export interface PhaseInput {
   title?: string;
   subtitle?: string;
   emoji?: string;
+  status?: WorkStatus;
+  statusReason?: string;
 }
 
 export interface ValidationResult {
@@ -11,6 +28,8 @@ export interface ValidationResult {
     title: string;
     subtitle: string;
     emoji: string;
+    status: WorkStatus;
+    statusReason: string;
   };
 }
 
@@ -21,13 +40,15 @@ export function validatePhaseInput(data: any): ValidationResult {
     return {
       valid: false,
       errors: ['O corpo da requisição é inválido.'],
-      sanitized: { title: '', subtitle: '', emoji: '' },
+      sanitized: { title: '', subtitle: '', emoji: '', status: 'pending', statusReason: '' },
     };
   }
 
   const title = typeof data.title === 'string' ? data.title.trim() : '';
   const emoji = typeof data.emoji === 'string' ? data.emoji.trim() : '';
   const subtitle = typeof data.subtitle === 'string' ? data.subtitle.trim() : '';
+  const status = isValidWorkStatus(data.status) ? data.status : 'pending';
+  const statusReason = typeof data.statusReason === 'string' ? data.statusReason.trim() : '';
 
   if (!title) {
     errors.push('O título da Fase é obrigatório.');
@@ -48,6 +69,8 @@ export function validatePhaseInput(data: any): ValidationResult {
       title,
       subtitle,
       emoji,
+      status,
+      statusReason,
     },
   };
 }
@@ -61,6 +84,8 @@ export interface ProjectValidationResult {
     description: string;
     requirements: string[];
     badges: string[];
+    status: WorkStatus;
+    statusReason: string;
   };
 }
 
@@ -71,12 +96,22 @@ export function validateProjectInput(data: any): ProjectValidationResult {
     return {
       valid: false,
       errors: ['O corpo da requisição é inválido.'],
-      sanitized: { title: '', phaseId: 1, description: '', requirements: [], badges: [] },
+      sanitized: {
+        title: '',
+        phaseId: 1,
+        description: '',
+        requirements: [],
+        badges: [],
+        status: 'pending',
+        statusReason: '',
+      },
     };
   }
 
   const title = typeof data.title === 'string' ? data.title.trim() : '';
   const phaseId = Number(data.phase || data.phase_id || data.fase_id);
+  const status = isValidWorkStatus(data.status) ? data.status : 'pending';
+  const statusReason = typeof data.statusReason === 'string' ? data.statusReason.trim() : '';
 
   if (!title || isNaN(phaseId) || phaseId <= 0) {
     errors.push('Título e Fase são obrigatórios');
@@ -111,6 +146,8 @@ export function validateProjectInput(data: any): ProjectValidationResult {
       description,
       requirements,
       badges,
+      status,
+      statusReason,
     },
   };
 }

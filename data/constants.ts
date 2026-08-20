@@ -1,5 +1,14 @@
 import { Task, Phase, Skill } from '@/types';
 
+export const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pendente' },
+  { value: 'in_progress', label: 'Em andamento' },
+  { value: 'paused', label: 'Pausado' },
+  { value: 'blocked', label: 'Bloqueado' },
+  { value: 'completed', label: 'Concluído' },
+  { value: 'disabled', label: 'Desativado' },
+] as const;
+
 export const DEFAULT_TASKS: Task[] = [];
 
 export const PHASES: Phase[] = [];

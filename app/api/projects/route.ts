@@ -55,6 +55,8 @@ export async function GET() {
           requirements: Array.isArray(row.requirements) ? row.requirements : [],
           badges: Array.isArray(row.badges) ? row.badges : [],
           completed: Boolean(row.completed),
+          status: row.status || (row.completed ? 'completed' : 'pending'),
+          statusReason: row.status_reason || '',
           isCustom: Boolean(row.is_custom),
           uuid: row.id,
           created_at: row.created_at,
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, phaseId, description, requirements, badges } = validation.sanitized;
+    const { title, phaseId, description, requirements, badges, status, statusReason } = validation.sanitized;
 
     // Obter o maior numeric_id existente para evitar conflito
     const memoryMaxId = inMemoryCustomProjects.length > 0 ? Math.max(...inMemoryCustomProjects.map((t) => Number(t.id) || 0)) : 0;
@@ -123,6 +125,8 @@ export async function POST(request: NextRequest) {
       requirements,
       badges,
       completed: Boolean(body?.completed || false),
+      status,
+      status_reason: statusReason,
       is_custom: true,
     };
 
@@ -142,6 +146,8 @@ export async function POST(request: NextRequest) {
         requirements,
         badges,
         completed: Boolean(body?.completed || false),
+        status,
+        statusReason,
         isCustom: true,
         created_at: new Date().toISOString(),
       };
@@ -173,6 +179,8 @@ export async function POST(request: NextRequest) {
       requirements: row?.requirements || requirements,
       badges: row?.badges || badges,
       completed: Boolean(row?.completed),
+      status: row?.status || status,
+      statusReason: row?.status_reason || statusReason,
       isCustom: true,
       uuid: row?.id,
       created_at: row?.created_at,

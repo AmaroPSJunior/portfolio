@@ -1,3 +1,11 @@
+export type WorkStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'paused'
+  | 'blocked'
+  | 'completed'
+  | 'disabled';
+
 export interface Task {
   id: number;
   phase: number;
@@ -6,6 +14,8 @@ export interface Task {
   requirements: string[];
   badges: string[];
   completed: boolean;
+  status: WorkStatus;
+  statusReason: string;
   isCustom?: boolean;
   uuid?: string;
   created_at?: string;
@@ -17,6 +27,8 @@ export interface NewTaskForm {
   description: string;
   requirementsInput: string;
   badgesInput: string;
+  status: WorkStatus;
+  statusReason: string;
 }
 
 export interface Phase {
@@ -24,6 +36,8 @@ export interface Phase {
   title: string;
   subtitle: string;
   icon: string;
+  status: WorkStatus;
+  statusReason: string;
   order?: number;
   uuid?: string;
   created_at?: string;
@@ -33,6 +47,8 @@ export interface NewPhaseForm {
   title: string;
   subtitle: string;
   emoji: string;
+  status: WorkStatus;
+  statusReason: string;
 }
 
 export interface Skill {

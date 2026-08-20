@@ -211,7 +211,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
         />
       );
 
-      const selectElement = screen.getByRole('combobox');
+      const selectElement = screen.getAllByRole('combobox')[0];
       expect(selectElement.value).toBe('3');
     });
   });

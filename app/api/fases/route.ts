@@ -50,6 +50,8 @@ export async function GET() {
           title: row.title,
           subtitle: row.subtitle || '',
           icon: row.emoji || '🚀',
+          status: row.status || 'pending',
+          statusReason: row.status_reason || '',
           order: row.order ?? (index + 1),
           uuid: row.id,
           created_at: row.created_at,
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, subtitle, emoji } = validation.sanitized;
+    const { title, subtitle, emoji, status, statusReason } = validation.sanitized;
 
     // 1. Obter a maior ordem e id atual para colocar a nova fase no final da lista
     const memoryMaxOrder = inMemoryCustomPhases.length > 0 ? Math.max(...inMemoryCustomPhases.map((p) => Number(p.order || p.id) || 0)) : 0;
@@ -124,6 +126,8 @@ export async function POST(request: NextRequest) {
       title,
       subtitle: subtitle || `Fase cadastrada em ${new Date().toLocaleDateString('pt-BR')}`,
       emoji,
+      status,
+      status_reason: statusReason,
       order: nextOrder,
     };
 
@@ -144,6 +148,8 @@ export async function POST(request: NextRequest) {
         title,
         subtitle: newRecord.subtitle,
         icon: emoji,
+        status,
+        statusReason,
         order: nextOrder,
       };
 
@@ -171,6 +177,8 @@ export async function POST(request: NextRequest) {
       title: row?.title || title,
       subtitle: row?.subtitle || newRecord.subtitle,
       icon: row?.emoji || emoji,
+      status: row?.status || status,
+      statusReason: row?.status_reason || statusReason,
       order: row?.order || nextOrder,
       uuid: row?.id,
       created_at: row?.created_at,

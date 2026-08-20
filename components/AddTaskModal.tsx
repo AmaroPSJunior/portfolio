@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { NewTaskForm, Phase } from '@/types';
+import { STATUS_OPTIONS } from '@/data/constants';
 
 interface AddTaskModalProps {
   show: boolean;
@@ -18,6 +19,8 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
     description: '',
     requirementsInput: '',
     badgesInput: '',
+    status: 'pending',
+    statusReason: '',
   });
 
   useEffect(() => {
@@ -48,6 +51,8 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
       description: '',
       requirementsInput: '',
       badgesInput: '',
+      status: 'pending',
+      statusReason: '',
     });
     onClose();
   };
@@ -87,6 +92,34 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ show, onClose, onAdd
                 </>
               )}
             </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-300 mb-1 font-semibold">Status do Projeto:</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as NewTaskForm['status'] })}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-300 mb-1 font-semibold">Justificativa:</label>
+              <input
+                type="text"
+                value={form.statusReason}
+                onChange={(e) => setForm({ ...form, statusReason: e.target.value })}
+                placeholder="Por que está neste status?"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
           </div>
 
           <div>

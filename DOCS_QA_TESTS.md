@@ -27,10 +27,12 @@ Nenhum dado estático/fictício é aceito sem validar o contrato das tabelas de 
 
 ### 1. Esquema do Banco Mapeado nos Testes
 
-Os mocks implementados em `tests/crud-supabase.spec.tsx` refletem com exatidão as colunas das migrações SQL (`20260813000000_create_fases.sql` e `20260813120000_create_projects.sql`):
+Os mocks implementados em `tests/crud-supabase.spec.tsx` refletem com exatidão as colunas das migrações SQL (`20260813000000_create_fases.sql`, `20260813120000_create_projects.sql` e `20260820100000_add_status_fields.sql`):
 
-- **Tabela `fases`**: `id` (UUID), `numeric_id` (SERIAL UNIQUE), `title` (TEXT NOT NULL), `subtitle` (TEXT), `emoji` (TEXT NOT NULL), `"order"` (INT NOT NULL), `created_at` (TIMESTAMP).
-- **Tabela `projects`**: `id` (UUID), `numeric_id` (SERIAL UNIQUE), `phase_id` (INT NOT NULL), `title` (TEXT NOT NULL), `description` (TEXT), `requirements` (TEXT[]), `badges` (TEXT[]), `completed` (BOOLEAN), `is_custom` (BOOLEAN), `created_at` (TIMESTAMP).
+- **Tabela `fases`**: `id` (UUID), `numeric_id` (SERIAL UNIQUE), `title` (TEXT NOT NULL), `subtitle` (TEXT), `emoji` (TEXT NOT NULL), `status` (TEXT), `status_reason` (TEXT), `"order"` (INT NOT NULL), `created_at` (TIMESTAMP).
+- **Tabela `projects`**: `id` (UUID), `numeric_id` (SERIAL UNIQUE), `phase_id` (INT NOT NULL), `title` (TEXT NOT NULL), `description` (TEXT), `requirements` (TEXT[]), `badges` (TEXT[]), `status` (TEXT), `status_reason` (TEXT), `completed` (BOOLEAN), `is_custom` (BOOLEAN), `created_at` (TIMESTAMP).
+
+Os valores permitidos para `status` são `pending` (Pendente), `in_progress` (Em andamento), `paused` (Pausado), `blocked` (Bloqueado), `completed` (Concluído) e `disabled` (Desativado). `status_reason` registra por que o item está naquele estado. O campo legado `completed` permanece nos projetos para preservar os cálculos de progresso.
 
 ---
 
@@ -39,16 +41,19 @@ Os mocks implementados em `tests/crud-supabase.spec.tsx` refletem com exatidão 
 #### 📥 A. Leitura (READ / GET)
 - Valida se `GET /api/fases` e `GET /api/projects` consultam as tabelas e retornam coleções formatadas para o frontend.
 - Garante que propriedades como `numeric_id`, `phase_id`, arrays de `requirements` e `badges` sejam preservadas.
+- Garante que `status` e `status_reason` sejam convertidos para `status` e `statusReason` no frontend.
 
 #### ➕ B. Inclusão (INSERT / POST)
 - Corrigida a criação de novos projetos eliminando conflitos na sequência `numeric_id` SERIAL do Supabase através do cálculo prévio `max(numeric_id) + 1`.
 - Suporte a modo local/resiliente em `POST /api/projects` garantindo criação e expansão imediata na fase selecionada na interface mesmo em ambientes com credenciais temporárias ou banco indisponível.
 - Rejeição graciosa de requisições com dados faltantes (validação de título e fase obrigatórios - código 400).
 - Testa o cadastro de uma nova fase calculando a ordenação reativa (`order = max + 1`).
+- Testa a criação de fases e projetos com status e justificativa.
 
 #### ✏️ C. Atualização (UPDATE / PATCH)
 - Testa a alteração reativa do status de conclusão (`completed: true / false`) por `numeric_id` via `PATCH /api/projects/[id]`.
 - Testa a alteração de título e subtítulo da fase via `PATCH /api/fases/[id]`.
+- Testa a alteração de `status` e `status_reason` de fases e projetos sem perder `completed`.
 
 #### 🗑️ D. Exclusão (DELETE)
 - Testa a exclusão de um projeto específico (exemplo: `numeric_id = 4`) garantindo que o comando `.delete().eq('numeric_id', 4)` seja enviado ao Supabase e o item seja removido da tela.

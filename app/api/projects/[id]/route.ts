@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, DatabaseError } from '@/lib/errorHandler';
+import { isValidWorkStatus } from '@/lib/validators';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,13 @@ export async function PATCH(
     if (body.requirements !== undefined) updateData.requirements = body.requirements;
     if (body.badges !== undefined) updateData.badges = body.badges;
     if (body.phase !== undefined) updateData.phase_id = Number(body.phase);
+    if (body.status !== undefined) {
+      if (!isValidWorkStatus(body.status)) {
+        return NextResponse.json({ error: 'Status de projeto inválido.' }, { status: 400 });
+      }
+      updateData.status = body.status;
+    }
+    if (body.statusReason !== undefined) updateData.status_reason = String(body.statusReason).trim();
 
     AppLogger.info(scope, `Atualizando projeto ID=${id}`, { updateData });
 

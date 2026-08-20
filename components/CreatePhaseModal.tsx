@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Phase } from '@/types';
 import { validatePhaseInput } from '@/lib/validators';
 import { AppLogger } from '@/lib/logger';
+import { STATUS_OPTIONS } from '@/data/constants';
 
 interface CreatePhaseModalProps {
   show: boolean;
@@ -22,6 +23,8 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
   const [title, setTitle] = useState(phase?.title || '');
   const [subtitle, setSubtitle] = useState(phase?.subtitle || '');
   const [emoji, setEmoji] = useState(phase?.icon || '🚀');
+  const [status, setStatus] = useState(phase?.status || 'pending');
+  const [statusReason, setStatusReason] = useState(phase?.statusReason || '');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -30,6 +33,8 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
     setTitle(phase?.title || '');
     setSubtitle(phase?.subtitle || '');
     setEmoji(phase?.icon || '🚀');
+    setStatus(phase?.status || 'pending');
+    setStatusReason(phase?.statusReason || '');
     setErrorMsg(null);
   }, [show, phase]);
 
@@ -61,6 +66,8 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
           title: data.phase.title || title,
           subtitle: data.phase.subtitle || subtitle,
           icon: data.phase.icon || data.phase.emoji || emoji,
+          status: data.phase.status || status,
+          statusReason: data.phase.statusReason || data.phase.status_reason || statusReason,
           order: data.phase.order ?? phase?.order,
           uuid: data.phase.id || phase?.uuid,
           created_at: data.phase.created_at || phase?.created_at,
@@ -127,6 +134,34 @@ export const CreatePhaseModal: React.FC<CreatePhaseModalProps> = ({
                   {e}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-300 mb-1 font-semibold">Status da Fase:</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as typeof status)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-300 mb-1 font-semibold">Justificativa:</label>
+              <input
+                type="text"
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+                placeholder="Por que está neste status?"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+              />
             </div>
           </div>
 

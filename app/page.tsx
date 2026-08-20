@@ -13,7 +13,7 @@ import { DiagnosticsModal } from '@/components/DiagnosticsModal';
 import { AdminModal } from '@/components/AdminModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SKILLS_MATRIX } from '@/data/constants';
-import { Task, NewTaskForm, GithubConfig, Phase, SiteConfig } from '@/types';
+import { Task, NewTaskForm, GithubConfig, Phase, SiteConfig, WorkStatus } from '@/types';
 import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 
@@ -270,6 +270,35 @@ export default function HomePage() {
     }
   };
 
+  const updateTaskStatus = async (taskId: number, status: WorkStatus, statusReason: string) => {
+    setTasks((prev) => {
+      const updated = prev.map((task) =>
+        task.id === taskId ? { ...task, status, statusReason } : task
+      );
+      saveCustomTasksToLocalStorage(updated);
+      return updated;
+    });
+
+    try {
+      const res = await fetch(`/api/projects/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, statusReason }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || errorData.error || 'Erro ao atualizar status');
+      }
+    } catch (err: any) {
+      AppLogger.error('UI:updateTaskStatus', `Falha ao atualizar status do projeto ID=${taskId}`, err);
+      setApiErrorNotice({
+        message: `Não foi possível atualizar o status: ${err.message}`,
+        action: () => updateTaskStatus(taskId, status, statusReason),
+      });
+      fetchDatabaseData();
+    }
+  };
+
   const deleteTask = async (taskId: number) => {
     setApiErrorNotice(null);
     // Optimistic UI update
@@ -306,6 +335,8 @@ export default function HomePage() {
           description: newForm.description,
           requirementsInput: newForm.requirementsInput,
           badgesInput: newForm.badgesInput,
+          status: newForm.status,
+          statusReason: newForm.statusReason,
         }),
       });
 
@@ -447,6 +478,7 @@ export default function HomePage() {
               expandAllCards={expandAllCards}
               collapseAllCards={collapseAllCards}
               toggleTask={toggleTask}
+              onStatusChange={updateTaskStatus}
               deleteTask={deleteTask}
               deletePhase={deletePhase}
               onEditPhase={handleEditPhase}
