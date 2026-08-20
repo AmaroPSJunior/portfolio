@@ -35,7 +35,7 @@ export async function GET() {
     }
 
     if (data && data.length > 0) {
-      phasesResult = data.map((row, index) => {
+      phasesResult = data.map((row: any, index: number) => {
         let numericId: number;
         if (row.numeric_id !== null && row.numeric_id !== undefined && !isNaN(Number(row.numeric_id))) {
           numericId = Number(row.numeric_id);
