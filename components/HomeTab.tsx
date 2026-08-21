@@ -285,32 +285,70 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
             {/* 2. NUMBERS & HIGHLIGHTS */}
       <section className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
-          <div className="py-2 lg:py-0 space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono">Full Stack</div>
-            <div className="text-xs text-slate-300 font-semibold">Perfil Técnico</div>
-            <div className="text-[11px] text-slate-500">Desenvolvimento de ponta a ponta</div>
-          </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+    
+    {/* 1. Full Stack */}
+    <div className="group relative py-2 lg:py-0 space-y-1 cursor-pointer">
+      <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono transition-transform duration-200 group-hover:scale-105">
+        Full Stack
+      </div>
+      <div className="text-xs text-slate-300 font-semibold">Perfil Técnico</div>
+      <div className="text-[11px] text-slate-500">Desenvolvimento de ponta a ponta</div>
 
-          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">SolutionTrue</div>
-            <div className="text-xs text-slate-300 font-semibold">2020 – 2025</div>
-            <div className="text-[11px] text-slate-500">E-Commerce & ERP Industrial</div>
-          </div>
+      {/* Tooltip super enxuto */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+        Perfil Técnico
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
 
-          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-blue-400 font-mono">ADS</div>
-            <div className="text-xs text-slate-300 font-semibold">UNIP – Conclusão 2019</div>
-            <div className="text-[11px] text-slate-500">Análise e Des. de Sistemas</div>
-          </div>
+    {/* 2. SolutionTrue */}
+    <div className="group relative py-4 lg:py-0 lg:pl-6 space-y-1 cursor-pointer">
+      <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono transition-transform duration-200 group-hover:scale-105">
+        SolutionTrue
+      </div>
+      <div className="text-xs text-slate-300 font-semibold">2020 – 2025</div>
+      <div className="text-[11px] text-slate-500">E-Commerce & ERP Industrial</div>
 
-          <div className="py-4 lg:py-0 lg:pl-6 space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">Scrum</div>
-            <div className="text-xs text-slate-300 font-semibold">Metodologias Ágeis</div>
-            <div className="text-[11px] text-slate-500">Git, TFS, CI/CD e Código Limpo</div>
-          </div>
-        </div>
-      </section>
+      {/* Tooltip super enxuto */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+        Última Empresa
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
+
+    {/* 3. ADS */}
+    <div className="group relative py-4 lg:py-0 lg:pl-6 space-y-1 cursor-pointer">
+      <div className="text-3xl sm:text-4xl font-extrabold text-blue-400 font-mono transition-transform duration-200 group-hover:scale-105">
+        ADS
+      </div>
+      <div className="text-xs text-slate-300 font-semibold">UNIP – Conclusão 2019</div>
+      <div className="text-[11px] text-slate-500">Análise e Des. de Sistemas</div>
+
+      {/* Tooltip super enxuto */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+        Formação Acadêmica
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
+
+    {/* 4. Scrum */}
+    <div className="group relative py-4 lg:py-0 lg:pl-6 space-y-1 cursor-pointer">
+      <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono transition-transform duration-200 group-hover:scale-105">
+        Scrum
+      </div>
+      <div className="text-xs text-slate-300 font-semibold">Metodologias Ágeis</div>
+      <div className="text-[11px] text-slate-500">Git, TFS, CI/CD e Código Limpo</div>
+
+      {/* Tooltip super enxuto */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+        Habilidades & Metodologia
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
+
+  </div>
+</section>
 
 
       {/* 3. RESUMO PROFISSIONAL */}
