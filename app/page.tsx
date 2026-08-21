@@ -14,7 +14,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SKILLS_MATRIX } from '@/data/constants';
 import { Task, NewTaskForm, GithubConfig, Phase, SiteConfig, WorkStatus } from '@/types';
 import { AppLogger } from '@/lib/logger';
-import { AlertTriangle, RefreshCw, X } from 'lucide-react';
+import { AlertTriangle, ArrowUp, RefreshCw, X } from 'lucide-react';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -26,8 +26,18 @@ export default function HomePage() {
   const [showPhaseModal, setShowPhaseModal] = useState<boolean>(false);
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState<boolean>(false);
   const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [selectedPhaseForModal, setSelectedPhaseForModal] = useState<number | undefined>(undefined);
   const [phaseToEdit, setPhaseToEdit] = useState<Phase | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Dynamic Site Config for Roadmap Page Title & Subtitle from Database
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
@@ -547,7 +557,7 @@ export default function HomePage() {
               © {new Date().getFullYear()} <strong className="text-slate-200">Amaro Pedro da Silva Junior</strong>
             </span>
             <span className="text-slate-500">
-              Engenheiro de Software Full Stack & DevOps.
+              Desenvolvedor Full Stack.
             </span>
           </div>
           <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
@@ -565,15 +575,21 @@ export default function HomePage() {
             >
               arcamos.j@gmail.com
             </a>
-            <a
-              href="#hero"
-              className="hover:text-cyan-400 transition-colors flex items-center gap-1"
-            >
-              Voltar ao topo ↑
-            </a>
           </div>
         </div>
       </footer>
+
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25 hover:bg-cyan-400 hover:-translate-y-1 transition-all flex items-center justify-center"
+          aria-label="Voltar ao topo"
+          title="Voltar ao topo"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
 
     </div>
   );
