@@ -91,9 +91,9 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setActiveTab('roadmap')}
               className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 hover:text-cyan-200 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm"
-              title="Acessar o antigo painel de laboratório e homologação de projetos"
+              title="Acessar meus projetos em andamento no github"
             >
-              <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+              <Github className="w-4 h-4" />
               <span>Projetos</span>
             </button>
           )}

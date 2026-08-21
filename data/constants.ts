@@ -99,7 +99,7 @@ export const RESUME_DATA = {
       title: "Plataformas E-Commerce B2B/B2C (Setor de Autopeças)",
       company: "SolutionTrue – São Paulo/SP",
       description: "Desenvolvimento e manutenção contínua de plataformas críticas de e-commerce B2B/B2C do setor de autopeças e sistemas internos de ERP industriais.",
-      techs: ["Java", "Spring Boot", "Maven", "Vue.js", "TypeScript"],
+      techs: ["Java", "Jetty Server", "Maven", "PostgreSQL", "Vue.js"],
       badge: "E-Commerce & ERP"
     },
     {
@@ -107,7 +107,7 @@ export const RESUME_DATA = {
       title: "Integração de Gateway de Pagamentos & Dropshipping",
       company: "SolutionTrue – São Paulo/SP",
       description: "Implementação de novos fluxos de negócio como Dropshipping e integração segura de APIs de pagamentos e operadoras de cartão de crédito.",
-      techs: ["Java", "Spring Boot", "APIs de Pagamento", "TypeScript"],
+      techs: ["Java", "Jetty Server", "Maven", "PostgreSQL", "Vue.js"],
       badge: "Fintech & Pagamentos"
     },
     {
@@ -115,15 +115,15 @@ export const RESUME_DATA = {
       title: "Automação & Monitoramento de Linhas de Produção",
       company: "SolutionTrue – São Paulo/SP",
       description: "Concepção de soluções e apps de automação e monitoramento de linhas de produção integrados diretamente ao sistema central.",
-      techs: ["Java", "Spring Boot", "Vue.js", "TypeScript", "ERP Industrial"],
+      techs: ["Java", "Jetty Server", "Maven", "PostgreSQL", "Vue.js"],
       badge: "Automação Industrial"
     },
     {
       id: "custom-corporate-apps",
       title: "Sistemas Corporativos Sob Demanda",
-      company: "Amaro Pedro da Silva Junior Informatica ME",
+      company: "Amaro Pedro da Silva Junior Informatica ME – Caçapava/SP",
       description: "Atuação no desenvolvimento ponta a ponta de soluções personalizadas e sistemas corporativos sob demanda para empresas parceiras.",
-      techs: ["Node.js", "React", "React Native", "jQuery", "JavaScript"],
+      techs: ["Node.js", "React", "React Native", "JavaScript", "TypeScript"],
       badge: "Soluções PJ / Autônomo"
     },
     {

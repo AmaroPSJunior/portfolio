@@ -389,7 +389,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Projetos & Atuações Principais</h2>
+            <h2 className="text-2xl font-bold text-white">Projetos & Atuações Profissionais</h2>
             <p className="text-xs text-slate-400">Soluções e sistemas desenvolvidos ao longo da trajetória.</p>
           </div>
         </div>
@@ -436,8 +436,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <div className="bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-cyan-500/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-cyan-950/20 hover:border-cyan-400 transition-all">
           <div className="space-y-1 text-center sm:text-left">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <span className="text-2xl">🧪</span>
-              <h3 className="text-base font-extrabold text-white">Laboratório de Projetos & Painel Dev</h3>
+              <span className="text-2xl"><Github className="w-6 h-6" /></span>
+              <h3 className="text-base font-extrabold text-white">Projetos Pessoais</h3>
             </div>
             <p className="text-xs text-slate-300">
               Acesse a visão técnica com o roadmap do sistema, checklist interativo, especificações e automação CI/CD.
@@ -447,7 +447,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             onClick={() => setActiveTab && setActiveTab('roadmap')}
             className="shrink-0 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl transition-all shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 flex items-center gap-2"
           >
-            <span>Acessar Painel Dev</span>
+            <span>Acessar Projetos</span>
             <ExternalLink className="w-4 h-4" />
           </button>
         </div>
