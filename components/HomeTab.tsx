@@ -350,24 +350,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
       </section>
 
-
-      {/* 3. RESUMO PROFISSIONAL */}
-      <section id="sobre" className="space-y-6">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
-            <Briefcase className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-white">Resumo Profissional</h2>
-            <p className="text-xs text-slate-400">Síntese de qualificações e atuação no mercado.</p>
-          </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-slate-300 text-sm leading-relaxed">
-          <p>{RESUME_DATA.summary}</p>
-        </div>
-      </section>
-
       {/* 4. EXPERIÊNCIA PROFISSIONAL */}
       <section id="experiencia" className="space-y-6">
         <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
