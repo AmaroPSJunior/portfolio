@@ -40,6 +40,7 @@ interface TaskCardProps {
 
   totalPhases?: number;
   phaseIndex?: number;
+  phaseProgress?: number;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -57,6 +58,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   phaseId,
   totalPhases = 0,
   phaseIndex = 0,
+  phaseProgress = 0,
 }) => {
   const status =
     task.status ||
@@ -111,22 +113,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isFinished =
     task.completed || task.status === 'completed';
 
-  const progress =
-    totalPhases > 0 && phaseIndex > 0
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            Math.round(
-              ((isFinished
-                ? phaseIndex
-                : phaseIndex - 1) /
-                totalPhases) *
-                100
-            )
-          )
-        )
-      : 0;
+  const progress = Math.min(100, Math.max(0, phaseProgress));
 
   return (
     <div

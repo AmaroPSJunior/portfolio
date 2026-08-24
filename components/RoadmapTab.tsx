@@ -963,13 +963,21 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                                   <TaskCard
                                     key={task.id}
                                     task={task}
-                                isExpanded={expandedCards.includes(task.id)}
-                                onToggleExpand={() => toggleCard(task.id)}
-                                onToggleComplete={() => toggleTask(task.id)}
-                                onEdit={() => onEditTask?.(task)}
-                                onDelete={() => setProjectToDelete(task)}
-                                onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason )}
-                                githubConfig={githubConfig}
+                                    isExpanded={expandedCards.includes(task.id)}
+                                    onToggleExpand={() => toggleCard(task.id)}
+                                    onToggleComplete={() => toggleTask(task.id)}
+                                    onEdit={() => onEditTask?.(task)}
+                                    onDelete={() => setProjectToDelete(task)}
+                                    onStatusChange={(status, statusReason) =>
+                                      onStatusChange?.(task.id, status, statusReason)
+                                    }
+                                    githubConfig={githubConfig}
+                                    totalPhases={phases.length}
+                                    phaseIndex={
+                                      phases.findIndex(
+                                        (phaseItem) => phaseItem.id === task.phase
+                                      ) + 1
+                                    }
                                   />
                                 )
                               )}
@@ -1058,10 +1066,16 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                         onToggleComplete={() => toggleTask(task.id)}
                         onEdit={() => onEditTask?.(task)}
                         onDelete={() => setProjectToDelete(task)}
-                        onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason)}
+                        onStatusChange={(status, statusReason) =>
+                          onStatusChange?.(task.id, status, statusReason)
+                        }
                         githubConfig={githubConfig}
                         totalPhases={phases.length}
-                        phaseIndex={phases.findIndex((phaseItem) => phaseItem.id === task.phase) + 1}
+                        phaseIndex={
+                          phases.findIndex(
+                            (phaseItem) => phaseItem.id === task.phase
+                          ) + 1
+                        }
                       />
                     );
                   })}
