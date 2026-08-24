@@ -95,19 +95,53 @@ export default function HomePage() {
   const fetchDatabaseData = useCallback(async () => {
     try {
       const [resPhases, resProjects, resGithub, resConfig] = await Promise.all([
-        fetch('/api/fases').then((r) => r.json()).catch((err) => {
-          AppLogger.error('UI:fetchPhases', 'Erro na requisição /api/fases', err);
-          return { phases: [] };
-        }),
-        fetch('/api/projects').then((r) => r.json()).catch((err) => {
-          AppLogger.error('UI:fetchProjects', 'Erro na requisição /api/projects', err);
-          return { projects: [] };
-        }),
-        fetch(`/api/github?owner=${encodeURIComponent(githubConfig.owner ?? 'AmaroPSJunior')}`),
-        fetch('/api/config?page=roadmap').then((r) => r.json()).catch((err) => {
-          AppLogger.error('UI:fetchConfig', 'Erro na requisição /api/config', err);
-          return { config: null };
-        }),
+        fetch('/api/fases')
+          .then((r) => r.json())
+          .catch((err) => {
+            AppLogger.error(
+              'UI:fetchPhases',
+              'Erro na requisição /api/fases',
+              err
+            );
+            return { phases: [] };
+          }),
+
+        fetch('/api/projects')
+          .then((r) => r.json())
+          .catch((err) => {
+            AppLogger.error(
+              'UI:fetchProjects',
+              'Erro na requisição /api/projects',
+              err
+            );
+            return { projects: [] };
+          }),
+
+        fetch(
+          `/api/github?owner=${encodeURIComponent(
+            githubConfig.owner ?? 'AmaroPSJunior'
+          )}`
+        )
+          .then((r) => r.json())
+          .catch((err) => {
+            AppLogger.error(
+              'UI:fetchGithub',
+              'Erro na requisição /api/github',
+              err
+            );
+            return { projects: [] };
+          }),
+
+        fetch('/api/config?page=roadmap')
+          .then((r) => r.json())
+          .catch((err) => {
+            AppLogger.error(
+              'UI:fetchConfig',
+              'Erro na requisição /api/config',
+              err
+            );
+            return { config: null };
+          }),
       ]);
 
       if (resPhases && Array.isArray(resPhases.phases)) {
