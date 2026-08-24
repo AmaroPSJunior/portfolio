@@ -1,3 +1,11 @@
+export type WorkStatus = 
+  | 'pending' 
+  | 'in_progress' 
+  | 'paused' 
+  | 'blocked' 
+  | 'completed' 
+  | 'disabled';
+
 export interface Task {
   id: number;
   phase: number;
@@ -40,7 +48,12 @@ export interface GithubProjectData {
 export interface Phase {
   id: number;
   title: string;
+  subtitle?: string;
+  order?: number;
   description?: string;
+  status?: WorkStatus | string;
+  statusReason?: string;
+  icon?: string;
   tasks?: Task[];
 }
 
@@ -55,19 +68,12 @@ export interface GithubConfig {
   token?: string;
   repo?: string;
   owner?: string;
-}
-
-export interface Phase {
-  id: number;
-  title: string;
-  subtitle?: string; // Adicionado para resolver TS2353
-  order?: number;     // Adicionado para resolver TS2339
-  description?: string;
-  tasks?: Task[];
+  branch?: string;
 }
 
 export interface SiteConfig {
   title?: string;
+  subtitle?: string;
   description?: string;
   url?: string;
   ogImage?: string;
@@ -77,31 +83,11 @@ export interface SiteConfig {
   };
 }
 
-// 1. Definição do WorkStatus com os valores exatos usados pelo seu validador e componentes:
-export type WorkStatus = 
-  | 'pending' 
-  | 'in_progress' 
-  | 'paused' 
-  | 'blocked' 
-  | 'completed' 
-  | 'disabled';
-
-// 2. Atualização da Phase (adicionado statusReason):
-export interface Phase {
-  id: number;
-  title: string;
-  subtitle?: string;
-  order?: number;
-  description?: string;
-  statusReason?: string; // Adicionado para resolver os erros no RoadmapTab.tsx
-  tasks?: Task[];
-}
-
-// 3. Adição do tipo Skill (faltando em data/constants.ts):
 export interface Skill {
   id?: string | number;
   name: string;
   category?: string;
   level?: string;
   icon?: string;
+  experience?: string | number;
 }
