@@ -16,8 +16,20 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
-      .order('numeric_id', { ascending: true });
+      .select(`
+        id,
+        phase,
+        title,
+        description,
+        requirements,
+        badges,
+        completed,
+        status,
+        status_reason,
+        is_custom,
+        uuid,
+        created_at
+      `);
 
     let projectsResult: Task[] = [];
 
@@ -59,34 +71,7 @@ export async function GET() {
           statusReason: row.status_reason || '',
           isCustom: Boolean(row.is_custom),
           uuid: row.id,
-          created_at: row.created_at,
-
-          // GitHub repository metadata
-          githubId:
-            row.github_id !== null &&
-            row.github_id !== undefined
-              ? Number(row.github_id)
-              : undefined,
-          githubName: row.github_name || undefined,
-          githubFullName:
-            row.github_full_name || undefined,
-          githubPrivate:
-            row.github_private !== null &&
-            row.github_private !== undefined
-              ? Boolean(row.github_private)
-              : undefined,
-          githubHtmlUrl:
-            row.github_html_url || undefined,
-          githubDescription:
-            row.github_description || undefined,
-          githubCreatedAt:
-            row.github_created_at || undefined,
-          githubUpdatedAt:
-            row.github_updated_at || undefined,
-          githubPushedAt:
-            row.github_pushed_at || undefined,
-          githubLanguage:
-            row.github_language || undefined,
+          created_at: row.created_at
         };
       });
     }
@@ -210,34 +195,7 @@ export async function POST(request: NextRequest) {
       statusReason: row?.status_reason || statusReason,
       isCustom: true,
       uuid: row?.id,
-      created_at: row?.created_at,
-
-      githubId:
-        row?.github_id !== null &&
-        row?.github_id !== undefined
-          ? Number(row.github_id)
-          : undefined,
-      githubName:
-        row?.github_name || undefined,
-      githubFullName:
-        row?.github_full_name || undefined,
-      githubPrivate:
-        row?.github_private !== null &&
-        row?.github_private !== undefined
-          ? Boolean(row.github_private)
-          : undefined,
-      githubHtmlUrl:
-        row?.github_html_url || undefined,
-      githubDescription:
-        row?.github_description || undefined,
-      githubCreatedAt:
-        row?.github_created_at || undefined,
-      githubUpdatedAt:
-        row?.github_updated_at || undefined,
-      githubPushedAt:
-        row?.github_pushed_at || undefined,
-      githubLanguage:
-        row?.github_language || undefined,
+      created_at: row?.created_at
     };
 
     inMemoryCustomProjects.unshift(createdProject);
