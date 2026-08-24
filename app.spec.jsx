@@ -113,7 +113,7 @@ describe('Portfólio & Roadmap Next.js - Suíte QA (Amaro Pedro da Silva Junior)
 
   describe('Comportamento de Fases Contraídas e Botão Novo Projeto', () => {
     const dummyGithubConfig = {
-      owner: 'amaropedro',
+      owner: 'AmaroPSJunior',
       repo: 'painel-homologacao',
       branch: 'main',
       token: '',

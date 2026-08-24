@@ -55,7 +55,7 @@ npx vitest
 ### 1. Clonar e Instalar Dependências
 
 ```bash
-git clone https://github.com/amaropedro/painel-homologacao.git
+git clone https://github.com/AmaroPSJunior/painel-homologacao.git
 cd painel-homologacao
 npm install
 ```

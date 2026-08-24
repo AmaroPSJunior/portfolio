@@ -99,7 +99,7 @@ export const GithubModal: React.FC<GithubModalProps> = ({
               type="text"
               value={githubConfig.owner}
               onChange={(e) => setGithubConfig({ ...githubConfig, owner: e.target.value })}
-              placeholder="amaropedro"
+              placeholder="AmaroPSJunior"
               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
             />
           </div>

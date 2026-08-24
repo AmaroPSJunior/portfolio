@@ -67,7 +67,7 @@ export default function HomePage() {
 
   // GitHub Config state
   const [githubConfig, setGithubConfig] = useState<GithubConfig>({
-    owner: 'amaropedro',
+    owner: 'AmaroPSJunior',
     repo: 'painel-homologacao',
     branch: 'main',
     token: '',
