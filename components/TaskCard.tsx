@@ -20,17 +20,25 @@ import {
 
 interface TaskCardProps {
   task: Task;
+
   isExpanded: boolean;
   onToggleExpand: () => void;
   onToggleComplete: () => void;
   onEdit?: () => void;
   onDelete: () => void;
-  onStatusChange?: (status: WorkStatus, statusReason: string) => void;
+
+  onStatusChange?: (
+    status: WorkStatus,
+    statusReason: string
+  ) => void;
+
   githubConfig?: GithubConfig;
 
-  /*
-   * Dados para a visualização simplificada (Recrutador)
-   */
+  showPhaseBadge?: boolean;
+  phaseLabel?: string;
+  phaseIcon?: string;
+  phaseId?: number;
+
   simplified?: boolean;
   totalPhases?: number;
   phaseIndex?: number;

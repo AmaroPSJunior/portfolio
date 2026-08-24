@@ -47,13 +47,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null);
 
   // Edit config state
-  const [editTitle, setEditTitle] = useState(siteConfig.title);
-  const [editSubtitle, setEditSubtitle] = useState(siteConfig.subtitle);
+  const [editTitle, setEditTitle] = useState(siteConfig.title ?? '');
+  const [editSubtitle, setEditSubtitle] = useState(siteConfig.subtitle ?? '');
 
   // Update internal edit fields when siteConfig changes
   useEffect(() => {
-    setEditTitle(siteConfig.title);
-    setEditSubtitle(siteConfig.subtitle);
+    setEditTitle(siteConfig.title ?? '');
+    setEditSubtitle(siteConfig.subtitle ?? '');
   }, [siteConfig]);
 
   // Invite New Admin State

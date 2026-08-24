@@ -1,9 +1,9 @@
-export type WorkStatus = 
-  | 'pending' 
-  | 'in_progress' 
-  | 'paused' 
-  | 'blocked' 
-  | 'completed' 
+export type WorkStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'paused'
+  | 'blocked'
+  | 'completed'
   | 'disabled';
 
 export interface Task {
@@ -16,6 +16,7 @@ export interface Task {
   completed: boolean;
   status: WorkStatus;
   statusReason: string;
+
   isCustom?: boolean;
   uuid?: string;
   created_at?: string;
@@ -43,19 +44,19 @@ export interface GithubProjectData {
   updated_at?: string;
   pushed_at?: string;
   language?: string;
-  // Campos do GitHub API que estavam faltando no GithubModal:
+
   owner?: {
     login: string;
     avatar_url?: string;
     [key: string]: any;
   };
+
   stargazers_count?: number;
   forks_count?: number;
   open_issues_count?: number;
   default_branch?: string;
 }
 
-// Alias de exportação para resolver a busca por GithubRepoData no GithubModal.tsx
 export type GithubRepoData = GithubProjectData;
 
 export interface Phase {
@@ -64,11 +65,11 @@ export interface Phase {
   subtitle?: string;
   order?: number;
   description?: string;
-  status?: WorkStatus | string;
+  status?: WorkStatus;
   statusReason?: string;
   icon?: string;
   uuid?: string;
-  created_at?: string; // Adicionado para resolver o erro no CreatePhaseModal.tsx
+  created_at?: string;
   tasks?: Task[];
 }
 
@@ -77,10 +78,10 @@ export interface NewTaskForm {
   description: string;
   phase: number;
   requirements?: string[];
-  status?: WorkStatus;            // Adicionado para resolver os erros no AddTaskModal.tsx
+  status?: WorkStatus;
   statusReason?: string;
   badgesInput?: string;
-  requirementsInput?: string;  // Adicionado para AddTaskModal.tsx
+  requirementsInput?: string;
 }
 
 export interface GithubConfig {
@@ -97,6 +98,7 @@ export interface SiteConfig {
   url?: string;
   ogImage?: string;
   page_key?: string;
+
   links?: {
     github?: string;
     docs?: string;
@@ -107,10 +109,9 @@ export interface Skill {
   id?: string | number;
   name: string;
   category?: string;
-  level?: string | number;      // Ou altere aqui se o erro for no level
+  level?: string | number;
   icon?: string;
-  // Permite números (resolve os erros nas linhas 141-146 do data/constants.ts):
-  experience?: string | number; 
+  experience?: string | number;
 }
 
 export interface TaskCardProps {
@@ -119,5 +120,4 @@ export interface TaskCardProps {
   phaseLabel?: string;
   phaseIcon?: string;
   phaseId?: number;
-  // Mantenha as outras props do componente caso existam (ex: onStatusChange, etc)
 }
