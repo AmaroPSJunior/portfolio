@@ -6,6 +6,7 @@ import { HomeTab } from '@/components/HomeTab';
 import { RoadmapTab } from '@/components/RoadmapTab';
 import { ProductsTab } from '@/components/ProductsTab';
 import { AddTaskModal } from '@/components/AddTaskModal';
+import { EditTaskModal, EditTaskForm } from '@/components/EditTaskModal';
 import { GithubModal } from '@/components/GithubModal';
 import { CreatePhaseModal } from '@/components/CreatePhaseModal';
 import { DiagnosticsModal } from '@/components/DiagnosticsModal';
@@ -29,6 +30,8 @@ export default function HomePage() {
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [selectedPhaseForModal, setSelectedPhaseForModal] = useState<number | undefined>(undefined);
   const [phaseToEdit, setPhaseToEdit] = useState<Phase | null>(null);
+  const [showEditTaskModal, setShowEditTaskModal] = useState<boolean>(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 300);
@@ -396,6 +399,154 @@ export default function HomePage() {
     setShowAddModal(true);
   };
 
+  const handleOpenEditTask = (task: Task) => {
+    setTaskToEdit(task);
+    setShowEditTaskModal(true);
+  };
+
+  const handleEditTask = async (
+    taskId: number,
+    form: EditTaskForm
+  ): Promise<void> => {
+    setApiErrorNotice(null);
+
+    const requirements = form.requirementsInput
+      .split(';')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const badges = form.badgesInput
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const currentTask = tasks.find((task) => task.id === taskId);
+
+    if (!currentTask) {
+      throw new Error('Projeto não encontrado.');
+    }
+
+    const optimisticTask: Task = {
+      ...currentTask,
+      phase: Number(form.phase),
+      title: form.title.trim(),
+      description: form.description.trim(),
+      requirements,
+      badges,
+      status: form.status,
+      statusReason: form.statusReason.trim(),
+    };
+
+    // Atualização otimista da interface
+    setTasks((prev) => {
+      const updated = prev.map((task) =>
+        task.id === taskId ? optimisticTask : task
+      );
+
+      saveCustomTasksToLocalStorage(updated);
+      return updated;
+    });
+
+    try {
+      const response = await fetch(`/api/projects/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phase: Number(form.phase),
+          title: form.title.trim(),
+          description: form.description.trim(),
+          requirements,
+          badges,
+          status: form.status,
+          statusReason: form.statusReason.trim(),
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.project) {
+        throw new Error(
+          data.error?.message ||
+            data.error ||
+            'Não foi possível atualizar o projeto.'
+        );
+      }
+
+      const updatedProject = data.project;
+
+      setTasks((prev) => {
+        const updated = prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                ...optimisticTask,
+                ...updatedProject,
+                id: task.id,
+                phase: Number(
+                  updatedProject.phase_id ??
+                    updatedProject.phase ??
+                    form.phase
+                ),
+                statusReason:
+                  updatedProject.status_reason ??
+                  form.statusReason.trim(),
+              }
+            : task
+        );
+
+        saveCustomTasksToLocalStorage(updated);
+        return updated;
+      });
+
+      // Garante sincronização com o banco
+      await fetchDatabaseData();
+
+      // Garante que o projeto permaneça visível
+      setSearchQuery('');
+      setSelectedStatusFilter('all');
+      setSelectedPhaseFilter('all');
+
+      const phaseId = Number(
+        updatedProject.phase_id ??
+          updatedProject.phase ??
+          form.phase
+      );
+
+      setOpenPhases((prev) =>
+        prev.includes(phaseId) ? prev : [...prev, phaseId]
+      );
+
+      setShowEditTaskModal(false);
+      setTaskToEdit(null);
+
+      AppLogger.info(
+        'UI:handleEditTask',
+        `Projeto "${optimisticTask.title}" atualizado com sucesso`,
+        { id: taskId }
+      );
+    } catch (err: any) {
+      AppLogger.error(
+        'UI:handleEditTask',
+        `Falha ao editar projeto ID=${taskId}`,
+        err
+      );
+
+      setApiErrorNotice({
+        message: `Não foi possível atualizar o projeto: ${
+          err.message || 'Erro desconhecido'
+        }`,
+        action: () => handleEditTask(taskId, form),
+      });
+
+      // Reverte o optimistic update para o estado real do banco
+      await fetchDatabaseData();
+
+      throw err;
+    }
+  };
+
   const resetChecklist = () => {
     fetchDatabaseData();
   };
@@ -491,6 +642,7 @@ export default function HomePage() {
               deleteTask={deleteTask}
               deletePhase={deletePhase}
               onEditPhase={handleEditPhase}
+              onEditTask={handleOpenEditTask}
               resetChecklist={resetChecklist}
               setShowAddModal={setShowAddModal}
               onOpenAddTaskModal={handleOpenAddTaskModal}
@@ -524,6 +676,17 @@ export default function HomePage() {
         onAdd={handleAddNewTask}
         phases={phases}
         initialPhaseId={selectedPhaseForModal}
+      />
+
+      <EditTaskModal
+        show={showEditTaskModal}
+        task={taskToEdit}
+        phases={phases}
+        onClose={() => {
+          setShowEditTaskModal(false);
+          setTaskToEdit(null);
+        }}
+        onSave={handleEditTask}
       />
 
       <CreatePhaseModal

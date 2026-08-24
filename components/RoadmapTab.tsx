@@ -45,6 +45,7 @@ interface RoadmapTabProps {
   deleteTask: (taskId: number) => void;
   deletePhase?: (phaseId: number) => void;
   onEditPhase?: (phase: Phase) => void;
+  onEditTask?: (task: Task) => void;
   resetChecklist: () => void;
   setShowAddModal: (show: boolean) => void;
   onOpenAddTaskModal?: (phaseId?: number) => void;
@@ -74,6 +75,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   deleteTask,
   deletePhase,
   onEditPhase,
+  onEditTask,
   resetChecklist,
   setShowAddModal,
   onOpenAddTaskModal,
@@ -437,6 +439,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                             isExpanded={expandedCards.includes(task.id)}
                             onToggleExpand={() => toggleCard(task.id)}
                             onToggleComplete={() => toggleTask(task.id)}
+                            onEdit={() => onEditTask?.(task)}
                             onDelete={() => setProjectToDelete(task)}
                             onStatusChange={(status, statusReason) =>
                               onStatusChange?.(task.id, status, statusReason)

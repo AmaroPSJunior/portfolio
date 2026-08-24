@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Code2,
   CheckSquare,
+  Pencil,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -19,6 +20,7 @@ interface TaskCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onToggleComplete: () => void;
+  onEdit: () => void;
   onDelete: () => void;
   onStatusChange?: (status: WorkStatus, statusReason: string) => void;
   githubConfig?: GithubConfig;
@@ -29,6 +31,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isExpanded,
   onToggleExpand,
   onToggleComplete,
+  onEdit,
   onDelete,
   onStatusChange,
   githubConfig,
@@ -74,8 +77,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={onToggleExpand}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }}
               className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
+              title={isExpanded ? 'Recolher projeto' : 'Expandir projeto'}
+              aria-label={isExpanded ? 'Recolher projeto' : 'Expandir projeto'}
             >
               {isExpanded ? (
                 <ChevronUp className="w-4 h-4 text-cyan-400" />
@@ -83,6 +91,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <ChevronDown className="w-4 h-4" />
               )}
             </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="p-1 text-slate-500 hover:text-cyan-400 rounded hover:bg-cyan-500/10 transition-colors"
+              title="Editar projeto"
+              aria-label={`Editar projeto ${task.title}`}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -90,6 +111,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               }}
               className="p-1 text-slate-500 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
               title="Excluir projeto"
+              aria-label={`Excluir projeto ${task.title}`}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
