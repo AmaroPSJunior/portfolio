@@ -54,6 +54,7 @@ export interface Phase {
   status?: WorkStatus | string;
   statusReason?: string;
   icon?: string;
+  uuid?: string; // Adicionado para resolver o erro no app/api/fases/route.ts
   tasks?: Task[];
 }
 
@@ -77,6 +78,7 @@ export interface SiteConfig {
   description?: string;
   url?: string;
   ogImage?: string;
+  page_key?: string; // Adicionado para resolver o erro no app/page.tsx
   links?: {
     github?: string;
     docs?: string;
