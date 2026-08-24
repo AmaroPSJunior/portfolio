@@ -25,11 +25,14 @@ import {
   LayoutGrid,
   Github,
   Code2,
+  CalendarDays,
 } from 'lucide-react';
 
 type ViewMode = 'phases' | 'projects';
 
 type GithubFilter = 'all' | 'linked' | 'unlinked';
+
+type ProjectDateSort = 'newest' | 'oldest';
 
 interface RoadmapTabProps {
   phases: Phase[];
@@ -92,18 +95,11 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 }) => {
   const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Task | null>(null);
-
-  const [viewMode, setViewMode] =
-    useState<ViewMode>('phases');
-
-  const [phaseStatusFilter, setPhaseStatusFilter] =
-    useState<string>('all');
-
-  const [githubFilter, setGithubFilter] =
-    useState<GithubFilter>('all');
-
-  const [languageFilter, setLanguageFilter] =
-    useState<string>('all');
+  const [projectDateSort, setProjectDateSort] = useState<ProjectDateSort>('newest');
+  const [viewMode, setViewMode] = useState<ViewMode>('phases');
+  const [phaseStatusFilter, setPhaseStatusFilter] = useState<string>('all');
+  const [githubFilter, setGithubFilter] = useState<GithubFilter>('all');
+  const [languageFilter, setLanguageFilter] = useState<string>('all');
 
   const handleDeletePhase = () => {
     if (!phaseToDelete || !deletePhase) return;
@@ -230,22 +226,21 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 
   const sortedProjectTasks = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
-      if (a.phase !== b.phase) {
-        return a.phase - b.phase;
-      }
+      const dateA = a.githubCreatedAt ? new Date(a.githubCreatedAt).getTime() : null;
+      const dateB = b.githubCreatedAt ? new Date(b.githubCreatedAt).getTime() : null;
+
+      if (dateA === null && dateB === null) { return a.title.localeCompare(b.title, 'pt-BR'); }
+      if (dateA === null) return 1;
+      if (dateB === null) return -1;
+      if (dateA !== dateB) { return projectDateSort === 'newest' ? dateB - dateA : dateA - dateB; }
 
       return a.title.localeCompare(b.title, 'pt-BR');
     });
-  }, [filteredTasks]);
+  }, [filteredTasks, projectDateSort]);
 
-  const activeTasks = tasks.filter(
-    (task) => !isDisabledStatus(task.status)
-  );
-
+  const activeTasks = tasks.filter((task) => !isDisabledStatus(task.status));
   const totalTasks = activeTasks.length;
-
   const completedTasks = activeTasks.filter(isTaskFinished).length;
-
   const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const completedPhasesCount = phases.filter((phase) => {
@@ -302,6 +297,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     setPhaseStatusFilter('all');
     setGithubFilter('all');
     setLanguageFilter('all');
+    setProjectDateSort('newest');
   };
 
   const hasActiveFilters =
@@ -311,6 +307,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     phaseStatusFilter !== 'all' ||
     githubFilter !== 'all' ||
     languageFilter !== 'all';
+    projectDateSort !== 'newest';
 
   return (
     <div id="roadmap-tab-container" className="space-y-6 animate-fadeIn">
@@ -532,6 +529,35 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 </select>
               </div>
             )}
+
+            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
+              <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
+
+              <select
+                value={projectDateSort}
+                onChange={(e) =>
+                  setProjectDateSort(
+                    e.target.value as ProjectDateSort
+                  )
+                }
+                className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
+                aria-label="Ordenar por data de criação do repositório"
+              >
+                <option
+                  value="newest"
+                  className="bg-slate-900 text-slate-200"
+                >
+                  Repositórios: Mais novos
+                </option>
+
+                <option
+                  value="oldest"
+                  className="bg-slate-900 text-slate-200"
+                >
+                  Repositórios: Mais antigos
+                </option>
+              </select>
+            </div>
 
             {/* View Selector */}
             <div
