@@ -45,6 +45,9 @@ export interface GithubProjectData {
   language?: string;
 }
 
+// Alias de exportação para resolver a busca por GithubRepoData no GithubModal.tsx
+export type GithubRepoData = GithubProjectData;
+
 export interface Phase {
   id: number;
   title: string;
@@ -54,7 +57,8 @@ export interface Phase {
   status?: WorkStatus | string;
   statusReason?: string;
   icon?: string;
-  uuid?: string; // Adicionado para resolver o erro no app/api/fases/route.ts
+  uuid?: string;
+  created_at?: string; // Adicionado para resolver o erro no CreatePhaseModal.tsx
   tasks?: Task[];
 }
 
@@ -63,6 +67,7 @@ export interface NewTaskForm {
   description: string;
   phase: number;
   requirements?: string[];
+  badgesInput?: string; // Adicionado para resolver o erro no AddTaskModal.tsx
 }
 
 export interface GithubConfig {
@@ -78,7 +83,7 @@ export interface SiteConfig {
   description?: string;
   url?: string;
   ogImage?: string;
-  page_key?: string; // Adicionado para resolver o erro no app/page.tsx
+  page_key?: string;
   links?: {
     github?: string;
     docs?: string;
@@ -91,5 +96,5 @@ export interface Skill {
   category?: string;
   level?: string;
   icon?: string;
-  experience?: string | number;
+  experience?: string | number; // Permite números (141-146 no data/constants.ts)
 }
