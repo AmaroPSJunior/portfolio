@@ -143,12 +143,12 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
         task.description
           .toLowerCase()
           .includes(normalizedSearch) ||
-        task.badges.some((badge) =>
+        (task.badges ?? []).some((badge) =>
           badge
             .toLowerCase()
             .includes(normalizedSearch)
         ) ||
-        task.requirements.some((requirement) =>
+        (task.requirements ?? []).some((requirement) =>
           requirement
             .toLowerCase()
             .includes(normalizedSearch)

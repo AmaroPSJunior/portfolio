@@ -18,7 +18,8 @@ export async function GET() {
       .from('projects')
       .select(`
         id,
-        phase,
+        numeric_id,
+        phase_id,
         title,
         description,
         requirements,

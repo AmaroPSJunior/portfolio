@@ -134,11 +134,29 @@ export default function HomePage() {
           );
 
           return {
-            ...databaseProject,
+            ...(databaseProject || {}),
             id: databaseProject?.id ?? repository.id,
             phase: databaseProject?.phase ?? 1,
-            title: repository.name,
-            description: repository.description || '',
+            title: databaseProject?.title || repository.name,
+            description:
+              databaseProject?.description ||
+              repository.description ||
+              '',
+            requirements: databaseProject?.requirements ?? [],
+            badges: databaseProject?.badges ?? [],
+            completed: databaseProject?.completed ?? false,
+            status:
+              databaseProject?.status ||
+              (databaseProject?.completed
+                ? 'completed'
+                : 'pending'),
+            statusReason:
+              databaseProject?.statusReason || '',
+            isCustom: databaseProject?.isCustom ?? false,
+            uuid: databaseProject?.uuid,
+            created_at:
+              databaseProject?.created_at ||
+              repository.created_at,
             githubId: repository.id,
             githubName: repository.name,
             githubFullName: repository.full_name,
