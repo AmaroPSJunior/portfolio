@@ -94,13 +94,17 @@ export default function HomePage() {
   // Fetch all phases, projects & site_config directly from Supabase DB via API
   const fetchDatabaseData = useCallback(async () => {
     try {
-      const [resPhases, resProjects, resConfig] = await Promise.all([
+      const [resPhases, resProjects, resGithub, resConfig] = await Promise.all([
         fetch('/api/fases').then((r) => r.json()).catch((err) => {
           AppLogger.error('UI:fetchPhases', 'Erro na requisição /api/fases', err);
           return { phases: [] };
         }),
         fetch('/api/projects').then((r) => r.json()).catch((err) => {
           AppLogger.error('UI:fetchProjects', 'Erro na requisição /api/projects', err);
+          return { projects: [] };
+        }),
+        fetch(`/api/github?owner=${encodeURIComponent(githubConfig.owner)}`).then((r) => r.json()).catch((err) => {
+          AppLogger.error('UI:fetchGithub', 'Erro na requisição /api/github', err);
           return { projects: [] };
         }),
         fetch('/api/config?page=roadmap').then((r) => r.json()).catch((err) => {
@@ -114,9 +118,42 @@ export default function HomePage() {
         saveCustomPhasesToLocalStorage(resPhases.phases);
       }
 
-      if (resProjects && Array.isArray(resProjects.projects)) {
-        setTasks(resProjects.projects);
-        saveCustomTasksToLocalStorage(resProjects.projects);
+            if (
+        resGithub &&
+        Array.isArray(resGithub.projects) &&
+        resProjects &&
+        Array.isArray(resProjects.projects)
+      ) {
+        const databaseProjects = resProjects.projects as Task[];
+
+        const githubProjects = resGithub.projects.map((repository: any) => {
+          const databaseProject = databaseProjects.find(
+            (project) =>
+              project.title.trim().toLowerCase() ===
+              repository.name.trim().toLowerCase()
+          );
+
+          return {
+            ...databaseProject,
+            id: databaseProject?.id ?? repository.id,
+            phase: databaseProject?.phase ?? 1,
+            title: repository.name,
+            description: repository.description || '',
+            githubId: repository.id,
+            githubName: repository.name,
+            githubFullName: repository.full_name,
+            githubPrivate: repository.private,
+            githubHtmlUrl: repository.html_url,
+            githubDescription: repository.description,
+            githubCreatedAt: repository.created_at,
+            githubUpdatedAt: repository.updated_at,
+            githubPushedAt: repository.pushed_at,
+            githubLanguage: repository.language,
+          };
+        });
+
+        setTasks(githubProjects);
+        saveCustomTasksToLocalStorage(githubProjects);
       }
 
       if (resConfig?.config) {

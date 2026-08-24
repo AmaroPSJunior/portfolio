@@ -306,8 +306,9 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     selectedStatusFilter !== 'all' ||
     phaseStatusFilter !== 'all' ||
     githubFilter !== 'all' ||
-    languageFilter !== 'all';
-    projectDateSort !== 'newest';
+    languageFilter !== 'all' ||
+    projectDateSort !== 'newest'
+  ;
 
   return (
     <div id="roadmap-tab-container" className="space-y-6 animate-fadeIn">

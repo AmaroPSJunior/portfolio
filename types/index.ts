@@ -11,6 +11,17 @@ export interface Task {
   isCustom?: boolean;
   uuid?: string;
   created_at?: string;
+
+  githubId?: number;
+  githubName?: string;
+  githubFullName?: string;
+  githubPrivate?: boolean;
+  githubHtmlUrl?: string;
+  githubDescription?: string;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
+  githubPushedAt?: string;
+  githubLanguage?: string;
 }
 
 export interface GithubProjectData {
