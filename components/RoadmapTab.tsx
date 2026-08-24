@@ -345,8 +345,8 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 
       {/* 2. Control Toolbar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
-        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3">
+          <div className="relative w-full">
             <input
               type="text"
               placeholder="Pesquisar projetos, tecnologias, GitHub..."
@@ -366,7 +366,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-start gap-2 w-full">
             {/* Phase Filter */}
             <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
               <Filter className="w-3.5 h-3.5 text-emerald-400" />
