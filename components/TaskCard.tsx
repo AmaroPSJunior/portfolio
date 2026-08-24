@@ -13,6 +13,9 @@ import {
   Code2,
   CheckSquare,
   Pencil,
+  GitBranch,
+  CalendarDays,
+  Github,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -49,10 +52,57 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   phaseIcon,
   phaseId,
 }) => {
-  const status = task.status || (task.completed ? 'completed' : 'pending');
-  const [statusReason, setStatusReason] = useState(task.statusReason || '' );
+  const status =
+    task.status ||
+    (task.completed ? 'completed' : 'pending');
 
-  useEffect(() => {setStatusReason(task.statusReason || '');}, [task.statusReason]);
+  const [statusReason, setStatusReason] = useState(
+    task.statusReason || ''
+  );
+
+  useEffect(() => {
+    setStatusReason(task.statusReason || '');
+  }, [task.statusReason]);
+
+  const hasGithubRepository =
+    Boolean(task.githubHtmlUrl) ||
+    Boolean(task.githubFullName) ||
+    Boolean(task.githubName);
+
+  const githubRepository =
+    task.githubFullName ||
+    task.githubName ||
+    (githubConfig
+      ? `${githubConfig.owner}/${githubConfig.repo}`
+      : '');
+
+  const githubUrl =
+    task.githubHtmlUrl ||
+    (githubConfig
+      ? `https://github.com/${githubConfig.owner}/${githubConfig.repo}`
+      : '');
+
+  const formatGithubDate = (
+    value?: string
+  ) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  };
+
+  const pushedDate = formatGithubDate(
+    task.githubPushedAt
+  );
 
   return (
     <div
@@ -172,27 +222,127 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           />
         </div>
 
+        {/* GitHub Repository Summary */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          {hasGithubRepository ? (
+            <>
+              <span className="flex items-center gap-1 px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono max-w-full">
+                <Github className="w-3 h-3 text-slate-400 shrink-0" />
+
+                <span className="truncate">
+                  {githubRepository}
+                </span>
+              </span>
+
+              {task.githubLanguage && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300">
+                  <Code2 className="w-3 h-3" />
+
+                  {task.githubLanguage}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-600">
+              Sem repositório GitHub associado
+            </span>
+          )}
+        </div>
+
         {/* Short description preview */}
         <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{task.description}</p>
 
         {/* Badges */}
         {task.badges && task.badges.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-1">
+            <div className="flex flex-wrap gap-1 pt-1">
             {task.badges.map((badge, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 bg-slate-950 text-cyan-400 border border-cyan-500/20 rounded text-[10px] font-mono font-medium"
-              >
-                {badge}
-              </span>
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 bg-slate-950 text-cyan-400 border border-cyan-500/20 rounded text-[10px] font-mono font-medium"
+                  >
+                    {badge}
+                  </span>
             ))}
-          </div>
-        )}
+            </div>
+          )}
       </div>
 
       {/* Expanded Details Content */}
       {isExpanded && (
         <div className="pt-3 border-t border-slate-800 space-y-3 animate-fadeIn text-xs">
+          {/* GitHub Repository Details */}
+          {hasGithubRepository && (
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <Github className="w-3 h-3 text-slate-400" />
+
+                Repositório GitHub
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {task.githubFullName && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
+                    <span className="text-[9px] text-slate-600 block uppercase">
+                      Repositório
+                    </span>
+
+                    <span className="text-[10px] text-slate-300 font-mono break-all">
+                      {task.githubFullName}
+                    </span>
+                  </div>
+                )}
+
+                {task.githubLanguage && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
+                    <span className="text-[9px] text-slate-600 block uppercase">
+                      Linguagem
+                    </span>
+
+                    <span className="text-[10px] text-cyan-300">
+                      {task.githubLanguage}
+                    </span>
+                  </div>
+                )}
+
+                {pushedDate && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
+                    <span className="text-[9px] text-slate-600 block uppercase">
+                      Último Push
+                    </span>
+
+                    <span className="flex items-center gap-1 text-[10px] text-slate-300">
+                      <GitBranch className="w-3 h-3 text-emerald-400" />
+
+                      {pushedDate}
+                    </span>
+                  </div>
+                )}
+
+                {task.githubUpdatedAt && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
+                    <span className="text-[9px] text-slate-600 block uppercase">
+                      Atualizado
+                    </span>
+
+                    <span className="flex items-center gap-1 text-[10px] text-slate-300">
+                      <CalendarDays className="w-3 h-3 text-cyan-400" />
+
+                      {formatGithubDate(
+                        task.githubUpdatedAt
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {task.githubDescription && (
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  {task.githubDescription}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Requirements list */}
           {task.requirements &&
             task.requirements.length > 0 && (
@@ -216,15 +366,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             )}
 
           {/* Repository Link Footer */}
-          {githubConfig && (
+          {githubUrl && (
             <div className="pt-2 flex items-center justify-between text-[10px] border-t border-slate-800/80">
               <span className="text-slate-500 flex items-center gap-1 font-mono">
                 <Code2 className="w-3 h-3 text-slate-400" />
-                {githubConfig.owner}/{githubConfig.repo}
+
+                {githubRepository}
               </span>
 
               <a
-                href={`https://github.com/${githubConfig.owner}/${githubConfig.repo}`}
+                href={githubUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold hover:underline"

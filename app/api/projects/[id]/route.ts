@@ -37,7 +37,7 @@ export async function DELETE(
   }
 }
 
-// PATCH: Atualizar projeto no Supabase (status concluído, título, descrição, etc.)
+// PATCH: Atualizar projeto no Supabase
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -77,8 +77,94 @@ export async function PATCH(
       );
     }
 
-    AppLogger.info(scope, `Projeto ID=${id} atualizado com sucesso`);
-    return NextResponse.json({ success: true, project: data?.[0] });
+    const row =
+      data && data.length > 0
+        ? data[0]
+        : null;
+
+    const project = row
+      ? {
+          id: row.numeric_id
+            ? Number(row.numeric_id)
+            : Number(id),
+          phase: row.phase_id
+            ? Number(row.phase_id)
+            : undefined,
+          title: row.title,
+          description:
+            row.description || '',
+          requirements:
+            Array.isArray(row.requirements)
+              ? row.requirements
+              : [],
+          badges:
+            Array.isArray(row.badges)
+              ? row.badges
+              : [],
+          completed: Boolean(
+            row.completed
+          ),
+          status:
+            row.status ||
+            (row.completed
+              ? 'completed'
+              : 'pending'),
+          statusReason:
+            row.status_reason || '',
+          isCustom: Boolean(
+            row.is_custom
+          ),
+          uuid: row.id,
+          created_at:
+            row.created_at,
+
+          githubId:
+            row.github_id !== null &&
+            row.github_id !== undefined
+              ? Number(row.github_id)
+              : undefined,
+          githubName:
+            row.github_name || undefined,
+          githubFullName:
+            row.github_full_name ||
+            undefined,
+          githubPrivate:
+            row.github_private !== null &&
+            row.github_private !== undefined
+              ? Boolean(
+                  row.github_private
+                )
+              : undefined,
+          githubHtmlUrl:
+            row.github_html_url ||
+            undefined,
+          githubDescription:
+            row.github_description ||
+            undefined,
+          githubCreatedAt:
+            row.github_created_at ||
+            undefined,
+          githubUpdatedAt:
+            row.github_updated_at ||
+            undefined,
+          githubPushedAt:
+            row.github_pushed_at ||
+            undefined,
+          githubLanguage:
+            row.github_language ||
+            undefined,
+        }
+      : null;
+
+    AppLogger.info(
+      scope,
+      `Projeto ID=${id} atualizado com sucesso`
+    );
+
+    return NextResponse.json({
+      success: true,
+      project,
+    });
   } catch (err: any) {
     return handleApiError(err, scope);
   }
