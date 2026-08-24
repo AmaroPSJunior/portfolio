@@ -117,42 +117,6 @@ export async function PATCH(
           uuid: row.id,
           created_at:
             row.created_at,
-
-          githubId:
-            row.github_id !== null &&
-            row.github_id !== undefined
-              ? Number(row.github_id)
-              : undefined,
-          githubName:
-            row.github_name || undefined,
-          githubFullName:
-            row.github_full_name ||
-            undefined,
-          githubPrivate:
-            row.github_private !== null &&
-            row.github_private !== undefined
-              ? Boolean(
-                  row.github_private
-                )
-              : undefined,
-          githubHtmlUrl:
-            row.github_html_url ||
-            undefined,
-          githubDescription:
-            row.github_description ||
-            undefined,
-          githubCreatedAt:
-            row.github_created_at ||
-            undefined,
-          githubUpdatedAt:
-            row.github_updated_at ||
-            undefined,
-          githubPushedAt:
-            row.github_pushed_at ||
-            undefined,
-          githubLanguage:
-            row.github_language ||
-            undefined,
         }
       : null;
 
