@@ -1,10 +1,9 @@
 export type WorkStatus =
   | 'pending'
   | 'in_progress'
-  | 'paused'
-  | 'blocked'
   | 'completed'
-  | 'disabled';
+  | 'blocked'
+  | 'paused';
 
 export interface Task {
   id: number;
@@ -19,16 +18,23 @@ export interface Task {
   isCustom?: boolean;
   uuid?: string;
   created_at?: string;
-}
 
-export interface NewTaskForm {
-  phase: number;
-  title: string;
-  description: string;
-  requirementsInput: string;
-  badgesInput: string;
-  status: WorkStatus;
-  statusReason: string;
+  /**
+   * Dados do repositório GitHub associado ao projeto.
+   *
+   * Esses campos são opcionais porque nem todo projeto
+   * necessariamente possui um repositório associado.
+   */
+  githubId?: number;
+  githubName?: string;
+  githubFullName?: string;
+  githubPrivate?: boolean;
+  githubHtmlUrl?: string;
+  githubDescription?: string;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
+  githubPushedAt?: string;
+  githubLanguage?: string;
 }
 
 export interface Phase {
@@ -36,52 +42,35 @@ export interface Phase {
   title: string;
   subtitle: string;
   icon: string;
-  status: WorkStatus;
-  statusReason: string;
-  order?: number;
-  uuid?: string;
-  created_at?: string;
-}
-
-export interface NewPhaseForm {
-  title: string;
-  subtitle: string;
-  emoji: string;
-  status: WorkStatus;
-  statusReason: string;
-}
-
-export interface Skill {
-  name: string;
-  level: number;
-  icon: string;
-  experience: string;
+  status?: WorkStatus;
+  statusReason?: string;
 }
 
 export interface GithubConfig {
   owner: string;
   repo: string;
-  branch: string;
   token?: string;
 }
 
-export interface GithubRepoData {
-  full_name: string;
-  html_url: string;
+export interface SiteConfig {
+  title?: string;
+  subtitle?: string;
   description?: string;
-  private?: boolean;
-  stargazers_count: number;
-  forks_count: number;
-  open_issues_count: number;
-  default_branch: string;
-  owner?: {
-    avatar_url?: string;
-  };
+  author?: string;
+  email?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  websiteUrl?: string;
 }
 
-export interface SiteConfig {
-  page_key: string;
-  title: string;
-  subtitle: string;
-  updated_at?: string;
+export interface ApiError {
+  message: string;
+  code?: string;
+  status?: number;
+  details?: unknown;
+}
+
+export interface ApiErrorNotice {
+  message: string;
+  action?: () => void | Promise<void>;
 }
