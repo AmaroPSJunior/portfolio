@@ -38,8 +38,6 @@ export interface GithubProjectData {
   language?: string;
 }
 
-// Adicione os tipos que estão faltando no seu arquivo de tipos:
-
 export interface Phase {
   id: number;
   title: string;
@@ -58,4 +56,24 @@ export interface GithubConfig {
   token?: string;
   repo?: string;
   owner?: string;
+}
+
+export interface Phase {
+  id: number;
+  title: string;
+  subtitle?: string; // Adicionado para resolver TS2353
+  order?: number;     // Adicionado para resolver TS2339
+  description?: string;
+  tasks?: Task[];
+}
+
+export interface SiteConfig {
+  title?: string;
+  description?: string;
+  url?: string;
+  ogImage?: string;
+  links?: {
+    github?: string;
+    docs?: string;
+  };
 }
