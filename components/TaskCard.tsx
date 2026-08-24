@@ -20,10 +20,19 @@ interface TaskCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onToggleComplete: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
   onStatusChange?: (status: WorkStatus, statusReason: string) => void;
   githubConfig?: GithubConfig;
+
+  /*
+   * Dados opcionais utilizados pela visualização consolidada
+   * de projetos.
+   */
+  showPhaseBadge?: boolean;
+  phaseLabel?: string;
+  phaseIcon?: string;
+  phaseId?: number;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -35,13 +44,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
   onStatusChange,
   githubConfig,
+  showPhaseBadge = false,
+  phaseLabel,
+  phaseIcon,
+  phaseId,
 }) => {
   const status = task.status || (task.completed ? 'completed' : 'pending');
-  const [statusReason, setStatusReason] = useState(task.statusReason || '');
+  const [statusReason, setStatusReason] = useState(task.statusReason || '' );
 
-  useEffect(() => {
-    setStatusReason(task.statusReason || '');
-  }, [task.statusReason]);
+  useEffect(() => {setStatusReason(task.statusReason || '');}, [task.statusReason]);
 
   return (
     <div
@@ -51,13 +62,33 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       } rounded-xl p-4 space-y-3 shadow-md hover:border-slate-700 transition-all flex flex-col justify-between`}
     >
       <div className="space-y-2">
+        {/* Optional Phase Badge */}
+        {showPhaseBadge && (
+          <div className="flex items-center justify-between gap-2 pb-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-base shrink-0">{phaseIcon || '📌'}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 truncate">
+                {phaseLabel || (typeof phaseId === 'number' ? `Fase ${phaseId}` : 'Fase')}
+              </span>
+            </div>
+
+            {typeof phaseId === 'number' && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-cyan-950/50 border border-cyan-500/20 text-cyan-400 font-mono shrink-0">
+                #{phaseId}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Header with Title and Toggle Complete Checkbox */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2.5 flex-1">
+          <div className="flex items-start gap-2.5 flex-1 min-w-0">
             <button
+              type="button"
               onClick={onToggleComplete}
               className="mt-0.5 text-slate-400 hover:text-emerald-400 transition-colors shrink-0"
               title={task.completed ? 'Marcar como pendente' : 'Marcar como concluído'}
+              aria-label={task.completed ? `Marcar ${task.title} como pendente` : `Marcar ${task.title} como concluído`}
             >
               {task.completed ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/20" />
@@ -65,11 +96,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <Circle className="w-5 h-5 text-slate-600 hover:text-slate-400" />
               )}
             </button>
+
             <h3
               onClick={onToggleExpand}
-              className={`text-xs font-bold leading-snug cursor-pointer hover:text-cyan-300 transition-colors ${
-                task.completed ? 'text-slate-400 line-through' : 'text-slate-100'
-              }`}
+              className={
+                `text-xs font-bold leading-snug cursor-pointer hover:text-cyan-300 transition-colors 
+                ${task.completed ? 'text-slate-400 line-through' : 'text-slate-100'}`
+              }
             >
               {task.title}
             </h3>
@@ -77,10 +110,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }}
+              type="button"
+              onClick={(e) => {e.stopPropagation(); onToggleExpand();}}
               className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
               title={isExpanded ? 'Recolher projeto' : 'Expandir projeto'}
               aria-label={isExpanded ? 'Recolher projeto' : 'Expandir projeto'}
@@ -92,23 +123,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               )}
             </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              className="p-1 text-slate-500 hover:text-cyan-400 rounded hover:bg-cyan-500/10 transition-colors"
-              title="Editar projeto"
-              aria-label={`Editar projeto ${task.title}`}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {e.stopPropagation(); onEdit();}}
+                className="p-1 text-slate-500 hover:text-cyan-400 rounded hover:bg-cyan-500/10 transition-colors"
+                title="Editar projeto"
+                aria-label={`Editar projeto ${task.title}`}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
+              type="button"
+              onClick={(e) => {e.stopPropagation(); onDelete();}}
               className="p-1 text-slate-500 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
               title="Excluir projeto"
               aria-label={`Excluir projeto ${task.title}`}
@@ -118,24 +147,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         </div>
 
+        {/* Status / Status Reason */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
           <label className="flex items-center gap-2 text-cyan-300 font-semibold">
             Status:
             <select
               value={status}
-              onChange={(event) =>
-                onStatusChange?.(event.target.value as WorkStatus, statusReason)
-              }
+              onChange={(event) => onStatusChange?.(event.target.value as WorkStatus,statusReason)}
               className="min-w-0 flex-1 bg-slate-950 border border-cyan-500/30 rounded px-2 py-1 text-[10px] text-slate-200 font-normal focus:outline-none focus:border-cyan-400"
               aria-label={`Status do projeto ${task.title}`}
             >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+              {STATUS_OPTIONS.map((option) => (<option key={option.value} value={option.value}>{option.label}</option>))}
             </select>
           </label>
+
           <input
             type="text"
             value={statusReason}
@@ -148,9 +173,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Short description preview */}
-        <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-          {task.description}
-        </p>
+        <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{task.description}</p>
 
         {/* Badges */}
         {task.badges && task.badges.length > 0 && (
@@ -171,22 +194,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {isExpanded && (
         <div className="pt-3 border-t border-slate-800 space-y-3 animate-fadeIn text-xs">
           {/* Requirements list */}
-          {task.requirements && task.requirements.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <CheckSquare className="w-3 h-3 text-emerald-400" />
-                Requisitos & Entregáveis:
-              </span>
-              <ul className="space-y-1 pl-1">
-                {task.requirements.map((req, idx) => (
-                  <li key={idx} className="text-slate-300 flex items-start gap-1.5 text-[11px]">
-                    <span className="text-emerald-400 shrink-0">✓</span>
-                    <span className="leading-tight">{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {task.requirements &&
+            task.requirements.length > 0 && (
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <CheckSquare className="w-3 h-3 text-emerald-400" />
+                  Requisitos & Entregáveis:
+                </span>
+
+                <ul className="space-y-1 pl-1">
+                  {task.requirements.map(
+                    (req, idx) => (
+                      <li key={idx} className="text-slate-300 flex items-start gap-1.5 text-[11px]">
+                        <span className="text-emerald-400 shrink-0">✓</span>
+                        <span className="leading-tight">{req}</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
 
           {/* Repository Link Footer */}
           {githubConfig && (

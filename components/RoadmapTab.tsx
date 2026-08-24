@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Task, Phase, GithubConfig, SiteConfig, WorkStatus } from '@/types';
 import { TaskCard } from './TaskCard';
 import { DeletePhaseModal } from './DeletePhaseModal';
@@ -21,7 +21,11 @@ import {
   Minimize2,
   Pencil,
   Trash2,
+  LayoutList,
+  LayoutGrid,
 } from 'lucide-react';
+
+type ViewMode = 'phases' | 'projects';
 
 interface RoadmapTabProps {
   phases: Phase[];
@@ -85,6 +89,14 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Task | null>(null);
 
+  /*
+   * Controle local da visualização.
+   *
+   * phases   = visualização atual por fases, com accordion.
+   * projects = visualização plana, com todos os projetos em uma única grade.
+   */
+  const [viewMode, setViewMode] = useState<ViewMode>('phases');
+
   const handleDeletePhase = () => {
     if (!phaseToDelete || !deletePhase) return;
     deletePhase(phaseToDelete.id);
@@ -99,15 +111,21 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 
   // Safe filtering logic
   const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      searchQuery.trim() === '' ||
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.badges.some((b) => b.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      task.requirements.some((r) => r.toLowerCase().includes(searchQuery.toLowerCase()));
+    const normalizedSearch = searchQuery.trim().toLowerCase();
 
-    const matchesPhase =
-      selectedPhaseFilter === 'all' || task.phase === Number(selectedPhaseFilter);
+    const matchesSearch =
+      normalizedSearch === '' ||
+      task.title.toLowerCase().includes(normalizedSearch) ||
+      task.title.toLowerCase().includes(normalizedSearch) ||
+      task.description.toLowerCase().includes(normalizedSearch) ||
+      task.badges.some((b) =>
+        b.toLowerCase().includes(normalizedSearch)
+      ) ||
+      task.requirements.some((r) =>
+        r.toLowerCase().includes(normalizedSearch)
+      );
+
+    const matchesPhase = selectedPhaseFilter === 'all' || task.phase === Number(selectedPhaseFilter);
 
     const matchesStatus =
       selectedStatusFilter === 'all' ||
@@ -117,18 +135,54 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     return matchesSearch && matchesPhase && matchesStatus;
   });
 
-  const activeTasks = tasks.filter((task) => !isDisabledStatus(task.status));
+  /*
+   * Na visualização de projetos, usamos uma ordenação estável:
+   * 1. Fase
+   * 2. Título do projeto
+   */
+  const sortedProjectTasks = useMemo(() => {
+    return [...filteredTasks].sort((a, b) => {
+      if (a.phase !== b.phase) {
+        return a.phase - b.phase;
+      }
+
+      return a.title.localeCompare(b.title, 'pt-BR');
+    });
+  }, [filteredTasks]);
+
+  const activeTasks = tasks.filter(
+    (task) => !isDisabledStatus(task.status)
+  );
+
   const totalTasks = activeTasks.length;
+
   const completedTasks = activeTasks.filter(isTaskFinished).length;
+
   const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   const completedPhasesCount = phases.filter((phase) => {
-    const phaseTasks = activeTasks.filter((t) => t.phase === phase.id);
-    return phaseTasks.length > 0 && phaseTasks.every(isTaskFinished);
+    const phaseTasks = activeTasks.filter(
+      (task) => task.phase === phase.id
+    );
+
+    return (
+      phaseTasks.length > 0 &&
+      phaseTasks.every(isTaskFinished)
+    );
   }).length;
+
+  /*
+   * Busca os dados da fase pelo ID.
+   * Isso permite exibir o nome e ícone da fase no card da
+   * visualização "Projetos".
+   */
+  const getPhase = (phaseId: number) => { 
+    return phases.find((phase) => phase.id === phaseId);
+  };
 
   return (
     <div id="roadmap-tab-container" className="space-y-6 animate-fadeIn">
-      {/* 1. Header Hero Banner - Configurações Dinâmicas vindas do Banco Supabase */}
+      {/* 1. Header Hero Banner */}
       <div className="p-6 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -162,7 +216,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
 
       {/* 2. Control Toolbar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
           {/* Search Bar */}
           <div className="relative flex-1">
             <input
@@ -176,14 +230,15 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               <button
                 onClick={() => setSearchQuery('')}
                 className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300 text-xs"
+                title="Limpar busca"
+                aria-label="Limpar busca"
               >
                 ✕
               </button>
             )}
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Phase Selector Filter */}
             <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
               <Filter className="w-3.5 h-3.5 text-emerald-400" />
@@ -191,14 +246,12 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 value={selectedPhaseFilter}
                 onChange={(e) => setSelectedPhaseFilter(e.target.value)}
                 className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
+                aria-label="Filtrar por fase"
               >
-                <option value="all" className="bg-slate-900 text-slate-200">
-                  Todas as Fases
-                </option>
+                <option value="all" className="bg-slate-900 text-slate-200">Todas as Fases</option>
+
                 {phases.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-slate-900 text-slate-200">
-                    {p.icon} {p.title}
-                  </option>
+                  <option key={p.id} value={p.id} className="bg-slate-900 text-slate-200">{p.icon} {p.title}</option>
                 ))}
               </select>
             </div>
@@ -210,24 +263,84 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 value={selectedStatusFilter}
                 onChange={(e) => setSelectedStatusFilter(e.target.value)}
                 className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
+                aria-label="Filtrar por status"
               >
-                <option value="all" className="bg-slate-900 text-slate-200">
-                  Todos os Status
-                </option>
-                <option value="completed" className="bg-slate-900 text-slate-200">
-                  Somente Concluídos
-                </option>
-                <option value="pending" className="bg-slate-900 text-slate-200">
-                  Somente Pendentes
-                </option>
+                <option value="all" className="bg-slate-900 text-slate-200">Todos os Status</option>
+                <option value="completed" className="bg-slate-900 text-slate-200">Somente Concluídos</option>
+                <option value="pending" className="bg-slate-900 text-slate-200">Somente Pendentes</option>
               </select>
+            </div>
+
+            {/* View Selector */}
+            <div
+              className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1 shrink-0"
+              role="group"
+              aria-label="Modo de visualização"
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('phases')}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 ${
+                  viewMode === 'phases'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+                title="Visualizar projetos organizados por fases"
+                aria-label="Visualizar por fases"
+                aria-pressed={viewMode === 'phases'}
+              >
+                <LayoutList className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">
+                  Por Fases
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('projects')}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 ${
+                  viewMode === 'projects'
+                    ? 'bg-cyan-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+                title="Visualizar todos os projetos em uma única grade"
+                aria-label="Visualizar projetos"
+                aria-pressed={viewMode === 'projects'}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">
+                  Projetos
+                </span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
-          <div className="flex items-center gap-2">
+        {/* Active View Indicator */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-slate-500">Visualização atual:</span>
+
+            <span
+              className={`px-2.5 py-1 rounded-lg border font-semibold ${
+                viewMode === 'phases'
+                  ? 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300'
+                  : 'bg-cyan-950/50 border-cyan-500/30 text-cyan-300'
+              }`}
+            >
+              {viewMode === 'phases' ? 'Por Fases' : 'Todos os Projetos'}
+            </span>
+
+            <span className="text-slate-600">•</span>
+
+            <span className="text-slate-400">
+              {filteredTasks.length}{' '}
+              {filteredTasks.length === 1 ? 'projeto encontrado' : 'projetos encontrados'}
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={expandAllCards}
               className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
@@ -235,6 +348,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               <Maximize2 className="w-3 h-3 text-slate-400" />
               Expandir Tudo
             </button>
+
             <button
               onClick={collapseAllCards}
               className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
@@ -242,6 +356,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               <Minimize2 className="w-3 h-3 text-slate-400" />
               Recolher
             </button>
+
             <button
               onClick={resetChecklist}
               className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center gap-1 text-[11px] border border-slate-700"
@@ -250,9 +365,18 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
               <RefreshCw className="w-3 h-3 text-emerald-400" />
               Sincronizar Banco
             </button>
-          </div>
 
-          <div className="flex items-center gap-2">
+            {viewMode === 'projects' && (
+              <button 
+                onClick={() => onOpenAddTaskModal ? onOpenAddTaskModal() : setShowAddModal(true)}
+                className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 rounded-xl transition-all font-semibold flex items-center gap-1.5 shadow-sm text-xs"
+                title="Cadastrar novo projeto"
+              >
+                <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                Novo Projeto
+              </button>
+            )}
+
             {setShowPhaseModal && (
               <button
                 onClick={() => setShowPhaseModal(true)}
@@ -268,14 +392,21 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
         </div>
       </div>
 
-      {/* 3. Phases Accordion List */}
+      {/* 3. Empty Database State */}
       {phases.length === 0 ? (
         <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
           <Info className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-base font-bold text-white">Nenhuma Fase ou Projeto Encontrado no Banco de Dados</h3>
+
+          <h3 className="text-base font-bold text-white">
+            Nenhuma Fase ou Projeto Encontrado no Banco de Dados
+          </h3>
+
           <p className="text-xs text-slate-400 max-w-md mx-auto">
-            O banco de dados Supabase ainda não retornou fases ou projetos. Você pode cadastrar uma nova fase ou projeto diretamente utilizando os botões da barra superior.
+            O banco de dados Supabase ainda não retornou fases ou
+            projetos. Você pode cadastrar uma nova fase ou projeto
+            diretamente utilizando os botões da barra superior.
           </p>
+
           <div className="pt-2 flex justify-center gap-3">
             {setShowPhaseModal && (
               <button
@@ -288,173 +419,285 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {phases.map((phase) => {
-            const phaseTasks = filteredTasks.filter((t) => t.phase === phase.id);
-            const phaseStatus = phase.status || 'pending';
-            const phaseStatusLabel =
-              STATUS_OPTIONS.find((option) => option.value === phaseStatus)?.label || 'Pendente';
-            const isOpen = openPhases.includes(phase.id);
-            const phaseActiveTasks = activeTasks.filter((t) => t.phase === phase.id);
-            const totalPhaseTasks = phaseActiveTasks.length;
-            const completedPhaseTasks = phaseActiveTasks.filter(isTaskFinished).length;
-            const phaseProgress =
-              totalPhaseTasks > 0 ? Math.round((completedPhaseTasks / totalPhaseTasks) * 100) : 0;
+        <>
+          {/* ====================================================== */}
+          {/* VIEW 1 — POR FASES                                    */}
+          {/* ====================================================== */}
+          {viewMode === 'phases' && (
+            <div className="space-y-4">
+              {phases.map((phase) => {
+                const phaseTasks = filteredTasks.filter((task) => task.phase === phase.id);
+                const phaseStatus =phase.status || 'pending';
+                const phaseStatusLabel = STATUS_OPTIONS.find((option) => option.value === phaseStatus)?.label || 'Pendente';
+                const isOpen = openPhases.includes(phase.id);
+                const phaseActiveTasks = activeTasks.filter((task) => task.phase === phase.id);
+                const totalPhaseTasks = phaseActiveTasks.length;
+                const completedPhaseTasks = phaseActiveTasks.filter(isTaskFinished).length;
+                const phaseProgress = totalPhaseTasks > 0 ? Math.round((completedPhaseTasks / totalPhaseTasks) * 100) : 0;
 
-            return (
-              <div
-                key={phase.id}
-                id={`phase-card-${phase.id}`}
-                className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-lg transition-all"
-              >
-                {/* Phase Accordion Header */}
-                <div
-                  onClick={() => togglePhase(phase.id)}
-                  className="px-6 py-4 bg-slate-900 hover:bg-slate-800/80 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/60 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <button className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-950 border border-slate-800">
-                      {isOpen ? (
-                        <ChevronDown className="w-4 h-4 text-emerald-400" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      )}
-                    </button>
-                    <span className="text-xl p-2 bg-slate-950 border border-slate-800 rounded-xl shadow-inner">
-                      {phase.icon}
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                          Fase {phase.id}
+                return (
+                  <div
+                    key={phase.id}
+                    id={`phase-card-${phase.id}`}
+                    className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-lg transition-all"
+                  >
+                    {/* Phase Accordion Header */}
+                    <div onClick={() => togglePhase(phase.id)}
+                      className="px-6 py-4 bg-slate-900 hover:bg-slate-800/80 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/60 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-950 border border-slate-800"
+                          aria-label={isOpen ? `Recolher fase ${phase.title}` : `Expandir fase ${phase.title}`}
+                        >
+                          {isOpen ? (
+                            <ChevronDown className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
+
+                        <span className="text-xl p-2 bg-slate-950 border border-slate-800 rounded-xl shadow-inner">
+                          {phase.icon}
                         </span>
-                        <h2 className="text-base font-bold text-white">{phase.title}</h2>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Fase {phase.id}</span>
+                            <h2 className="text-base font-bold text-white">{phase.title}</h2>
+                          </div>
+
+                          <p className="text-xs text-slate-400">{phase.subtitle}</p>
+
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px]">
+                            <span className="px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/60 text-emerald-300 font-semibold">
+                              Status: {phaseStatusLabel}
+                            </span>
+
+                            {phase.statusReason && (<span className="text-slate-500">{phase.statusReason}</span>)}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-400">{phase.subtitle}</p>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px]">
-                        <span className="px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/60 text-emerald-300 font-semibold">
-                          Status: {phaseStatusLabel}
+
+                      <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-2 md:pt-0">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                            <div
+                              className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
+                              style={{width: `${phaseProgress}%`,}}
+                            />
+                          </div>
+
+                          <span className="text-xs font-bold text-slate-300 font-mono w-10 text-right">{phaseProgress}%</span>
+                        </div>
+
+                        <span className="text-xs px-2.5 py-1 bg-slate-950 text-slate-400 border border-slate-800 rounded-lg font-mono">
+                          {completedPhaseTasks}/
+                          {totalPhaseTasks}
                         </span>
-                        {phase.statusReason && (
-                          <span className="text-slate-500">{phase.statusReason}</span>
+
+                        {onEditPhase && (
+                          <button
+                            type="button"
+                            onClick={(e) => {e.stopPropagation();onEditPhase(phase);}}
+                            className="p-1.5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                            title="Editar fase"
+                            aria-label={`Editar fase ${phase.title}`}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {deletePhase &&
+                          !tasks.some((task) =>task.phase === phase.id) && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPhaseToDelete(phase);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Excluir fase sem projetos associados"
+                              aria-label={`Excluir fase ${phase.title}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Phase Content Area */}
+                    {isOpen && (
+                      <div className="p-6 space-y-4 bg-slate-950/40">
+                        {/* Add Project Button inside expanded Phase */}
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                          <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                            Projetos e Entregáveis da Fase{' '}
+                            {phase.id} ({phaseTasks.length})
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => onOpenAddTaskModal ? onOpenAddTaskModal(phase.id) : setShowAddModal(true)}
+                            className="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg transition-all text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                            title={`Adicionar novo projeto diretamente à Fase ${phase.id}`}
+                          >
+                            <Plus className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                            Novo Projeto
+                          </button>
+                        </div>
+
+                        {phaseTasks.length === 0 ? (
+                          <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/40">
+                            <p className="text-xs text-slate-500 mb-2">
+                              Nenhum projeto ou ideia
+                              encontrada nesta fase para
+                              os filtros aplicados.
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() => onOpenAddTaskModal ? onOpenAddTaskModal(phase.id) : setShowAddModal(true)}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1"
+                            >
+                              <Plus className="w-3 h-3 stroke-[3]" />
+                              Adicionar Projeto nesta Fase
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {phaseTasks.map((task) => (
+                              <TaskCard
+                                key={task.id}
+                                task={task}
+                                isExpanded={expandedCards.includes(task.id)}
+                                onToggleExpand={() => toggleCard(task.id)}
+                                onToggleComplete={() => toggleTask(task.id)}
+                                onEdit={() => onEditTask?.(task)}
+                                onDelete={() => setProjectToDelete(task)}
+                                onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason )}
+                                githubConfig={githubConfig}
+                              />
+                            ))}
+                          </div>
                         )}
                       </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ====================================================== */}
+          {/* VIEW 2 — PROJETOS                                      */}
+          {/* ====================================================== */}
+          {viewMode === 'projects' && (
+            <div className="space-y-4">
+              {/* Header da visualização */}
+              <div className="p-4 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-950 border border-cyan-500/20 rounded-2xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <LayoutGrid className="w-4 h-4 text-cyan-400" />
+
+                      <h2 className="text-sm font-bold text-white">Todos os Projetos</h2>
                     </div>
+
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Visualização consolidada dos projetos,
+                      independentemente da fase. Cada card exibe
+                      a fase à qual pertence.
+                    </p>
                   </div>
 
-                  <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-2 md:pt-0">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
-                        <div
-                          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
-                          style={{ width: `${phaseProgress}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-bold text-slate-300 font-mono w-10 text-right">
-                        {phaseProgress}%
-                      </span>
-                    </div>
-
-                    <span className="text-xs px-2.5 py-1 bg-slate-950 text-slate-400 border border-slate-800 rounded-lg font-mono">
-                      {completedPhaseTasks}/{totalPhaseTasks}
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                    <span className="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800">
+                      {sortedProjectTasks.length}{' '}
+                      {sortedProjectTasks.length === 1 ? 'projeto' : 'projetos'}
                     </span>
 
-                    {onEditPhase && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditPhase(phase);
-                        }}
-                        className="p-1.5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
-                        title="Editar fase"
-                        aria-label={`Editar fase ${phase.title}`}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {deletePhase && !tasks.some((task) => task.phase === phase.id) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPhaseToDelete(phase);
-                        }}
-                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Excluir fase sem projetos associados"
-                        aria-label={`Excluir fase ${phase.title}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    {selectedPhaseFilter !== 'all' && (
+                      <span className="px-2 py-1 rounded-lg bg-cyan-950/50 border border-cyan-500/20 text-cyan-300">
+                        Fase filtrada
+                      </span>
                     )}
                   </div>
                 </div>
-
-                {/* Phase Content Area */}
-                {isOpen && (
-                  <div className="p-6 space-y-4 bg-slate-950/40">
-                    {/* Add Project Button inside expanded Phase */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
-                      <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                        Projetos e Entregáveis da Fase {phase.id} ({phaseTasks.length})
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          onOpenAddTaskModal
-                            ? onOpenAddTaskModal(phase.id)
-                            : setShowAddModal(true)
-                        }
-                        className="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg transition-all text-xs font-semibold flex items-center gap-1.5 shadow-sm"
-                        title={`Adicionar novo projeto diretamente à Fase ${phase.id}`}
-                      >
-                        <Plus className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-                        Novo Projeto
-                      </button>
-                    </div>
-
-                    {phaseTasks.length === 0 ? (
-                      <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/40">
-                        <p className="text-xs text-slate-500 mb-2">
-                          Nenhum projeto ou ideia encontrada nesta fase para os filtros aplicados.
-                        </p>
-                        <button
-                          onClick={() =>
-                            onOpenAddTaskModal
-                              ? onOpenAddTaskModal(phase.id)
-                              : setShowAddModal(true)
-                          }
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1"
-                        >
-                          <Plus className="w-3 h-3 stroke-[3]" />
-                          Adicionar Projeto nesta Fase
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {phaseTasks.map((task) => (
-                          <TaskCard
-                            key={task.id}
-                            task={task}
-                            isExpanded={expandedCards.includes(task.id)}
-                            onToggleExpand={() => toggleCard(task.id)}
-                            onToggleComplete={() => toggleTask(task.id)}
-                            onEdit={() => onEditTask?.(task)}
-                            onDelete={() => setProjectToDelete(task)}
-                            onStatusChange={(status, statusReason) =>
-                              onStatusChange?.(task.id, status, statusReason)
-                            }
-                            githubConfig={githubConfig}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
+
+              {sortedProjectTasks.length === 0 ? (
+                <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
+                  <Info className="w-8 h-8 text-slate-500 mx-auto mb-3" />
+
+                  <h3 className="text-sm font-bold text-white">Nenhum projeto encontrado</h3>
+
+                  <p className="text-xs text-slate-500 max-w-md mx-auto mt-2">
+                    Não existem projetos correspondentes aos
+                    filtros ou à busca atual.
+                  </p>
+
+                  {(searchQuery || selectedPhaseFilter !== 'all' || selectedStatusFilter !== 'all') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedPhaseFilter('all');
+                        setSelectedStatusFilter('all');
+                      }}
+                      className="mt-4 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs transition-colors"
+                    >
+                      Limpar Filtros
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sortedProjectTasks.map((task) => {
+                    const phase = getPhase(task.phase);
+
+                    return (
+                      <div key={task.id} className="space-y-2">
+                        {/* Identificador da fase */}
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/50 border border-cyan-500/20 text-cyan-300 text-[10px] font-bold truncate">
+                              <span className="text-sm">{phase?.icon || '📌'}</span>
+                              <span>Fase {task.phase}{phase ? ` · ${phase.title}` : ''}</span>
+                            </span>
+                          </div>
+
+                          {phase?.status && (
+                            <span className="text-[9px] px-2 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-500 shrink-0">
+                              {STATUS_OPTIONS.find((option) => option.value === phase.status)?.label || phase.status}
+                            </span>
+                          )}
+                        </div>
+
+                        <TaskCard
+                          task={task}
+                          isExpanded={expandedCards.includes(task.id)}
+                          onToggleExpand={() => toggleCard(task.id)}
+                          onToggleComplete={() => toggleTask(task.id)}
+                          onEdit={() => onEditTask?.(task)}
+                          onDelete={() => setProjectToDelete(task)}
+                          onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason)}
+                          githubConfig={githubConfig}
+                          showPhaseBadge
+                          phaseLabel={phase?.title || `Fase ${task.phase}`}
+                          phaseIcon={phase?.icon || '📌' }
+                          phaseId={task.phase}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       <DeletePhaseModal
