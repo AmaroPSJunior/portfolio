@@ -273,68 +273,55 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         )}
 
-        {/* Status */}
+        {/* Status - Informativo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+          <div className="flex items-center gap-2 bg-slate-950 border border-cyan-500/20 rounded px-2 py-1">
+            <span className="text-cyan-300 font-semibold shrink-0">
+              Status:
+            </span>
 
-          <label className="flex items-center gap-2 text-cyan-300 font-semibold">
-            Status:
+            <span className="text-slate-200 truncate">
+              {STATUS_OPTIONS.find(
+                (option) => option.value === status
+              )?.label || 'Pendente'}
+            </span>
+          </div>
 
-            <select
-              value={status}
-              onChange={(event) =>
-                onStatusChange?.(
-                  event.target.value as WorkStatus,
-                  statusReason
-                )
-              }
-              className="min-w-0 flex-1 bg-slate-950 border border-cyan-500/30 rounded px-2 py-1 text-[10px] text-slate-200 font-normal focus:outline-none focus:border-cyan-400"
-              aria-label={`Status do projeto ${task.title}`}
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded px-2 py-1 min-w-0">
+            <span className="text-slate-500 font-semibold shrink-0">
+              Motivo:
+            </span>
 
-          <input
-            type="text"
-            value={statusReason}
-            onChange={(event) =>
-              setStatusReason(event.target.value)
-            }
-            onBlur={() =>
-              onStatusChange?.(status, statusReason)
-            }
-            placeholder="Justificativa do status"
-            className="min-w-0 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-cyan-500"
-            aria-label={`Justificativa do status do projeto ${task.title}`}
-          />
+            <span className="text-slate-300 truncate">
+              {statusReason || 'Sem justificativa'}
+            </span>
+          </div>
         </div>
 
         {/* GitHub */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-
+        <div className="flex items-center gap-1.5 pt-1 w-full min-w-0">
           {hasGithubRepository ? (
             <>
-              <span className="flex items-center gap-1 px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono max-w-full">
-                <Github className="w-3 h-3 text-slate-400 shrink-0" />
+              <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center gap-1 px-2 py-1 w-[70%] min-w-0 shrink-0 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+              title={`Abrir ${githubRepository} no GitHub`}
+              aria-label={`Abrir repositório ${githubRepository} no GitHub`}
+            >
+              <Github className="w-3 h-3 text-slate-400 shrink-0" />
+              <span className="truncate">{task.title}</span>
+              <ExternalLink className="w-3 h-3 text-slate-500 shrink-0 ml-auto" />
+            </a>
 
-                <span className="truncate">
-                  {githubRepository}
-                </span>
+            {task.githubLanguage && (
+              <span className="ml-auto flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 shrink-0">
+                <Code2 className="w-3 h-3" />
+                {task.githubLanguage}
               </span>
-
-              {task.githubLanguage && (
-                <span className="flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300">
-                  <Code2 className="w-3 h-3" />
-                  {task.githubLanguage}
-                </span>
-              )}
+            )}
             </>
           ) : (
             <span className="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-600">
@@ -349,9 +336,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="space-y-1.5 pt-1">
 
           <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-wider">
-            <span className="text-slate-500">
-              Progresso das fases
-            </span>
+            <span className="text-slate-500">Progresso das fases</span>
 
             <span className="text-cyan-400 font-mono text-xs">
               {progress}%
@@ -369,27 +354,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       )}
 
-      {/* Link GitHub */}
-      {githubUrl && (
-        <div className="flex justify-end pt-1">
-          <a
-            href={githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-            className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-bold transition-all hover:translate-x-1"
-          >
-            [ Ver no GitHub{' '}
-            <ExternalLink className="w-3 h-3" /> ]
-          </a>
-        </div>
-      )}
-
       {/* Detalhes expandidos */}
       {isExpanded && (
-        <div className="pt-3 border-t border-slate-800 space-y-3 animate-fadeIn text-xs">
+        <div className="pt-3 space-y-3 animate-fadeIn text-xs">
 
           {/* GitHub Repository Details */}
           {hasGithubRepository && (
@@ -494,27 +461,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 </ul>
               </div>
             )}
-
-          {/* Link GitHub expandido */}
-          {githubUrl && (
-            <div className="pt-2 flex items-center justify-between text-[10px] border-t border-slate-800/80">
-
-              <span className="text-slate-500 flex items-center gap-1 font-mono">
-                <Code2 className="w-3 h-3 text-slate-400" />
-                {githubRepository}
-              </span>
-
-              <a
-                href={githubUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold hover:underline"
-              >
-                Ver no GitHub
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          )}
         </div>
       )}
     </div>
