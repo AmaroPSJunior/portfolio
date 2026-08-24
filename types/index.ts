@@ -107,8 +107,17 @@ export interface Skill {
   id?: string | number;
   name: string;
   category?: string;
-  level?: string;
+  level?: string | number;      // Ou altere aqui se o erro for no level
   icon?: string;
   // Permite números (resolve os erros nas linhas 141-146 do data/constants.ts):
   experience?: string | number; 
+}
+
+export interface TaskCardProps {
+  task: Task;
+  showPhaseBadge?: boolean;
+  phaseLabel?: string;
+  phaseIcon?: string;
+  phaseId?: number;
+  // Mantenha as outras props do componente caso existam (ex: onStatusChange, etc)
 }
