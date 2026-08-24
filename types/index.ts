@@ -1,4 +1,3 @@
-export type WorkStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED';
 export interface Task {
   id: number;
   phase: number;
@@ -76,4 +75,33 @@ export interface SiteConfig {
     github?: string;
     docs?: string;
   };
+}
+
+// 1. Definição do WorkStatus com os valores exatos usados pelo seu validador e componentes:
+export type WorkStatus = 
+  | 'pending' 
+  | 'in_progress' 
+  | 'paused' 
+  | 'blocked' 
+  | 'completed' 
+  | 'disabled';
+
+// 2. Atualização da Phase (adicionado statusReason):
+export interface Phase {
+  id: number;
+  title: string;
+  subtitle?: string;
+  order?: number;
+  description?: string;
+  statusReason?: string; // Adicionado para resolver os erros no RoadmapTab.tsx
+  tasks?: Task[];
+}
+
+// 3. Adição do tipo Skill (faltando em data/constants.ts):
+export interface Skill {
+  id?: string | number;
+  name: string;
+  category?: string;
+  level?: string;
+  icon?: string;
 }
