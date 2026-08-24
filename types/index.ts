@@ -1,3 +1,4 @@
+export type WorkStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED';
 export interface Task {
   id: number;
   phase: number;
