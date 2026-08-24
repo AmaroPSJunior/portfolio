@@ -1060,9 +1060,8 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                         onDelete={() => setProjectToDelete(task)}
                         onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason)}
                         githubConfig={githubConfig}
-                        simplified
                         totalPhases={phases.length}
-                        phaseIndex={phaseIndex}
+                        phaseIndex={phases.findIndex((phaseItem) => phaseItem.id === task.phase) + 1}
                       />
                     );
                   })}
