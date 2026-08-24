@@ -295,9 +295,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="text-xs text-slate-300 font-semibold">Perfil Técnico</div>
             <div className="text-[11px] text-slate-500">Desenvolvimento de ponta a ponta</div>
 
-            {/* Tooltip super enxuto */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Perfil Técnico
+                        {/* Tooltip super enxuto */}
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+              Domínio completo de Front-end (React/Next.js) e Back-end (Node/Java/C#)
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
@@ -311,8 +311,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="text-[11px] text-slate-500">E-Commerce & ERP Industrial</div>
 
             {/* Tooltip super enxuto */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Última Empresa
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+              Liderança técnica em projetos de E-commerce e Automação Industrial
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
@@ -326,8 +326,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="text-[11px] text-slate-500">Análise e Des. de Sistemas</div>
 
             {/* Tooltip super enxuto */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Formação Acadêmica
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+              Graduação em Análise e Desenvolvimento de Sistemas (UNIP)
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
@@ -341,11 +341,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="text-[11px] text-slate-500">Git, TFS, CI/CD e Código Limpo</div>
 
             {/* Tooltip super enxuto */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Habilidades & Metodologia
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
+              Foco em entregas ágeis, qualidade de código e automação (CI/CD)
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
+
 
         </div>
       </section>

@@ -29,13 +29,11 @@ interface TaskCardProps {
   githubConfig?: GithubConfig;
 
   /*
-   * Dados opcionais utilizados pela visualização consolidada
-   * de projetos.
+   * Dados para a visualização simplificada (Recrutador)
    */
-  showPhaseBadge?: boolean;
-  phaseLabel?: string;
-  phaseIcon?: string;
-  phaseId?: number;
+  simplified?: boolean;
+  totalPhases?: number;
+  phaseIndex?: number;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -51,8 +49,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   phaseLabel,
   phaseIcon,
   phaseId,
+  simplified = false,
+  totalPhases = 0,
+  phaseIndex = 0,
 }) => {
   const status =
+
     task.status ||
     (task.completed ? 'completed' : 'pending');
 
@@ -100,11 +102,81 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }).format(date);
   };
 
-  const pushedDate = formatGithubDate(
+    const pushedDate = formatGithubDate(
     task.githubPushedAt
   );
 
+  // --- MODO SIMPLIFICADO (RECRUTADOR) ---
+  if (simplified) {
+    const isFinished = task.completed || task.status === 'completed';
+    const progress = totalPhases > 0 && phaseIndex > 0
+      ? Math.round((isFinished ? phaseIndex : phaseIndex - 1) / totalPhases * 100)
+      : 0;
+
+    return (
+      <div
+        id={`project-card-simple-${task.id}`}
+        className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col h-full group"
+      >
+        <div className="space-y-2 flex-grow">
+          <h3 className="text-base font-extrabold text-slate-100 group-hover:text-cyan-400 transition-colors leading-tight">
+            {task.title}
+          </h3>
+
+          <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
+            {task.description}
+          </p>
+
+          {task.badges && task.badges.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {task.badges.map((badge, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 bg-slate-950 text-cyan-400 border border-cyan-500/20 rounded text-[9px] font-mono font-medium"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4 pt-2">
+          {totalPhases > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-wider">
+                <span className="text-slate-500">Progresso das fases</span>
+                <span className="text-cyan-400 font-mono text-xs">{progress}%</span>
+              </div>
+              <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800/50">
+                <div
+                  className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 h-full transition-all duration-1000"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {githubUrl && (
+            <div className="flex justify-end pt-1">
+              <a
+                href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-bold transition-all hover:translate-x-1"
+              >
+                [ Ver no GitHub <ExternalLink className="w-3 h-3" /> ]
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // --- MODO COMPLETO (GERENCIAMENTO) ---
   return (
+
     <div
       id={`project-card-${task.id}`}
       className={`bg-slate-900 border ${

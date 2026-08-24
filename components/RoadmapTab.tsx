@@ -1022,7 +1022,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 </div>
               </div>
 
-              {sortedProjectTasks.length === 0 ? (
+                            {sortedProjectTasks.length === 0 ? (
                 <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
                   <Info className="w-8 h-8 text-slate-500 mx-auto mb-3" />
 
@@ -1043,49 +1043,31 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {sortedProjectTasks.map((task) => {
                     const phase = getPhase(task.phase);
+                    const phaseIndex = phases.findIndex(p => p.id === task.phase) + 1;
 
-                      return (
-                        <div
-                          key={task.id}
-                          className="space-y-2"
-                        >
-                          <div className="flex items-center justify-between px-1">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/50 border border-cyan-500/20 text-cyan-300 text-[10px] font-bold truncate">
-                              <span className="text-sm">{phase?.icon || '📌'}</span>
-                              <span>Fase {task.phase}{phase ? ` · ${phase.title}` : ''}</span>
-                              </span>
-                            </div>
-
-                            {phase?.status && (
-                              <span className="text-[9px] px-2 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-500 shrink-0">
-                              {STATUS_OPTIONS.find((option) => option.value === phase.status)?.label || phase.status}
-                              </span>
-                            )}
-                          </div>
-
-                          <TaskCard
-                            task={task}
-                          isExpanded={expandedCards.includes(task.id)}
-                          onToggleExpand={() => toggleCard(task.id)}
-                          onToggleComplete={() => toggleTask(task.id)}
-                          onEdit={() => onEditTask?.(task)}
-                          onDelete={() => setProjectToDelete(task)}
-                          onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason)}
-                          githubConfig={githubConfig}
-                            showPhaseBadge
-                          phaseLabel={phase?.title || `Fase ${task.phase}`}
-                          phaseIcon={phase?.icon || '📌' }
-                          phaseId={task.phase}
-                          />
-                        </div>
-                      );
+                    return (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        isExpanded={expandedCards.includes(task.id)}
+                        onToggleExpand={() => toggleCard(task.id)}
+                        onToggleComplete={() => toggleTask(task.id)}
+                        onEdit={() => onEditTask?.(task)}
+                        onDelete={() => setProjectToDelete(task)}
+                        onStatusChange={(status, statusReason) => onStatusChange?.(task.id, status, statusReason)}
+                        githubConfig={githubConfig}
+                        simplified
+                        totalPhases={phases.length}
+                        phaseIndex={phaseIndex}
+                      />
+                    );
                   })}
                 </div>
               )}
+
             </div>
           )}
         </>
