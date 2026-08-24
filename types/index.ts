@@ -37,3 +37,25 @@ export interface GithubProjectData {
   pushed_at?: string;
   language?: string;
 }
+
+// Adicione os tipos que estão faltando no seu arquivo de tipos:
+
+export interface Phase {
+  id: number;
+  title: string;
+  description?: string;
+  tasks?: Task[];
+}
+
+export interface NewTaskForm {
+  title: string;
+  description: string;
+  phase: number;
+  requirements?: string[];
+}
+
+export interface GithubConfig {
+  token?: string;
+  repo?: string;
+  owner?: string;
+}
