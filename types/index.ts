@@ -43,6 +43,16 @@ export interface GithubProjectData {
   updated_at?: string;
   pushed_at?: string;
   language?: string;
+  // Campos do GitHub API que estavam faltando no GithubModal:
+  owner?: {
+    login: string;
+    avatar_url?: string;
+    [key: string]: any;
+  };
+  stargazers_count?: number;
+  forks_count?: number;
+  open_issues_count?: number;
+  default_branch?: string;
 }
 
 // Alias de exportação para resolver a busca por GithubRepoData no GithubModal.tsx
@@ -96,5 +106,6 @@ export interface Skill {
   category?: string;
   level?: string;
   icon?: string;
-  experience?: string | number; // Permite números (141-146 no data/constants.ts)
+  // Permite números (resolve os erros nas linhas 141-146 do data/constants.ts):
+  experience?: string | number; 
 }
