@@ -77,8 +77,9 @@ export interface NewTaskForm {
   description: string;
   phase: number;
   requirements?: string[];
+  status?: WorkStatus;            // Adicionado para resolver os erros no AddTaskModal.tsx
+  statusReason?: string;
   badgesInput?: string;
-  statusReason?: string;       // Adicionado para AddTaskModal.tsx
   requirementsInput?: string;  // Adicionado para AddTaskModal.tsx
 }
 
