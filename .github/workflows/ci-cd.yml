@@ -38,16 +38,3 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
-  deploy:
-    name: 🚀 Deploy Automático no GitHub Pages
-    needs: test-and-build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🌐 Publicar no GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
