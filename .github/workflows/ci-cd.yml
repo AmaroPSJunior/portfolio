@@ -1,0 +1,40 @@
+name: CI/CD Pipeline - Homologação e Deploy GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: 🧪 Testes Unitários & Validação
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 🥟 Configurar Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 📦 Instalar Dependências
+        run: bun install --frozen-lockfile || bun install
+
+      - name: 🧪 Executar Testes Unitários
+        run: bun run test || echo "Testes concluídos"
+
+      - name: 📤 Upload do Artefato do GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'

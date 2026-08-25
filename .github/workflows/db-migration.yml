@@ -1,0 +1,92 @@
+name: Supabase Database Migration CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+# Permissão para o GitHub Actions fazer commit e push no repositório
+permissions:
+  contents: write
+
+jobs:
+  deploy-migrations:
+    name: 🗄️ Aplicar Migrations no Supabase Remoto
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ⚡ Configurar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 🔗 Vincular Projeto Supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} -p "${{ secrets.SUPABASE_DB_PASSWORD }}"
+
+      - name: 🚀 Executar e Sincronizar Migrations (Resilient Auto-Repair)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          echo "🔄 Iniciando sincronização de migrações no Supabase..."
+          
+          # 1. Tentativa de push direto
+          if supabase db push --include-all -p "$SUPABASE_DB_PASSWORD"; then
+            echo "✅ Migrações aplicadas com sucesso no primeiro ciclo."
+            exit 0
+          fi
+
+          echo "⚠️ Falha no push inicial. Reconciliando histórico remoto..."
+
+          # 2. Captura do status e reparo de versões órfãs no remoto
+          MIGRATION_LIST=$(supabase migration list -p "$SUPABASE_DB_PASSWORD" 2>&1 || true)
+          echo "$MIGRATION_LIST"
+
+          REMOTE_ORPHANS=$(echo "$MIGRATION_LIST" | grep -i "Remote" | grep -v "Local" | awk '{print $1}' | grep -E '^[0-9]+$' || true)
+
+          if [ -n "$REMOTE_ORPHANS" ]; then
+            echo "🛠️ Versões remotas órfãs encontradas: $REMOTE_ORPHANS"
+            for VERSION in $REMOTE_ORPHANS; do
+              echo "🔧 Revertendo histórico remoto para a versão $VERSION..."
+              supabase migration repair --status reverted "$VERSION" -p "$SUPABASE_DB_PASSWORD" || true
+            done
+          fi
+
+          # 3. Puxar migrações do banco remoto para o runner
+          echo "📥 Baixando migrações remotas com db pull..."
+          supabase db pull -p "$SUPABASE_DB_PASSWORD" || true
+
+          # 4. Tentar push novamente
+          echo "🚀 Re-executando db push..."
+          supabase db push --include-all -p "$SUPABASE_DB_PASSWORD"
+
+      - name: 🔄 Commit e Push de Novas Migrações (Evitando Loop)
+        run: |
+          # Configura identidade do Git no Runner
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Adiciona novos arquivos/modificações no diretório de migrações
+          git add supabase/migrations/
+
+          # Verifica se existem alterações staged para commit
+          if ! git diff --cached --quiet; then
+            echo "📝 Modificações detectadas! Criando commit com [skip ci]..."
+            git commit -m "chore(db): auto-sync remote migrations [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+            echo "✅ Repositório atualizado com as migrações remotas!"
+          else
+            echo "✨ Nenhuma nova migração para commitar no repositório."
+          fi
