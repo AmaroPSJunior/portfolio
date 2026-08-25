@@ -133,7 +133,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
             {/* Main Headline */}
             <div className="space-y-2">
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+              <h1 className="text-3xl sm:text-5xl   text-white tracking-tight leading-[1.1]">
                 <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
                   {RESUME_DATA.name}
                 </span>
@@ -155,7 +155,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
               >
                 <Zap className="w-4 h-4 fill-current" />
-                <span>Ver Projetos</span>
+                <span>Projetos Profissionais</span>
               </a>
 
               <a
@@ -355,7 +355,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       <section id="experiencia" className="space-y-6">
         <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
           <div className="p-2 bg-cyan-950/80 border border-cyan-800 rounded-xl text-cyan-400">
-            <Award className="w-5 h-5" />
+            <Briefcase className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-white">Experiência Profissional</h2>

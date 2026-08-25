@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Acessar meus projetos em andamento no github"
             >
               <Github className="w-4 h-4" />
-              <span>Projetos</span>
+              <span>Projetos Pessoais</span>
             </button>
           )}
 

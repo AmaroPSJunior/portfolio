@@ -14,7 +14,7 @@ export const DEFAULT_TASKS: Task[] = [];
 export const PHASES: Phase[] = [];
 
 export const RESUME_DATA = {
-  name: "AMARO PEDRO DA SILVA JUNIOR",
+  name: "Amaro Pedro da Silva Junior",
   title: "Desenvolvedor Full Stack",
   address: "Avenida Ajarani, 409 - Vila Matilde – São Paulo/SP",
   phones: ["(11) 98278-8302"],
