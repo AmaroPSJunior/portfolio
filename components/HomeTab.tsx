@@ -121,8 +121,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
   return (
     <div className="space-y-16 lg:space-y-24">
-      {/* 1. HERO SECTION */}
-      <section id="hero" className="relative pt-2 pb-6">
+      {/* 1. HERO & SOBRE SECTION */}
+      <section id="sobre" className="relative pt-2 pb-6">
         {/* Ambient Glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 sm:w-[600px] h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
         <div className="absolute top-1/3 right-10 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -152,6 +152,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
               <a
                 href="#projetos"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('projetos')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-95"
               >
                 <Zap className="w-4 h-4 fill-current" />
@@ -160,6 +164,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
               <a
                 href="#experiencia"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('experiencia')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white font-bold text-sm px-5 py-3.5 rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-2 shadow hover:border-cyan-500/40"
               >
                 <Briefcase className="w-4 h-4 text-cyan-400" />
@@ -168,6 +176,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
               <a
                 href="#contato"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-slate-800 transition-all flex items-center justify-center gap-2"
               >
                 <Mail className="w-4 h-4 text-cyan-400" />
