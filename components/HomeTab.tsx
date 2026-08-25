@@ -133,7 +133,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
             {/* Main Headline */}
             <div className="space-y-2">
-              <h1 className="text-3xl sm:text-5xl   text-white tracking-tight leading-[1.1]">
+              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-[1.1]">
                 <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
                   {RESUME_DATA.name}
                 </span>
@@ -148,7 +148,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               {RESUME_DATA.summary}
             </p>
 
-                        {/* Action Buttons CTA */}
+            {/* Action Buttons CTA */}
             <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
               <a
                 href="#projetos"
@@ -297,7 +297,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
                         {/* Tooltip super enxuto */}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Domínio completo de Front-end (React/Next.js) e Back-end (Node/Java/C#)
+              Front-end Vue.js/React/Next.js) e Back-end (Node/Java)
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
@@ -312,7 +312,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
             {/* Tooltip super enxuto */}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">
-              Liderança técnica em projetos de E-commerce e Automação Industrial
+              Experiência em projetos de E-commerce e Automação Industrial
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
             </div>
           </div>
@@ -338,7 +338,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               Scrum
             </div>
             <div className="text-xs text-slate-300 font-semibold">Metodologias Ágeis</div>
-            <div className="text-[11px] text-slate-500">Git, TFS, CI/CD e Código Limpo</div>
+            <div className="text-[11px] text-slate-500">Git, CI/CD e Código Limpo</div>
 
             {/* Tooltip super enxuto */}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 px-3 py-1.5 bg-slate-800 text-slate-200 text-[10px] font-medium rounded-md shadow-xl border border-slate-700 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-20 whitespace-nowrap">

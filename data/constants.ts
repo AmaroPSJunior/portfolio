@@ -15,7 +15,7 @@ export const PHASES: Phase[] = [];
 
 export const RESUME_DATA = {
   name: "Amaro Pedro da Silva Junior",
-  title: "Desenvolvedor Full Stack",
+  title: "Desenvolvedor Full Stack | Sistemas, APIs & Integrações",
   address: "Avenida Ajarani, 409 - Vila Matilde – São Paulo/SP",
   phones: ["(11) 98278-8302"],
   whatsapp: "https://wa.me/5511982788302?text=Ol%C3%A1%2C%20vim%20pelo%20seu%20portf%C3%B3lio",
@@ -25,7 +25,7 @@ export const RESUME_DATA = {
   github: "https://github.com/AmaroPSJunior",
   githubDisplay: "github.com/AmaroPSJunior",
 
-  summary: "Desenvolvedor Full Stack com sólida experiência no desenvolvimento de sistemas robustos, atuando na concepção, arquitetura e manutenção de plataformas complexas de e-commerce (B2B/B2C) e sistemas de automação industrial (ERP). Especialista na criação de APIs escaláveis, integração de gateways de pagamento e otimização de performance técnica de ponta a ponta. Forte vivência com metodologias ágeis (Scrum), foco em código limpo, resolução de problemas e entrega contínua de valor alinhada aos objetivos do negócio.",
+  summary: "Desenvolvedor Full Stack especializado na construção de sistemas robustos, APIs escaláveis e integrações de alta performance. Experiência com e-commerce, ERP, automação industrial e soluções corporativas.",
 
   skills: {
     languagesAndFrameworks: [
