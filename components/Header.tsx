@@ -24,7 +24,6 @@ export const Header: React.FC<HeaderProps> = ({
     { label: 'Projetos', href: '#projetos' },
     { label: 'Contato', href: '#contato' },
   ];
-
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     const targetId = href.replace('#', '');
@@ -38,6 +37,8 @@ export const Header: React.FC<HeaderProps> = ({
           const el = document.getElementById(targetId);
           if (el) {
             el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }
       }, 100);
@@ -48,9 +49,18 @@ export const Header: React.FC<HeaderProps> = ({
         const el = document.getElementById(targetId);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     }
+  };
+
+  const handleRoadmapClick = () => {
+    if (setActiveTab) {
+      setActiveTab('roadmap');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -76,51 +86,35 @@ export const Header: React.FC<HeaderProps> = ({
         </a>
 
         {/* Desktop Navigation */}
-        {activeTab === 'home' ? (
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => handleAnchorClick(e, link.href)}
-                className="hover:text-cyan-400 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        ) : (
-          <div className="hidden md:flex items-center gap-3 text-sm font-medium">
-            <button
-              onClick={() => setActiveTab && setActiveTab('home')}
-              className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors flex items-center gap-1.5"
-            >
-              ← Voltar para Apresentação
-            </button>
-            <span className="text-slate-700">|</span>
-            <button
-              onClick={() => setActiveTab && setActiveTab('roadmap')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'roadmap' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+          {navLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={(e) => handleAnchorClick(e, link.href)}
+              className={`hover:text-cyan-400 transition-colors ${
+                activeTab === 'home' ? '' : 'text-slate-400'
               }`}
             >
-              Roadmap & Fases
-            </button>
-          </div>
-        )}
+              {link.label}
+            </a>
+          ))}
+        </nav>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2.5">
-          {activeTab === 'home' && setActiveTab && (
-            <button
-              onClick={() => setActiveTab('roadmap')}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 hover:text-cyan-200 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm"
-              title="Acessar o Painel de Roadmap & Fases de Projetos"
-            >
-              <ArrowUpRight className="w-4 h-4" />
-              <span>Roadmap & Fases</span>
-            </button>
-          )}
+          <button
+            onClick={handleRoadmapClick}
+            className={`px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm ${
+              activeTab === 'roadmap'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-cyan-500/10'
+                : 'bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 hover:text-cyan-200'
+            }`}
+            title="Acessar o Painel de Roadmap & Fases de Projetos"
+          >
+            <ArrowUpRight className="w-4 h-4" />
+            <span>Roadmap & Fases</span>
+          </button>
 
           <a
             href="https://www.linkedin.com/in/amaro-pedro-jr-53146810b"
@@ -188,64 +182,42 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-            {/* Mobile Drawer Navigation */}
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-3 animate-fadeIn">
           <nav className="flex flex-col space-y-1">
-            {activeTab === 'home' ? (
-              navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    handleAnchorClick(e, link.href);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setActiveTab && setActiveTab('home');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-cyan-400 hover:bg-slate-900 transition-colors"
-                >
-                  ← Voltar para Início
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab && setActiveTab('roadmap');
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'roadmap' ? 'bg-cyan-500/10 text-cyan-300' : 'text-slate-300 hover:bg-slate-900'
-                  }`}
-                >
-                  Roadmap & Fases
-                </button>
-              </>
-            )}
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={(e) => {
+                  handleAnchorClick(e, link.href);
+                  setMobileMenuOpen(false);
+                }}
+                className="px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
           </nav>
           
           <div className="pt-3 border-t border-slate-800/80 flex flex-col gap-2">
-            {activeTab === 'home' && setActiveTab && (
-              <button
-                onClick={() => {
-                  setActiveTab('roadmap');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-900 text-cyan-300 text-xs font-bold flex items-center justify-center gap-2 border border-slate-700"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                Acessar Painel de Projetos
-              </button>
-            )}
-                        <div className="flex gap-2">
+            <button
+              onClick={() => {
+                handleRoadmapClick();
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+                activeTab === 'roadmap'
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400'
+                  : 'bg-slate-900 text-cyan-300 border-slate-700'
+              }`}
+            >
+              <ArrowUpRight className="w-4 h-4" />
+              <span>Painel Roadmap & Fases</span>
+            </button>
+
+            <div className="flex gap-2">
               <a
                 href="https://github.com/AmaroPSJunior"
                 target="_blank"
@@ -255,13 +227,12 @@ export const Header: React.FC<HeaderProps> = ({
                 <Github className="w-4 h-4" />
                 <span>GitHub</span>
               </a>
-                            <a
+              <a
                 href="#contato"
                 onClick={(e) => {
                   if (activeTab !== 'home' && setActiveTab) {
                     e.preventDefault();
                     setActiveTab('home');
-                    // Aguarda o estado mudar e tenta scrollar para o contato
                     setTimeout(() => {
                       const contactSection = document.getElementById('contato');
                       if (contactSection) {
@@ -276,9 +247,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Mail className="w-3.5 h-3.5" />
                 <span>Contato</span>
               </a>
-
             </div>
-
           </div>
         </div>
       )}

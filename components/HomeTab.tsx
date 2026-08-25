@@ -477,7 +477,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             </p>
           </div>
           <button
-            onClick={() => setActiveTab && setActiveTab('roadmap')}
+            onClick={() => {
+              if (setActiveTab) setActiveTab('roadmap');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             className="shrink-0 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl transition-all shadow-md shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 flex items-center gap-2"
           >
             <span>Acessar Projetos</span>
