@@ -139,7 +139,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         isFinished
           ? 'border-emerald-500/40 bg-emerald-950/10'
           : 'border-slate-800'
-      } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col h-full group`}
+      } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col self-start group`}
     >
       {/* Cabeçalho / conteúdo principal */}
       <div className="space-y-3 flex-grow">

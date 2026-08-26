@@ -1002,7 +1002,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                               </button>
                             </div>
                           ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                             {phaseTasks.map((task) => (
                                   <TaskCard
                                     key={task.id}
@@ -1102,7 +1102,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                   {sortedProjectTasks.map((task) => {
                     const phase = getPhase(task.phase);
                     const phaseIndex = phases.findIndex(p => p.id === task.phase) + 1;
