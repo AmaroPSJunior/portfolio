@@ -144,6 +144,30 @@ export async function POST(request: NextRequest) {
       github_id: body?.githubId ?? null,
     };
 
+    if (body?.githubId) {
+      const { data: existingProject, error: existingError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('github_id', body.githubId)
+        .maybeSingle();
+
+      if (existingError) {
+        return NextResponse.json(
+          {
+            error: existingError.message,
+          },
+          { status: 500 }
+        );
+      }
+
+      if (existingProject) {
+        return NextResponse.json({
+          project: existingProject,
+          created: false,
+        });
+      }
+    }
+
     const { data: inserted, error } = await supabase
       .from('projects')
       .insert([newProject])

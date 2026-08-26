@@ -339,62 +339,143 @@ export default function HomePage() {
     const targetTask = tasks.find((t) => t.id === taskId);
     if (!targetTask) return;
 
-    const newCompleted = !targetTask.completed;
-
-    // Optimistic UI update
-    setTasks((prev) => {
-      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: newCompleted } : t));
-      saveCustomTasksToLocalStorage(updated);
-      return updated;
-    });
-
     try {
-      const res = await fetch(`/api/projects/${taskId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: newCompleted }),
-      });
-      if (!res.ok) {
-        throw new Error('Erro ao atualizar status');
+      let databaseId = targetTask.id;
+
+      // Projeto vindo do GitHub ainda não cadastrado no banco
+      if (targetTask.source === 'github' && !targetTask.uuid) {
+        const createResponse = await fetch('/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            githubId: targetTask.githubId,
+            title: targetTask.title,
+            description: targetTask.description,
+            status: targetTask.status,
+            statusReason: targetTask.statusReason,
+            phase: targetTask.phase,
+          }),
+        });
+
+        if (!createResponse.ok) {
+          throw new Error('Não foi possível cadastrar o projeto no banco.');
+        }
+
+        const createdProject = await createResponse.json();
+
+        databaseId =
+          createdProject?.project?.numeric_id ??
+          createdProject?.numeric_id ??
+          createdProject?.id;
+
+        if (!databaseId) {
+          throw new Error('Projeto cadastrado, mas nenhum ID foi retornado.');
+        }
       }
-    } catch (err: any) {
-      AppLogger.error('UI:toggleTask', `Falha ao alternar status do projeto ID=${taskId}`, err);
-      setApiErrorNotice({
-        message: 'Não foi possível salvar o status da tarefa no banco de dados.',
-        action: () => toggleTask(taskId),
+
+      const newStatus = targetTask.status === 'completed'
+        ? 'in_progress'
+        : 'completed';
+
+      const response = await fetch(`/api/projects/${databaseId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          statusReason: targetTask.statusReason,
+        }),
       });
-      fetchDatabaseData();
+
+      if (!response.ok) {
+        throw new Error('Não foi possível alterar o status do projeto.');
+      }
+
+      await fetchProjects();
+    } catch (error) {
+      console.error(error);
+      setApiErrorNotice({
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Erro ao alterar o status do projeto.',
+      });
     }
   };
 
-  const updateTaskStatus = async (taskId: number, status: WorkStatus, statusReason: string) => {
-    setTasks((prev) => {
-      const updated = prev.map((task) =>
-        task.id === taskId ? { ...task, status, statusReason } : task
-      );
-      saveCustomTasksToLocalStorage(updated);
-      return updated;
+  const updateTaskStatus = async (
+  taskId: number,
+  status: string,
+  statusReason?: string
+) => {
+  const targetTask = tasks.find((t) => t.id === taskId);
+
+  if (!targetTask) {
+    throw new Error('Projeto não encontrado.');
+  }
+
+  let databaseId = targetTask.id;
+
+  // Primeira alteração de projeto vindo do GitHub:
+  // cadastra automaticamente no banco.
+  if (targetTask.source === 'github' && !targetTask.uuid) {
+    const createResponse = await fetch('/api/projects', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        githubId: targetTask.githubId,
+        title: targetTask.title,
+        description: targetTask.description,
+        status: targetTask.status,
+        statusReason: targetTask.statusReason,
+        phase: targetTask.phase,
+      }),
     });
 
-    try {
-      const res = await fetch(`/api/projects/${taskId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, statusReason }),
-      });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || errorData.error || 'Erro ao atualizar status');
-      }
-    } catch (err: any) {
-      AppLogger.error('UI:updateTaskStatus', `Falha ao atualizar status do projeto ID=${taskId}`, err);
-      setApiErrorNotice({
-        message: `Não foi possível atualizar o status: ${err.message}`,
-        action: () => updateTaskStatus(taskId, status, statusReason),
-      });
-      fetchDatabaseData();
+    if (!createResponse.ok) {
+      throw new Error('Não foi possível cadastrar o projeto no banco.');
     }
-  };
+
+    const createdProject = await createResponse.json();
+
+    databaseId =
+      createdProject?.project?.numeric_id ??
+      createdProject?.project?.numericId ??
+      createdProject?.numeric_id ??
+      createdProject?.numericId ??
+      createdProject?.id ??
+      createdProject?.project?.id;
+
+    if (!databaseId) {
+      throw new Error('Projeto cadastrado, mas nenhum ID foi retornado.');
+    }
+  }
+
+  const res = await fetch(`/api/projects/${databaseId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status,
+      statusReason,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(
+      error?.message || 'Não foi possível atualizar o status do projeto.'
+    );
+  }
+
+  await fetchProjects();
+};
 
   const deleteTask = async (taskId: number) => {
     setApiErrorNotice(null);
@@ -485,13 +566,6 @@ export default function HomePage() {
   };
 
   const handleOpenEditTask = (task: Task) => {
-    if (!task.id || task.id <= 0 || task.source === 'github') {
-      setApiErrorNotice({
-        message: 'Este repositório GitHub ainda não possui um projeto cadastrado no banco de dados.',
-      });
-      return;
-    }
-
     setTaskToEdit(task);
     setShowEditTaskModal(true);
   };
@@ -512,7 +586,9 @@ export default function HomePage() {
       .map((item) => item.trim())
       .filter(Boolean);
 
-    const currentTask = tasks.find((task) => task.id === taskId);
+    const currentTask =
+      tasks.find((task) => task.id === taskId) ||
+      tasks.find((task) => task.githubId === taskId);
 
     if (!currentTask) {
       throw new Error('Projeto não encontrado.');
@@ -544,7 +620,42 @@ export default function HomePage() {
     });
 
     try {
-      const response = await fetch(`/api/projects/${taskId}`, {
+
+      let databaseId = currentTask.id;
+
+      if (currentTask.source === 'github' && !currentTask.uuid) {
+        const createResponse = await fetch('/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            githubId: currentTask.githubId,
+            title: currentTask.title,
+            description: currentTask.description,
+            status: currentTask.status,
+            statusReason: currentTask.statusReason,
+            phase: currentTask.phase,
+          }),
+        });
+
+        if (!createResponse.ok) {
+          throw new Error('Não foi possível cadastrar o projeto no banco.');
+        }
+
+        const createdProject = await createResponse.json();
+
+        databaseId =
+          createdProject?.project?.numeric_id ??
+          createdProject?.numeric_id ??
+          createdProject?.id;
+
+        if (!databaseId) {
+          throw new Error('Projeto cadastrado, mas nenhum ID foi retornado.');
+        }
+      }
+
+      const response = await fetch(`/api/projects/${databaseId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
