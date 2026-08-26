@@ -277,7 +277,7 @@ export const RepositoryExplorerModal: React.FC<
               }`}
             >
               {React.cloneElement(
-                option.icon as React.ReactElement,
+                option.icon as React.ReactElement<{ className?: string }>,
                 { className: 'h-3.5 w-3.5' }
               )}
               {option.label}
