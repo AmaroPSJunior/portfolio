@@ -122,3 +122,31 @@ export interface TaskCardProps {
   phaseIcon?: string;
   phaseId?: number;
 }
+
+export type RepositoryExplorerView =
+  | 'mindmap'
+  | 'radial'
+  | 'tree'
+  | 'timeline'
+  | 'constellation';
+
+export interface RepositoryExplorerNode {
+  id: string;
+  title: string;
+  type: string;
+  description?: string;
+  value?: string | number;
+  icon?: string;
+  children?: RepositoryExplorerNode[];
+}
+
+export interface RepositoryExplorerData {
+  repository: GithubRepoData;
+  nodes: RepositoryExplorerNode[];
+}
+
+export interface RepositoryExplorerModalProps {
+  show: boolean;
+  onClose: () => void;
+  task: Task | null;
+}

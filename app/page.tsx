@@ -16,6 +16,7 @@ import { SKILLS_MATRIX } from '@/data/constants';
 import { Task, NewTaskForm, GithubConfig, Phase, SiteConfig, WorkStatus } from '@/types';
 import { AppLogger } from '@/lib/logger';
 import { AlertTriangle, ArrowUp, RefreshCw, X } from 'lucide-react';
+import { RepositoryExplorerModal } from '@/components/RepositoryExplorerModal';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -32,6 +33,8 @@ export default function HomePage() {
   const [phaseToEdit, setPhaseToEdit] = useState<Phase | null>(null);
   const [showEditTaskModal, setShowEditTaskModal] = useState<boolean>(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [showRepositoryExplorer, setShowRepositoryExplorer] = useState(false);
+  const [repositoryExplorerTask, setRepositoryExplorerTask] = useState<Task | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 300);
@@ -299,6 +302,16 @@ export default function HomePage() {
     setShowPhaseModal(true);
   };
 
+  const handleOpenRepositoryExplorer = (task: Task) => {
+    setRepositoryExplorerTask(task);
+    setShowRepositoryExplorer(true);
+  };
+
+  const handleCloseRepositoryExplorer = () => {
+    setShowRepositoryExplorer(false);
+    setRepositoryExplorerTask(null);
+  };
+
   const deletePhase = async (phaseId: number) => {
     setApiErrorNotice(null);
 
@@ -407,11 +420,11 @@ export default function HomePage() {
   };
 
   const updateTaskStatus = async (
-  taskId: number,
-  status: string,
-  statusReason?: string
-) => {
-  const targetTask = tasks.find((t) => t.id === taskId);
+    taskId: number,
+    status: string,
+    statusReason?: string
+  ) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
 
   if (!targetTask) {
     throw new Error('Projeto não encontrado.');
@@ -868,6 +881,7 @@ export default function HomePage() {
               onOpenAddTaskModal={handleOpenAddTaskModal}
               setShowPhaseModal={setShowPhaseModal}
               onOpenDiagnostics={() => setShowDiagnosticsModal(true)}
+              onOpenRepositoryExplorer={handleOpenRepositoryExplorer}
             />
           </ErrorBoundary>
         )}
@@ -931,6 +945,13 @@ export default function HomePage() {
         isOpen={showDiagnosticsModal}
         onClose={() => setShowDiagnosticsModal(false)}
       />
+
+      <RepositoryExplorerModal
+        show={showRepositoryExplorer}
+        task={repositoryExplorerTask}
+        onClose={handleCloseRepositoryExplorer}
+      />
+
 
             {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 mt-16 py-8">

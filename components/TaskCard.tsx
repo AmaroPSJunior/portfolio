@@ -16,6 +16,7 @@ import {
   GitBranch,
   CalendarDays,
   Github,
+  Network,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -25,29 +26,25 @@ interface TaskCardProps {
   onToggleComplete: () => void;
   onEdit?: () => void;
   onDelete: () => void;
-
+  
   onStatusChange?: (
     status: WorkStatus,
     statusReason: string
   ) => void;
+  
   onNavigateToPhase?: (phaseId: number) => void;
-
+  
+  onOpenRepositoryExplorer?: (task: Task) => void;
+  
   githubConfig?: GithubConfig;
-
   showPhaseBadge?: boolean;
   phaseLabel?: string;
   phaseIcon?: string;
   phaseId?: number;
-
   totalPhases?: number;
   phaseIndex?: number;
   phaseProgress?: number;
-
-  phases?: Array<{
-    id: number;
-    title: string;
-    icon?: string;
-  }>;
+  phases?: Array<{ id: number; title: string; icon?: string; }>;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -68,6 +65,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   phaseIndex = 0,
   phaseProgress = 0,
   phases = [],
+  onOpenRepositoryExplorer,
 }) => {
   const status =
     task.status ||
@@ -268,25 +266,40 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {hasGithubRepository ? (
             <>
               <a
-              href={githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(event) => event.stopPropagation()}
-              className="flex items-center gap-1 px-2 py-1 w-[70%] min-w-0 shrink-0 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-              title={`Abrir ${githubRepository} no GitHub`}
-              aria-label={`Abrir repositório ${githubRepository} no GitHub`}
-            >
-              <Github className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="truncate">{task.title}</span>
-              <ExternalLink className="w-3 h-3 text-slate-500 shrink-0 ml-auto" />
-            </a>
+                href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="flex items-center gap-1 px-2 py-1 flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+                title={`Abrir ${githubRepository} no GitHub`}
+              >
+                <Github className="w-3 h-3 text-slate-400 shrink-0" />
+                <span className="truncate">{task.title}</span>
+                <ExternalLink className="w-3 h-3 text-slate-500 shrink-0 ml-auto" />
+              </a>
 
-            {task.githubLanguage && (
-              <span className="ml-auto flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 shrink-0">
-                <Code2 className="w-3 h-3" />
-                {task.githubLanguage}
-              </span>
-            )}
+              {onOpenRepositoryExplorer && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenRepositoryExplorer(task);
+                  }}
+                  className="flex items-center justify-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400/40 transition-all"
+                  title="Explorar arquitetura do repositório"
+                  aria-label={`Explorar repositório ${task.title}`}
+                >
+                  <Network className="w-3 h-3" />
+                  <span className="hidden xl:inline">Explorar</span>
+                </button>
+              )}
+
+              {task.githubLanguage && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 shrink-0">
+                  <Code2 className="w-3 h-3" />
+                  {task.githubLanguage}
+                </span>
+              )}
             </>
           ) : (
             <span className="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-600">
@@ -294,6 +307,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </span>
           )}
         </div>
+
       </div>
 
       {/* Progresso das fases */}

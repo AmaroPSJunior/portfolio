@@ -64,6 +64,7 @@ interface RoadmapTabProps {
   onOpenAddTaskModal?: (phaseId?: number) => void;
   setShowPhaseModal?: (show: boolean) => void;
   onOpenDiagnostics?: () => void;
+  onOpenRepositoryExplorer?: (task: Task) => void;
 }
 
 export const RoadmapTab: React.FC<RoadmapTabProps> = ({
@@ -94,6 +95,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   onOpenAddTaskModal,
   setShowPhaseModal,
   onOpenDiagnostics,
+  onOpenRepositoryExplorer,
 }) => {
   const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Task | null>(null);
@@ -1018,6 +1020,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                                     githubConfig={githubConfig}
                                     phases={phases}
                                     onNavigateToPhase={handleNavigateToPhase}
+                                    onOpenRepositoryExplorer={onOpenRepositoryExplorer}
                                     totalPhases={phases.length}
                                     phaseIndex={
                                       phases.findIndex(
@@ -1122,6 +1125,7 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                         githubConfig={githubConfig}
                         phases={phases}
                         onNavigateToPhase={handleNavigateToPhase}
+                        onOpenRepositoryExplorer={onOpenRepositoryExplorer}
                         totalPhases={phases.length}
                         phaseIndex={
                           phases.findIndex(
