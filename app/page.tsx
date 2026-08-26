@@ -165,7 +165,6 @@ export default function HomePage() {
           return {
             ...(databaseProject || {}),
             id: databaseProject?.id ?? repository.id,
-            githubId: repository.id,
             source: databaseProject ? 'database' : 'github',
             phase: databaseProject?.phase ?? 1,
             title: databaseProject?.title || repository.name,
