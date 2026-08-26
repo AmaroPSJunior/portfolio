@@ -485,9 +485,9 @@ export default function HomePage() {
   };
 
   const handleOpenEditTask = (task: Task) => {
-    if (!task.id || task.id <= 0) {
+    if (!task.id || task.id <= 0 || task.source === 'github') {
       setApiErrorNotice({
-        message: 'Este repositório ainda não possui um projeto cadastrado no banco de dados.',
+        message: 'Este repositório GitHub ainda não possui um projeto cadastrado no banco de dados.',
       });
       return;
     }

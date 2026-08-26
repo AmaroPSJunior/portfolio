@@ -98,6 +98,9 @@ export async function PATCH(
           id: row.numeric_id
             ? Number(row.numeric_id)
             : Number(id),
+          githubId: row.github_id
+            ? Number(row.github_id)
+            : undefined,
           phase: row.phase_id
             ? Number(row.phase_id)
             : undefined,

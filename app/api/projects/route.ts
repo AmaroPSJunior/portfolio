@@ -19,6 +19,7 @@ export async function GET() {
       .select(`
         id,
         numeric_id,
+        github_id,
         phase_id,
         title,
         description,
@@ -61,6 +62,7 @@ export async function GET() {
 
         return {
           id: numericId,
+          githubId: row.github_id ? Number(row.github_id) : undefined,
           phase: !isNaN(parsedPhase) ? parsedPhase : 1,
           title: row.title,
           description: row.description || '',
