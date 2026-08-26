@@ -394,7 +394,7 @@ export default function HomePage() {
         throw new Error('Não foi possível alterar o status do projeto.');
       }
 
-      await fetchProjects();
+      await fetchDatabaseData();
     } catch (error) {
       console.error(error);
       setApiErrorNotice({
@@ -474,7 +474,7 @@ export default function HomePage() {
     );
   }
 
-  await fetchProjects();
+  await fetchDatabaseData();
 };
 
   const deleteTask = async (taskId: number) => {
@@ -594,10 +594,6 @@ export default function HomePage() {
       throw new Error('Projeto não encontrado.');
     }
 
-    if (!currentTask.id || currentTask.id <= 0) {
-      throw new Error('Projeto sem ID válido no banco de dados.');
-    }
-
     const optimisticTask: Task = {
       ...currentTask,
       phase: Number(form.phase),
@@ -647,8 +643,11 @@ export default function HomePage() {
 
         databaseId =
           createdProject?.project?.numeric_id ??
+          createdProject?.project?.numericId ??
           createdProject?.numeric_id ??
-          createdProject?.id;
+          createdProject?.numericId ??
+          createdProject?.id ??
+          createdProject?.project?.id;
 
         if (!databaseId) {
           throw new Error('Projeto cadastrado, mas nenhum ID foi retornado.');
