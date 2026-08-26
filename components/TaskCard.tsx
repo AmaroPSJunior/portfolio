@@ -139,12 +139,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         isFinished
           ? 'border-emerald-500/40 bg-emerald-950/10'
           : 'border-slate-800'
-      } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col self-start group`}
+      } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col min-h-[390px] group`}
     >
       {/* Cabeçalho / conteúdo principal */}
-      <div className="space-y-3 flex-grow">
-
-       
+      <div className="space-y-3 flex-grow min-h-0">
 
         {/* Cabeçalho do projeto */}
         <div className="flex items-start justify-between gap-3">
@@ -222,7 +220,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Descrição */}
-        <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
+        <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed min-h-[42px]">
           {task.description}
         </p>
 
