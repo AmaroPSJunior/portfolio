@@ -38,6 +38,7 @@ export interface TechnicalEvidence {
   repositoryUrl?: string;
   fileUrl?: string;
   metadata?: Record<string, string | number | boolean | null>;
+  branch?: string;
 }
 
 export interface TechnicalFile {

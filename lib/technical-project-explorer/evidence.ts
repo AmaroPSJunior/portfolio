@@ -8,20 +8,13 @@ interface CreateEvidenceOptions {
   type: TechnicalEvidenceType;
   title: string;
   description?: string;
-
   path: string;
-
   lineStart?: number;
   lineEnd?: number;
-
   code?: string;
-
   repositoryUrl?: string;
-
-  metadata?: Record<
-    string,
-    string | number | boolean | null
-  >;
+  metadata?: Record<string, string | number | boolean | null>;
+  branch?: string;
 }
 
 export function createEvidence(
@@ -53,6 +46,7 @@ export function createEvidence(
     repositoryUrl: options.repositoryUrl,
     fileUrl,
     metadata: options.metadata,
+    branch: options.branch || 'main',
   };
 }
 
