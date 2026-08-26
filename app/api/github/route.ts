@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AppLogger } from '@/lib/logger';
 import { handleApiError, NetworkError } from '@/lib/errorHandler';
+import { getTechnicalRepositorySnapshot } from '@/lib/technical-project-explorer/github';
+import { analyzeRepository } from '@/lib/technical-project-explorer/analyzer';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +11,69 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const owner = searchParams.get('owner') || 'AmaroPSJunior';
   const repo = searchParams.get('repo');
+  const technical = searchParams.get('technical') === 'true';
+
+  if (technical && repo) {
+    try {
+      AppLogger.info(
+        scope,
+        `Analisando tecnicamente o repositório: ${owner}/${repo}`
+      );
+
+      const snapshot =
+        await getTechnicalRepositorySnapshot(
+          owner,
+          repo
+        );
+
+      const analysis =
+        analyzeRepository(
+          snapshot
+        );
+
+      return NextResponse.json({
+        repository: {
+          owner,
+          repo,
+        },
+        snapshot: {
+          branch: snapshot.branch,
+          repositoryUrl:
+            snapshot.repositoryUrl,
+          fileCount:
+            snapshot.files.length,
+          truncated:
+            snapshot.truncated,
+        },
+        analysis,
+      });
+    } catch (error) {
+      AppLogger.warn(
+        scope,
+        'Erro na análise técnica do GitHub',
+        {
+          owner,
+          repo,
+          error:
+            error instanceof Error
+              ? error.message
+              : String(error),
+        }
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível analisar tecnicamente o repositório.',
+        },
+        {
+          status: 502,
+        }
+      );
+    }
+  }
 
   try {
     if (repo) {

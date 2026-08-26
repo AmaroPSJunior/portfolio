@@ -225,7 +225,7 @@ export const RepositoryExplorerModal: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/70 backdrop-blur-md"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -233,7 +233,7 @@ export const RepositoryExplorerModal: React.FC<
       }}
     >
       <div
-        className="relative w-[92vw] md:w-[48vw] min-w-[420px] max-w-[900px] h-[72vh] max-h-[760px] min-h-[520px] overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 shadow-2xl shadow-cyan-950/40"
+        className="relative flex h-[90vh] w-[90vw] max-h-[90vh] max-w-[90vw] min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 shadow-2xl shadow-cyan-950/40"
         role="dialog"
         aria-modal="true"
         aria-label={`Explorador do repositório ${task.title}`}
@@ -286,7 +286,7 @@ export const RepositoryExplorerModal: React.FC<
         </div>
 
         {/* ÁREA VISUAL */}
-        <div className="relative h-[calc(100%-116px)] overflow-auto bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.08),transparent_55%)] p-6">
+        <div className="relative min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.08),transparent_55%)] p-6">
           {loading && (
             <div className="flex h-full items-center justify-center">
               <div className="text-center">

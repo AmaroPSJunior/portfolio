@@ -150,3 +150,26 @@ export interface RepositoryExplorerModalProps {
   onClose: () => void;
   task: Task | null;
 }
+
+export type {
+  TechnicalArchitecture,
+  TechnicalFile,
+  TechnicalDependency,
+  TechnicalDatabase,
+  TechnicalApi,
+  TechnicalIntegration,
+  TechnicalSecurityFinding,
+  TechnicalPattern,
+  TechnicalDecision,
+  TechnicalEvidence,
+  // TechnicalProjectExplorer,
+  // TechnicalProjectMetadata,
+  // TechnicalModule,
+  // TechnicalTest,
+  // TechnicalPipeline,
+  // TechnicalWorkflow,
+  // TechnicalTechnique,
+  // TechnicalDemo,
+  // TechnicalLineReference,
+} from '@/lib/technical-project-explorer/types';
+
