@@ -71,7 +71,7 @@ export default function HomePage() {
   // GitHub Config state
   const [githubConfig, setGithubConfig] = useState<GithubConfig>({
     owner: 'AmaroPSJunior',
-    repo: 'painel-homologacao',
+    repo: 'portfolio',
     branch: 'main',
     token: '',
   });
@@ -215,7 +215,7 @@ export default function HomePage() {
     } finally {
       setIsLoaded(true);
     }
-  }, []);
+  }, [githubConfig.owner, githubConfig.repo]);
 
   // Update site config via API
   const handleUpdateSiteConfig = async (newConfig: SiteConfig): Promise<boolean> => {
