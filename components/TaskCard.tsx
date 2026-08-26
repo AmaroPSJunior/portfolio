@@ -30,6 +30,7 @@ interface TaskCardProps {
     status: WorkStatus,
     statusReason: string
   ) => void;
+  onNavigateToPhase?: (phaseId: number) => void;
 
   githubConfig?: GithubConfig;
 
@@ -41,6 +42,12 @@ interface TaskCardProps {
   totalPhases?: number;
   phaseIndex?: number;
   phaseProgress?: number;
+
+  phases?: Array<{
+    id: number;
+    title: string;
+    icon?: string;
+  }>;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -51,6 +58,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onEdit,
   onDelete,
   onStatusChange,
+  onNavigateToPhase,
   githubConfig,
   showPhaseBadge = false,
   phaseLabel,
@@ -59,6 +67,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   totalPhases = 0,
   phaseIndex = 0,
   phaseProgress = 0,
+  phases = [],
 }) => {
   const status =
     task.status ||
@@ -113,7 +122,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isFinished =
     task.completed || task.status === 'completed';
 
-  const effectiveProgress = isFinished ? 100 : phaseProgress;
   const progress = Math.min(
     100,
     Math.max(
@@ -136,61 +144,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {/* Cabeçalho / conteúdo principal */}
       <div className="space-y-3 flex-grow">
 
-        {/* Fase - exibida somente quando necessário */}
-        {showPhaseBadge && (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-base shrink-0">
-                {phaseIcon || '📌'}
-              </span>
-
-              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 truncate">
-                {phaseLabel ||
-                  (typeof phaseId === 'number'
-                    ? `Fase ${phaseId}`
-                    : 'Fase')}
-              </span>
-            </div>
-
-            {typeof phaseId === 'number' && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-cyan-950/50 border border-cyan-500/20 text-cyan-400 font-mono shrink-0">
-                #{phaseId}
-              </span>
-            )}
-          </div>
-        )}
+       
 
         {/* Cabeçalho do projeto */}
         <div className="flex items-start justify-between gap-3">
-
           <div className="flex items-start gap-2.5 flex-1 min-w-0">
-
-            {/* Checkbox */}
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleComplete();
-              }}
-              className="mt-0.5 text-slate-400 hover:text-emerald-400 transition-colors shrink-0"
-              title={
-                task.completed
-                  ? 'Marcar como pendente'
-                  : 'Marcar como concluído'
-              }
-              aria-label={
-                task.completed
-                  ? `Marcar ${task.title} como pendente`
-                  : `Marcar ${task.title} como concluído`
-              }
-            >
-              {task.completed ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/20" />
-              ) : (
-                <Circle className="w-5 h-5 text-slate-600 hover:text-slate-400" />
-              )}
-            </button>
-
             <div className="min-w-0 flex-1">
               <h3
                 onClick={onToggleExpand}
@@ -383,45 +341,48 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 currentPhase < phaseIndex ||
                 (currentPhase === phaseIndex && isFinished);
 
+              const phase = phases[index];
+
+              const phaseTitle =
+                phase?.title || `Fase ${currentPhase}`;
+
+              const phaseIconValue =
+                phase?.icon || '📌';
+
               return (
                 <React.Fragment key={currentPhase}>
-                  <div
-                    className="flex flex-col items-center gap-1 min-w-0"
-                    title={
-                      isCompletedPhase
-                        ? `Fase ${currentPhase} concluída`
-                        : isCurrent
-                          ? `Fase ${currentPhase} atual`
-                          : `Fase ${currentPhase} pendente`
-                    }
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
+                  <div className="flex items-center min-w-0">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (phase?.id && onNavigateToPhase) {
+                          onNavigateToPhase(phase.id);
+                        }
+                      }}
+                      disabled={!phase?.id || !onNavigateToPhase}
+                      className={`group/phase relative w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                        phase?.id && onNavigateToPhase
+                          ? 'cursor-pointer hover:scale-110'
+                          : 'cursor-default'
+                      } ${
                         isCompletedPhase
                           ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                           : isCurrent
                             ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 ring-2 ring-cyan-500/10'
-                            : 'bg-slate-950 border-slate-800 text-slate-600'
+                            : 'bg-slate-950 border-slate-700 text-white grayscale opacity-45 hover:opacity-70'
                       }`}
+                      aria-label={`Ir para ${phaseTitle}`}
                     >
-                      {isCompletedPhase ? (
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      ) : (
-                        <Circle className="w-3 h-3" />
-                      )}
-                    </div>
+                      <span className="text-sm leading-none">
+                        {phaseIconValue}
+                      </span>
 
-                    <span
-                      className={`text-[8px] font-mono ${
-                        isCompletedPhase
-                          ? 'text-emerald-400'
-                          : isCurrent
-                            ? 'text-cyan-400'
-                            : 'text-slate-600'
-                      }`}
-                    >
-                      F{currentPhase}
-                    </span>
+                      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover/phase:opacity-100">
+                        {phaseTitle}
+                        <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
+                      </span>
+                    </button>
                   </div>
 
                   {currentPhase < totalPhases && (

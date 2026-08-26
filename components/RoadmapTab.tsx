@@ -115,6 +115,24 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
     setProjectToDelete(null);
   };
 
+  const handleNavigateToPhase = (phaseId: number) => {
+    setSelectedPhaseFilter('all');
+    setViewMode('phases');
+
+    if (!openPhases.includes(phaseId)) {
+      togglePhase(phaseId);
+    }
+
+    setTimeout(() => {
+      document
+        .getElementById(`phase-card-${phaseId}`)
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+    }, 100);
+  };
+
   const languages = useMemo(() => {
     const values = tasks
       .map((task) => task.githubLanguage)
@@ -998,6 +1016,8 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                                       onStatusChange?.(task.id, status, statusReason)
                                     }
                                     githubConfig={githubConfig}
+                                    phases={phases}
+                                    onNavigateToPhase={handleNavigateToPhase}
                                     totalPhases={phases.length}
                                     phaseIndex={
                                       phases.findIndex(
@@ -1100,6 +1120,8 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                           onStatusChange?.(task.id, status, statusReason)
                         }
                         githubConfig={githubConfig}
+                        phases={phases}
+                        onNavigateToPhase={handleNavigateToPhase}
                         totalPhases={phases.length}
                         phaseIndex={
                           phases.findIndex(
