@@ -114,7 +114,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     task.completed || task.status === 'completed';
 
   const effectiveProgress = isFinished ? 100 : phaseProgress;
-  const progress = Math.min(100, Math.max(0, effectiveProgress));
+  const progress = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(
+        (phaseIndex / Math.max(totalPhases, 1)) * 100
+      )
+    )
+  );
 
   return (
     <div

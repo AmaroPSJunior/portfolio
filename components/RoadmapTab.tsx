@@ -796,12 +796,15 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                       isTaskFinished
                     ).length;
 
+                  const phaseIndex =
+                    phases.findIndex(
+                      (phaseItem) => phaseItem.id === phase.id
+                    ) + 1;
+
                   const phaseProgress =
-                    totalPhaseTasks > 0
+                    phases.length > 0
                       ? Math.round(
-                          (completedPhaseTasks /
-                            totalPhaseTasks) *
-                            100
+                          (phaseIndex / phases.length) * 100
                         )
                       : 0;
 
