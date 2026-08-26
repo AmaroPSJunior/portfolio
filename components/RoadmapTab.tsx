@@ -8,6 +8,8 @@ import { DeleteProjectModal } from './DeleteProjectModal';
 import { STATUS_OPTIONS } from '@/data/constants';
 import { isDisabledStatus, isTaskFinished } from '@/lib/validators';
 import {
+  CheckCircle2,
+  Circle,
   ChevronDown,
   ChevronRight,
   Filter,
@@ -241,7 +243,28 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
   const activeTasks = tasks.filter((task) => !isDisabledStatus(task.status));
   const totalTasks = activeTasks.length;
   const completedTasks = activeTasks.filter(isTaskFinished).length;
-  const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const overallProgress =
+    totalTasks > 0
+      ? Math.round((completedTasks / totalTasks) * 100)
+      : 0;
+
+  const getPhaseProgress = (phaseId: number) => {
+    const phaseTasks = activeTasks.filter(
+      (task) => task.phase === phaseId
+    );
+
+    if (phaseTasks.length === 0) return 0;
+
+    const completed = phaseTasks.filter(isTaskFinished).length;
+
+    return Math.round((completed / phaseTasks.length) * 100);
+  };
+
+  const getTaskProgress = (task: Task) => {
+    if (isTaskFinished(task)) return 100;
+
+    return getPhaseProgress(task.phase);
+  };
 
   const completedPhasesCount = phases.filter((phase) => {
       const phaseTasks = activeTasks.filter(
@@ -978,6 +1001,10 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                                         (phaseItem) => phaseItem.id === task.phase
                                       ) + 1
                                     }
+                                    phaseProgress={phaseProgress}
+                                    showPhaseBadge
+                                    phaseLabel={getPhase(task.phase)?.title}
+                                    phaseIcon={getPhase(task.phase)?.icon}
                                   />
                                 )
                               )}
@@ -1076,6 +1103,10 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                             (phaseItem) => phaseItem.id === task.phase
                           ) + 1
                         }
+                        phaseProgress={getTaskProgress(task)}
+                        showPhaseBadge
+                        phaseLabel={phase?.title}
+                        phaseIcon={phase?.icon}
                       />
                     );
                   })}

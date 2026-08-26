@@ -113,13 +113,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isFinished =
     task.completed || task.status === 'completed';
 
-  const progress = Math.min(100, Math.max(0, phaseProgress));
+  const effectiveProgress = isFinished ? 100 : phaseProgress;
+  const progress = Math.min(100, Math.max(0, effectiveProgress));
 
   return (
     <div
       id={`project-card-${task.id}`}
       className={`bg-slate-900 border ${
-        task.completed
+        isFinished
           ? 'border-emerald-500/40 bg-emerald-950/10'
           : 'border-slate-800'
       } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col h-full group`}
@@ -331,25 +332,121 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </div>
 
-      {/* Barra de progresso */}
+      {/* Progresso das fases */}
       {totalPhases > 0 && (
-        <div className="space-y-1.5 pt-1">
+        <div className="space-y-2 pt-2">
 
-          <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-wider">
-            <span className="text-slate-500">Progresso das fases</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Progresso
+            </span>
 
-            <span className="text-cyan-400 font-mono text-xs">
+            <span
+              className={`font-mono text-xs font-black ${
+                progress === 100
+                  ? 'text-emerald-400'
+                  : 'text-cyan-400'
+              }`}
+            >
               {progress}%
             </span>
           </div>
 
-          <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800/50">
+          {/* Barra */}
+          <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/70">
             <div
-              className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 h-full transition-all duration-1000"
+              className={`h-full transition-all duration-700 ${
+                progress === 100
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                  : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500'
+              }`}
               style={{
                 width: `${progress}%`,
               }}
             />
+          </div>
+
+          {/* Timeline das fases */}
+          <div className="flex items-center justify-between pt-1">
+            {Array.from({ length: totalPhases }).map((_, index) => {
+              const currentPhase = index + 1;
+              const isCurrent = currentPhase === phaseIndex;
+              const isCompletedPhase =
+                currentPhase < phaseIndex ||
+                (currentPhase === phaseIndex && isFinished);
+
+              return (
+                <React.Fragment key={currentPhase}>
+                  <div
+                    className="flex flex-col items-center gap-1 min-w-0"
+                    title={
+                      isCompletedPhase
+                        ? `Fase ${currentPhase} concluída`
+                        : isCurrent
+                          ? `Fase ${currentPhase} atual`
+                          : `Fase ${currentPhase} pendente`
+                    }
+                  >
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
+                        isCompletedPhase
+                          ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                          : isCurrent
+                            ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 ring-2 ring-cyan-500/10'
+                            : 'bg-slate-950 border-slate-800 text-slate-600'
+                      }`}
+                    >
+                      {isCompletedPhase ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <Circle className="w-3 h-3" />
+                      )}
+                    </div>
+
+                    <span
+                      className={`text-[8px] font-mono ${
+                        isCompletedPhase
+                          ? 'text-emerald-400'
+                          : isCurrent
+                            ? 'text-cyan-400'
+                            : 'text-slate-600'
+                      }`}
+                    >
+                      F{currentPhase}
+                    </span>
+                  </div>
+
+                  {currentPhase < totalPhases && (
+                    <div
+                      className={`h-px flex-1 mx-1 transition-all ${
+                        currentPhase < phaseIndex ||
+                        (currentPhase === phaseIndex && isFinished)
+                          ? 'bg-emerald-500/60'
+                          : 'bg-slate-800'
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between text-[9px]">
+            <span className="text-slate-500">
+              Fase atual: {phaseIndex || 1}/{totalPhases}
+            </span>
+
+            <span
+              className={
+                progress === 100
+                  ? 'text-emerald-400 font-semibold'
+                  : 'text-slate-500'
+              }
+            >
+              {progress === 100
+                ? '✓ Todas as etapas concluídas'
+                : 'Em evolução'}
+            </span>
           </div>
         </div>
       )}
