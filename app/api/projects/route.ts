@@ -28,7 +28,6 @@ export async function GET() {
         status,
         status_reason,
         is_custom,
-        uuid,
         created_at
       `);
 
@@ -71,7 +70,6 @@ export async function GET() {
           status: row.status || (row.completed ? 'completed' : 'pending'),
           statusReason: row.status_reason || '',
           isCustom: Boolean(row.is_custom),
-          uuid: row.id,
           created_at: row.created_at
         };
       });
@@ -141,6 +139,7 @@ export async function POST(request: NextRequest) {
       status,
       status_reason: statusReason,
       is_custom: true,
+      github_id: body?.githubId ?? null,
     };
 
     const { data: inserted, error } = await supabase
@@ -195,7 +194,6 @@ export async function POST(request: NextRequest) {
       status: row?.status || status,
       statusReason: row?.status_reason || statusReason,
       isCustom: true,
-      uuid: row?.id,
       created_at: row?.created_at
     };
 

@@ -8,6 +8,7 @@ export type WorkStatus =
 
 export interface Task {
   id: number;
+  source?: 'database' | 'github';
   phase: number;
   title: string;
   description: string;

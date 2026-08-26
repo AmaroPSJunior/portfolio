@@ -82,6 +82,17 @@ export async function PATCH(
         ? data[0]
         : null;
 
+        if (!row) {
+      return NextResponse.json(
+        {
+          error: {
+            message: `Projeto ID=${id} não encontrado no banco de dados.`,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
     const project = row
       ? {
           id: row.numeric_id

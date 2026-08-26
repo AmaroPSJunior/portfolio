@@ -159,14 +159,14 @@ export default function HomePage() {
 
         const githubProjects = resGithub.projects.map((repository: any) => {
           const databaseProject = databaseProjects.find(
-            (project) =>
-              project.title.trim().toLowerCase() ===
-              repository.name.trim().toLowerCase()
+            (project) => project.githubId === repository.id
           );
 
           return {
             ...(databaseProject || {}),
             id: databaseProject?.id ?? repository.id,
+            githubId: repository.id,
+            source: databaseProject ? 'database' : 'github',
             phase: databaseProject?.phase ?? 1,
             title: databaseProject?.title || repository.name,
             description:
@@ -486,6 +486,13 @@ export default function HomePage() {
   };
 
   const handleOpenEditTask = (task: Task) => {
+    if (!task.id || task.id <= 0) {
+      setApiErrorNotice({
+        message: 'Este repositório ainda não possui um projeto cadastrado no banco de dados.',
+      });
+      return;
+    }
+
     setTaskToEdit(task);
     setShowEditTaskModal(true);
   };
@@ -510,6 +517,10 @@ export default function HomePage() {
 
     if (!currentTask) {
       throw new Error('Projeto não encontrado.');
+    }
+
+    if (!currentTask.id || currentTask.id <= 0) {
+      throw new Error('Projeto sem ID válido no banco de dados.');
     }
 
     const optimisticTask: Task = {
@@ -552,11 +563,25 @@ export default function HomePage() {
 
       const data = await response.json().catch(() => ({}));
 
-      if (!response.ok || !data.project) {
+      if (!response.ok) {
+        console.error('[UI:handleEditTask] Resposta da API PATCH:', {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          taskId,
+          form,
+        });
+
         throw new Error(
           data.error?.message ||
             data.error ||
-            'Não foi possível atualizar o projeto.'
+            `Não foi possível atualizar o projeto. HTTP ${response.status}`
+        );
+      }
+
+      if (!data.project) {
+        throw new Error(
+          'A API atualizou o projeto, mas não retornou o projeto atualizado.'
         );
       }
 
