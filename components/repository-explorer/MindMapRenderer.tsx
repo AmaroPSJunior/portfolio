@@ -12,6 +12,7 @@ import { TreeMindMap } from './mindmaps/TreeMindMap';
 import { ConstellationMindMap } from './mindmaps/ConstellationMindMap';
 import { PipelineMindMap } from './mindmaps/PipelineMindMap';
 import { NeuralMindMap } from './mindmaps/NeuralMindMap';
+import { BubbleMindMap } from './mindmaps/BubbleMindMap';
 
 interface MindMapRendererProps
   extends MindMapProps {
@@ -58,5 +59,14 @@ export const MindMapRenderer: React.FC<
     case 'radial':
     default:
       return <RadialMindMap {...props} />;
+
+    case 'bubble':
+      return (
+        <BubbleMindMap
+          repository={repository}
+          activeNode={activeNode}
+          onNodeClick={onNodeClick}
+        />
+      );
   }
 };

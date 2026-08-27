@@ -156,6 +156,12 @@ function count<T>(value?: T[]): number {
 }
 
 const MAP_STYLES: MindMapStyleOption[] = [
+   {
+    id: 'bubble',
+    name: 'Bubble Explorer',
+    description: 'Explore o projeto entrando em cada camada',
+    icon: '◉',
+  },
   {
     id: 'radial',
     name: 'Radial',

@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { RepositoryExplorerNode } from '@/types';
 
 export type MindMapStyle =
+  | 'bubble'
   | 'radial'
   | 'tree'
   | 'constellation'
@@ -22,4 +23,9 @@ export interface MindMapStyleOption {
   name: string;
   description: string;
   icon: ReactNode;
+}
+
+export interface MindMapNavigationState {
+  currentNode: RepositoryExplorerNode;
+  history: RepositoryExplorerNode[];
 }
