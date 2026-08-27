@@ -1,57 +1,570 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { MindMapRenderer } from './repository-explorer/MindMapRenderer';
+import { MindMapStyle, MindMapStyleOption } from './repository-explorer/types';
+import { RepositoryExplorerModalProps, RepositoryExplorerNode } from '@/types';
+
 import {
   X,
-  GitBranch,
   Github,
-  Star,
-  GitFork,
-  CircleDot,
-  Code2,
-  FolderTree,
   Network,
-  Clock3,
-  Layers3,
   ChevronRight,
   ChevronDown,
-  ExternalLink,
+  FolderTree,
+  Code2,
+  TestTube2,
+  Database,
+  Server,
+  ShieldCheck,
+  Workflow,
+  Layers3,
+  Settings2,
+  GitBranch,
+  Puzzle,
+  FileCode2,
+  BookOpen,
+  AlertTriangle,
+  Orbit,
+  BrainCircuit,
 } from 'lucide-react';
 
-import {
-  RepositoryExplorerModalProps,
-  RepositoryExplorerView,
-  RepositoryExplorerNode,
-  GithubRepoData,
-} from '@/types';
+interface TechnicalAnalysis {
+  repository?: {
+    owner?: string;
+    name?: string;
+    fullName?: string;
+    branch?: string;
+    url?: string;
+    description?: string;
+    language?: string;
+  };
 
-const VIEW_OPTIONS: {
-  id: RepositoryExplorerView;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  { id: 'mindmap', label: 'Mapa Mental', icon: <Network /> },
-  { id: 'radial', label: 'Radial', icon: <CircleDot /> },
-  { id: 'tree', label: 'Árvore', icon: <FolderTree /> },
-  { id: 'timeline', label: 'Timeline', icon: <Clock3 /> },
-  { id: 'constellation', label: 'Constelação', icon: <Layers3 /> },
+  architecture?: {
+    style?: string;
+    layers?: string[];
+    modules?: string[];
+    entryPoints?: string[];
+  };
+
+  files?: Array<{
+    path: string;
+    name: string;
+    language?: string;
+    category?: string;
+    lines?: number;
+  }>;
+
+  dependencies?: Array<{
+    name: string;
+    version?: string;
+    type?: string;
+    ecosystem?: string;
+  }>;
+
+  frameworks?: Array<{
+    name: string;
+    version?: string;
+    category?: string;
+  }>;
+
+  tests?: {
+    framework?: string;
+    totalFiles?: number;
+    unitTests?: number;
+    integrationTests?: number;
+    e2eTests?: number;
+    directories?: string[];
+  };
+
+  cicd?: {
+    provider?: string;
+    workflows?: string[];
+    stages?: string[];
+    commands?: string[];
+    deploymentTargets?: string[];
+  };
+
+  database?: {
+    technologies?: string[];
+    migrations?: string[];
+    schemas?: string[];
+    tables?: string[];
+  };
+
+  apis?: Array<{
+    type?: string;
+    path: string;
+    methods?: string[];
+    description?: string;
+  }>;
+
+  integrations?: Array<{
+    name: string;
+    type?: string;
+    description?: string;
+  }>;
+
+  security?: Array<{
+    title: string;
+    severity?: string;
+    description?: string;
+  }>;
+
+  patterns?: Array<{
+    name: string;
+    description?: string;
+  }>;
+
+  decisions?: Array<{
+    title: string;
+    description?: string;
+  }>;
+
+  evidence?: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description?: string;
+    path: string;
+    lineStart?: number;
+    lineEnd?: number;
+    fileUrl?: string;
+  }>;
+}
+
+interface TechnicalResponse {
+  repository?: {
+    owner?: string;
+    repo?: string;
+  };
+
+  snapshot?: {
+    branch?: string;
+    repositoryUrl?: string;
+    fileCount?: number;
+    truncated?: boolean;
+  };
+
+  analysis?: TechnicalAnalysis;
+
+  architecture?: unknown;
+}
+
+function count<T>(value?: T[]): number {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+const MAP_STYLES: MindMapStyleOption[] = [
+  {
+    id: 'radial',
+    name: 'Radial',
+    description: 'Categorias irradiando do projeto',
+    icon: <Orbit className="h-4 w-4" />,
+  },
+  {
+    id: 'tree',
+    name: 'Árvore',
+    description: 'Hierarquia técnica tradicional',
+    icon: <GitBranch className="h-4 w-4" />,
+  },
+  {
+    id: 'constellation',
+    name: 'Constelação',
+    description: 'Nós distribuídos como um grafo',
+    icon: <Network className="h-4 w-4" />,
+  },
+  {
+    id: 'pipeline',
+    name: 'Pipeline',
+    description: 'Fluxo técnico por camadas',
+    icon: <Workflow className="h-4 w-4" />,
+  },
+  {
+    id: 'neural',
+    name: 'Neural',
+    description: 'Visual futurista conectado',
+    icon: <BrainCircuit className="h-4 w-4" />,
+  },
 ];
+
+function createValueNode(
+  id: string,
+  title: string,
+  value: string | number,
+  icon = '•'
+): RepositoryExplorerNode {
+  return {
+    id,
+    title,
+    type: 'value',
+    value,
+    icon,
+  };
+}
+
+function createCategoryNode(
+  id: string,
+  title: string,
+  icon: string,
+  description: string,
+  children: RepositoryExplorerNode[]
+): RepositoryExplorerNode {
+  return {
+    id,
+    title,
+    type: 'category',
+    icon,
+    description,
+    children,
+  };
+}
+
+function buildTechnicalNodes(
+  analysis: TechnicalAnalysis,
+  snapshot?: TechnicalResponse['snapshot']
+): RepositoryExplorerNode[] {
+  const architecture = analysis.architecture;
+
+  const architectureChildren: RepositoryExplorerNode[] = [
+    architecture?.style
+      ? createValueNode(
+          'architecture-style',
+          'Estilo arquitetural',
+          architecture.style,
+          '🏗️'
+        )
+      : null,
+
+    createValueNode(
+      'architecture-layers',
+      'Camadas',
+      count(architecture?.layers),
+      '🧱'
+    ),
+
+    createValueNode(
+      'architecture-modules',
+      'Módulos',
+      count(architecture?.modules),
+      '📦'
+    ),
+
+    createValueNode(
+      'architecture-entry-points',
+      'Entry points',
+      count(architecture?.entryPoints),
+      '🚪'
+    ),
+  ].filter(Boolean) as RepositoryExplorerNode[];
+
+  const technologyChildren = [
+    ...((analysis.frameworks ?? []).slice(0, 12).map((framework) => ({
+      id: `framework-${framework.name}`,
+      title: framework.name,
+      type: 'technology',
+      icon: '⚛️',
+      value: framework.version || 'detectado',
+    }))),
+
+    createValueNode(
+      'dependencies-count',
+      'Dependências',
+      count(analysis.dependencies),
+      '📚'
+    ),
+  ];
+
+  const codeChildren = [
+    createValueNode(
+      'files-count',
+      'Arquivos analisados',
+      count(analysis.files),
+      '📁'
+    ),
+
+    createValueNode(
+      'content-files',
+      'Arquivos com conteúdo',
+      (analysis.files ?? []).filter((file) => file.lines !== undefined).length,
+      '📄'
+    ),
+
+    createValueNode(
+      'code-lines',
+      'Linhas detectadas',
+      (analysis.files ?? []).reduce(
+        (total, file) => total + (file.lines ?? 0),
+        0
+      ),
+      '📝'
+    ),
+  ];
+
+  const testingChildren: RepositoryExplorerNode[] = [
+    createValueNode(
+      'test-framework',
+      'Framework',
+      analysis.tests?.framework || 'Não identificado',
+      '🧪'
+    ),
+
+    createValueNode(
+      'test-files',
+      'Arquivos de teste',
+      analysis.tests?.totalFiles ?? 0,
+      '📄'
+    ),
+
+    createValueNode(
+      'unit-tests',
+      'Testes unitários',
+      analysis.tests?.unitTests ?? 0,
+      '🔬'
+    ),
+
+    createValueNode(
+      'integration-tests',
+      'Testes de integração',
+      analysis.tests?.integrationTests ?? 0,
+      '🔗'
+    ),
+
+    createValueNode(
+      'e2e-tests',
+      'Testes E2E',
+      analysis.tests?.e2eTests ?? 0,
+      '🌐'
+    ),
+  ];
+
+  const apiChildren: RepositoryExplorerNode[] = [
+    createValueNode(
+      'api-count',
+      'Rotas detectadas',
+      count(analysis.apis),
+      '🔌'
+    ),
+
+    ...((analysis.apis ?? []).slice(0, 15).map((api, index) => ({
+      id: `api-${index}-${api.path}`,
+      title: api.path,
+      type: 'api',
+      icon: '↔️',
+      value: api.methods?.join(', ') || 'GET',
+      description: api.description,
+    }))),
+  ];
+
+  const databaseChildren: RepositoryExplorerNode[] = [
+    ...((analysis.database?.technologies ?? []).map((technology) => ({
+      id: `database-${technology}`,
+      title: technology,
+      type: 'database',
+      icon: '🗄️',
+    }))),
+
+    createValueNode(
+      'migration-count',
+      'Migrations',
+      count(analysis.database?.migrations),
+      '🔄'
+    ),
+
+    createValueNode(
+      'schema-count',
+      'Schemas',
+      count(analysis.database?.schemas),
+      '📐'
+    ),
+  ];
+
+  const cicdChildren: RepositoryExplorerNode[] = [
+    createValueNode(
+      'cicd-provider',
+      'Provider',
+      analysis.cicd?.provider || 'Não identificado',
+      '🚀'
+    ),
+
+    createValueNode(
+      'workflow-count',
+      'Workflows',
+      count(analysis.cicd?.workflows),
+      '⚙️'
+    ),
+
+    createValueNode(
+      'pipeline-stages',
+      'Estágios detectados',
+      count(analysis.cicd?.stages),
+      '🔁'
+    ),
+
+    createValueNode(
+      'pipeline-commands',
+      'Comandos',
+      count(analysis.cicd?.commands),
+      '💻'
+    ),
+  ];
+
+  const fileCategories = new Map<string, number>();
+
+  for (const file of analysis.files ?? []) {
+    const category = file.category || 'code';
+    fileCategories.set(
+      category,
+      (fileCategories.get(category) || 0) + 1
+    );
+  }
+
+  const filesChildren = Array.from(fileCategories.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([category, total]) => ({
+      id: `file-category-${category}`,
+      title: category,
+      type: 'file-category',
+      icon: '📁',
+      value: total,
+    }));
+
+  return [
+    {
+      id: 'repository',
+      title:
+        analysis.repository?.fullName ||
+        `${analysis.repository?.owner || 'GitHub'}/${analysis.repository?.name || 'repository'}`,
+      type: 'repository',
+      icon: '📦',
+      description:
+        analysis.repository?.description ||
+        'Análise técnica dinâmica extraída do repositório GitHub.',
+      children: [
+        createCategoryNode(
+          'architecture',
+          'Arquitetura',
+          '🏗️',
+          'Estrutura e organização identificadas automaticamente.',
+          architectureChildren
+        ),
+
+        createCategoryNode(
+          'technologies',
+          'Tecnologias',
+          '⚛️',
+          'Frameworks e dependências detectados no projeto.',
+          technologyChildren
+        ),
+
+        createCategoryNode(
+          'code',
+          'Código',
+          '💻',
+          'Informações extraídas dos arquivos analisados.',
+          codeChildren
+        ),
+
+        createCategoryNode(
+          'files',
+          'Arquivos',
+          '📁',
+          'Distribuição dos arquivos por categoria técnica.',
+          filesChildren
+        ),
+
+        createCategoryNode(
+          'testing',
+          'Testes',
+          '🧪',
+          'Estrutura de testes identificada no repositório.',
+          testingChildren
+        ),
+
+        createCategoryNode(
+          'apis',
+          'APIs',
+          '🔌',
+          'Rotas e endpoints encontrados no código.',
+          apiChildren
+        ),
+
+        createCategoryNode(
+          'database',
+          'Banco de dados',
+          '🗄️',
+          'Tecnologias, migrations e schemas identificados.',
+          databaseChildren
+        ),
+
+        createCategoryNode(
+          'cicd',
+          'CI/CD',
+          '🚀',
+          'Pipelines e automações encontradas no GitHub.',
+          cicdChildren
+        ),
+        createCategoryNode(
+          'evidence',
+          'Evidências',
+          '🔎',
+          'Arquivos usados como evidência das descobertas.',
+          (analysis.evidence ?? []).slice(0, 20).map((evidence, index) => ({
+            id: `evidence-${index}`,
+            title: evidence.title,
+            type: 'evidence',
+            icon: '📄',
+            value: evidence.path,
+            description: evidence.description,
+          }))
+        ),
+
+        createCategoryNode(
+          'repository-info',
+          'Repositório',
+          '🐙',
+          'Metadados básicos obtidos diretamente do GitHub.',
+          [
+            createValueNode(
+              'branch',
+              'Branch',
+              analysis.repository?.branch ||
+                snapshot?.branch ||
+                'main',
+              '🌿'
+            ),
+
+            createValueNode(
+              'file-count',
+              'Arquivos',
+              snapshot?.fileCount ?? count(analysis.files),
+              '📁'
+            ),
+
+            createValueNode(
+              'truncated',
+              'Análise limitada',
+              snapshot?.truncated ? 'Sim' : 'Não',
+              snapshot?.truncated ? '⚠️' : '✅'
+            ),
+          ]
+        ),
+      ],
+    },
+  ];
+}
 
 export const RepositoryExplorerModal: React.FC<
   RepositoryExplorerModalProps
 > = ({ show, onClose, task }) => {
-  const [view, setView] =
-    useState<RepositoryExplorerView>('mindmap');
-
-  const [repo, setRepo] = useState<GithubRepoData | null>(null);
+  const [nodes, setNodes] = useState<RepositoryExplorerNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activeNode, setActiveNode] = useState<RepositoryExplorerNode | null>(null);
+  const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
+  const [mapStyle, setMapStyle] = useState<MindMapStyle>('radial');
 
-  const [activeNode, setActiveNode] =
-    useState<RepositoryExplorerNode | null>(null);
-
-  const [expandedNodes, setExpandedNodes] =
-    useState<string[]>(['repository']);
 
   useEffect(() => {
     if (!show || !task) return;
@@ -60,35 +573,60 @@ export const RepositoryExplorerModal: React.FC<
       task.githubFullName ||
       task.githubName;
 
-    if (!repository) return;
+    if (!repository) {
+      setError('Este projeto não possui um repositório GitHub associado.');
+      return;
+    }
 
-    const [owner, repoName] = repository.split('/');
+    const [owner, repo] = repository.split('/');
 
-    if (!owner || !repoName) return;
+    if (!owner || !repo) {
+      setError('Repositório GitHub inválido.');
+      return;
+    }
 
     setLoading(true);
     setError('');
+    setNodes([]);
+    setActiveNode(null);
+    setExpandedNodes(['repository']);
 
     fetch(
       `/api/github?owner=${encodeURIComponent(
         owner
-      )}&repo=${encodeURIComponent(repoName)}`
+      )}&repo=${encodeURIComponent(repo)}&technical=true`
     )
       .then(async (response) => {
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error('Não foi possível consultar o GitHub.');
+          throw new Error(
+            data?.error ||
+              'Não foi possível analisar tecnicamente o repositório.'
+          );
         }
 
-        return response.json();
+        return data as TechnicalResponse;
       })
       .then((data) => {
-        setRepo(data);
+        if (!data.analysis) {
+          throw new Error(
+            'A API não retornou uma análise técnica válida.'
+          );
+        }
+
+        setNodes(
+          buildTechnicalNodes(
+            data.analysis,
+            data.snapshot
+          )
+        );
       })
       .catch((err) => {
         setError(
           err instanceof Error
             ? err.message
-            : 'Erro ao consultar o repositório.'
+            : 'Erro ao analisar o repositório.'
         );
       })
       .finally(() => {
@@ -105,223 +643,177 @@ export const RepositoryExplorerModal: React.FC<
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener(
+      'keydown',
+      handleKeyDown
+    );
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener(
+        'keydown',
+        handleKeyDown
+      );
     };
   }, [show, onClose]);
 
-  const nodes = useMemo<RepositoryExplorerNode[]>(() => {
-    if (!repo) return [];
+  const repository = useMemo(
+    () => nodes[0],
+    [nodes]
+  );
 
-    return [
-      {
-        id: 'repository',
-        title: repo.full_name,
-        type: 'repository',
-        icon: '📦',
-        description:
-          repo.description || 'Repositório sem descrição.',
-        children: [
-          {
-            id: 'architecture',
-            title: 'Arquitetura',
-            type: 'architecture',
-            icon: '🏗️',
-            children: [
-              {
-                id: 'language',
-                title: 'Linguagem principal',
-                type: 'language',
-                value: repo.language || 'Não identificada',
-                icon: '💻',
-              },
-              {
-                id: 'branch',
-                title: 'Branch principal',
-                type: 'branch',
-                value: repo.default_branch || 'main',
-                icon: '🌿',
-              },
-            ],
-          },
-          {
-            id: 'activity',
-            title: 'Atividade',
-            type: 'activity',
-            icon: '⚡',
-            children: [
-              {
-                id: 'stars',
-                title: 'Stars',
-                type: 'stars',
-                value: repo.stargazers_count || 0,
-                icon: '⭐',
-              },
-              {
-                id: 'forks',
-                title: 'Forks',
-                type: 'forks',
-                value: repo.forks_count || 0,
-                icon: '🍴',
-              },
-              {
-                id: 'issues',
-                title: 'Issues',
-                type: 'issues',
-                value: repo.open_issues_count || 0,
-                icon: '🐛',
-              },
-            ],
-          },
-          {
-            id: 'dates',
-            title: 'Ciclo de vida',
-            type: 'dates',
-            icon: '📅',
-            children: [
-              {
-                id: 'created',
-                title: 'Criado em',
-                type: 'created',
-                value: repo.created_at || '-',
-                icon: '🚀',
-              },
-              {
-                id: 'updated',
-                title: 'Atualizado em',
-                type: 'updated',
-                value: repo.updated_at || '-',
-                icon: '🔄',
-              },
-              {
-                id: 'pushed',
-                title: 'Último push',
-                type: 'pushed',
-                value: repo.pushed_at || '-',
-                icon: '📤',
-              },
-            ],
-          },
-        ],
-      },
-    ];
-  }, [repo]);
-
-  const toggleNode = (node: RepositoryExplorerNode) => {
+  const toggleNode = (
+    node: RepositoryExplorerNode
+  ) => {
     setActiveNode(node);
 
-    if (!node.children?.length) return;
+    if (!node.children?.length) {
+      return;
+    }
 
     setExpandedNodes((current) =>
       current.includes(node.id)
-        ? current.filter((id) => id !== node.id)
+        ? current.filter(
+            (id) => id !== node.id
+          )
         : [...current, node.id]
     );
   };
 
-  if (!show || !task) return null;
+  if (!show || !task) {
+    return null;
+  }
 
   return (
     <div
-      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/70 backdrop-blur-md"
+      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/75 p-2 backdrop-blur-md sm:p-4"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
           onClose();
         }
       }}
     >
       <div
-        className="relative flex h-[90vh] w-[90vw] max-h-[90vh] max-w-[90vw] min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 shadow-2xl shadow-cyan-950/40"
+        className="relative flex h-[94vh] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 shadow-2xl shadow-cyan-950/40"
         role="dialog"
         aria-modal="true"
-        aria-label={`Explorador do repositório ${task.title}`}
+        aria-label={`Explorador técnico ${task.title}`}
       >
-        {/* HEADER */}
-        <header className="flex items-center justify-between gap-4 border-b border-slate-800 bg-slate-900/90 px-5 py-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <Github className="h-5 w-5 text-cyan-400" />
-              <h2 className="truncate text-sm font-bold text-white">
-                {task.title}
-              </h2>
+        <header className="shrink-0 border-b border-slate-800 bg-slate-900/95 px-4 py-4 sm:px-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10">
+                  <Network className="h-5 w-5 text-cyan-400" />
+                </div>
+
+                <div className="min-w-0">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
+                    Technical Repository Explorer
+                  </span>
+
+                  <h2 className="truncate text-sm font-black text-white sm:text-base">
+                    {task.title}
+                  </h2>
+
+                  <p className="truncate font-mono text-[9px] text-slate-500">
+                    {task.githubFullName ||
+                      task.githubName ||
+                      'GitHub'}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <p className="mt-1 truncate text-[10px] font-mono text-slate-500">
-              {task.githubFullName || task.githubName}
-            </p>
-          </div>
+            <div className="flex items-center gap-1 overflow-x-auto">
+              {MAP_STYLES.map((style) => (
+                <button
+                  key={style.id}
+                  type="button"
+                  onClick={() =>
+                    setMapStyle(style.id)
+                  }
+                  title={style.description}
+                  className={`
+                    flex shrink-0 items-center gap-2
+                    rounded-xl border px-3 py-2
+                    text-[9px] font-bold
+                    transition-all
+                    ${
+                      mapStyle === style.id
+                        ? 'border-cyan-400/50 bg-cyan-500/15 text-cyan-300'
+                        : 'border-slate-800 bg-slate-950 text-slate-500 hover:border-slate-700 hover:text-slate-300'
+                    }
+                  `}
+                >
+                  {style.icon}
+                  <span>{style.name}</span>
+                </button>
+              ))}
+            </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
-            aria-label="Fechar explorador"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              aria-label="Fechar explorador"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </header>
 
-        {/* CONTROLES */}
-        <div className="flex gap-1 overflow-x-auto border-b border-slate-800 bg-slate-950 px-4 py-2">
-          {VIEW_OPTIONS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => setView(option.id)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold transition-all ${
-                view === option.id
-                  ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
-                  : 'text-slate-500 hover:bg-slate-900 hover:text-slate-200 border border-transparent'
-              }`}
-            >
-              {React.cloneElement(
-                option.icon as React.ReactElement<{ className?: string }>,
-                { className: 'h-3.5 w-3.5' }
-              )}
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ÁREA VISUAL */}
-        <div className="relative min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.08),transparent_55%)] p-6">
+        <main className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.08),transparent_55%)]">
           {loading && (
-            <div className="flex h-full items-center justify-center">
+            <div className="flex h-full min-h-[500px] items-center justify-center">
               <div className="text-center">
-                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-cyan-400" />
-                <p className="text-xs text-slate-400">
-                  Explorando repositório...
+                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-slate-700 border-t-cyan-400" />
+
+                <p className="text-sm font-semibold text-slate-300">
+                  Analisando repositório...
+                </p>
+
+                <p className="mt-1 text-[10px] text-slate-600">
+                  Extraindo arquivos, tecnologias,
+                  testes, APIs, banco e CI/CD.
                 </p>
               </div>
             </div>
           )}
 
           {error && !loading && (
-            <div className="flex h-full items-center justify-center">
-              <div className="rounded-xl border border-red-500/20 bg-red-950/20 p-5 text-center">
-                <p className="text-sm font-semibold text-red-300">
+            <div className="flex h-full min-h-[500px] items-center justify-center p-6">
+              <div className="max-w-md rounded-2xl border border-red-500/20 bg-red-950/20 p-6 text-center">
+                <AlertTriangle className="mx-auto h-8 w-8 text-red-400" />
+
+                <h3 className="mt-3 text-sm font-bold text-red-300">
+                  Falha na análise
+                </h3>
+
+                <p className="mt-2 text-xs leading-relaxed text-red-200/70">
                   {error}
                 </p>
               </div>
             </div>
           )}
 
-          {!loading && !error && repo && (
-            <RepositoryVisualization
-              view={view}
-              nodes={nodes}
+          {!loading &&
+            !error &&
+            repository && (
+              <MindMapRenderer
+              style={mapStyle}
+              repository={repository}
               expandedNodes={expandedNodes}
               activeNode={activeNode}
               onNodeClick={toggleNode}
             />
           )}
-        </div>
+        </main>
 
-        {/* DETALHE DO NÓ */}
         {activeNode && (
-          <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-cyan-500/20 bg-slate-900/95 p-4 shadow-xl backdrop-blur-xl">
+          <div className="absolute bottom-4 left-4 right-4 z-30 rounded-2xl border border-cyan-500/20 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl">
             <div className="flex items-start gap-3">
               <span className="text-xl">
                 {activeNode.icon || '◉'}
@@ -339,10 +831,17 @@ export const RepositoryExplorerModal: React.FC<
                 )}
 
                 {activeNode.value !== undefined && (
-                  <p className="mt-1 break-all font-mono text-[10px] text-white">
-                    {activeNode.value}
+                  <p className="mt-2 break-all font-mono text-[10px] text-white">
+                    {String(activeNode.value)}
                   </p>
                 )}
+
+                {activeNode.children?.length ? (
+                  <p className="mt-2 text-[9px] text-slate-600">
+                    {activeNode.children.length}{' '}
+                    informações disponíveis
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
@@ -352,525 +851,185 @@ export const RepositoryExplorerModal: React.FC<
   );
 };
 
-interface RepositoryVisualizationProps {
-  view: RepositoryExplorerView;
-  nodes: RepositoryExplorerNode[];
+interface MindMapViewProps {
+  repository: RepositoryExplorerNode;
   expandedNodes: string[];
   activeNode: RepositoryExplorerNode | null;
-  onNodeClick: (node: RepositoryExplorerNode) => void;
+  onNodeClick: (
+    node: RepositoryExplorerNode
+  ) => void;
 }
 
-interface RepositoryViewProps {
-  nodes: RepositoryExplorerNode[];
-  expandedNodes?: string[];
-  activeNode?: RepositoryExplorerNode | null;
-  onNodeClick: (node: RepositoryExplorerNode) => void;
-}
-
-const RepositoryVisualization: React.FC<
-  RepositoryVisualizationProps
+const MindMapView: React.FC<
+  MindMapViewProps
 > = ({
-  view,
-  nodes,
+  repository,
   expandedNodes,
   activeNode,
   onNodeClick,
 }) => {
-  if (view === 'tree') {
-    return (
-      <TreeView
-        nodes={nodes}
-        expandedNodes={expandedNodes}
-        onNodeClick={onNodeClick}
-      />
-    );
-  }
-
-  if (view === 'radial') {
-    return (
-      <RadialView
-        nodes={nodes}
-        onNodeClick={onNodeClick}
-      />
-    );
-  }
-
-  if (view === 'timeline') {
-    return (
-      <TimelineView
-        nodes={nodes}
-        onNodeClick={onNodeClick}
-      />
-    );
-  }
-
-  if (view === 'constellation') {
-    return (
-      <ConstellationView
-        nodes={nodes}
-        onNodeClick={onNodeClick}
-      />
-    );
-  }
+  const children =
+    repository.children || [];
 
   return (
-    <MindMapView
-      nodes={nodes}
-      expandedNodes={expandedNodes}
-      activeNode={activeNode}
-      onNodeClick={onNodeClick}
-    />
-  );
-};
+    <div className="flex min-h-full items-start justify-center px-4 py-10 pb-32 sm:px-8 sm:py-14">
+      <div className="w-full max-w-7xl">
+        <div className="flex flex-col items-center">
+          {/* NÓ CENTRAL */}
 
-const MindMapView: React.FC<RepositoryViewProps> = ({
-  nodes,
-  expandedNodes = [],
-  activeNode,
-  onNodeClick,
-}) => {
-  const repository = nodes[0];
-
-  if (!repository) return null;
-
-  const children = repository.children || [];
-
-  return (
-    <div className="flex min-h-full items-center justify-center py-10">
-      <div className="flex w-full max-w-5xl flex-col items-center">
-
-        {/* NÓ CENTRAL */}
-        <button
-          type="button"
-          onClick={() => onNodeClick(repository)}
-          className={`
-            group relative z-10 w-[240px] rounded-2xl border p-5
-            transition-all duration-300
-            ${
-              activeNode?.id === repository.id
-                ? 'border-cyan-400 bg-cyan-500/15 shadow-xl shadow-cyan-500/20'
-                : 'border-cyan-500/30 bg-slate-900 hover:border-cyan-400/60 hover:bg-slate-900/90'
+          <button
+            type="button"
+            onClick={() =>
+              onNodeClick(repository)
             }
-          `}
-        >
-          <div className="text-3xl">
-            {repository.icon}
-          </div>
+            className={`group relative z-20 w-full max-w-[360px] rounded-3xl border p-6 text-center transition-all duration-300 ${
+              activeNode?.id ===
+              repository.id
+                ? 'border-cyan-400 bg-cyan-500/15 shadow-2xl shadow-cyan-500/20'
+                : 'border-cyan-500/30 bg-slate-900 hover:border-cyan-400/60 hover:bg-slate-900/90'
+            }`}
+          >
+            <div className="text-4xl">
+              {repository.icon}
+            </div>
 
-          <div className="mt-2 truncate text-sm font-bold text-white">
-            {repository.title}
-          </div>
-
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-cyan-400">
-            Repositório
-          </div>
-
-          {repository.description && (
-            <p className="mt-2 line-clamp-2 text-[10px] leading-relaxed text-slate-400">
-              {repository.description}
-            </p>
-          )}
-        </button>
-
-        {/* CONEXÃO CENTRAL */}
-        {children.length > 0 && (
-          <div className="h-12 w-px bg-gradient-to-b from-cyan-400/60 to-cyan-500/10" />
-        )}
-
-        {/* RAMIFICAÇÕES */}
-        <div className="flex w-full flex-wrap justify-center gap-5">
-          {children.map((node) => {
-            const expanded = expandedNodes.includes(node.id);
-
-            return (
-              <div
-                key={node.id}
-                className="flex min-w-[170px] flex-col items-center"
-              >
-                <button
-                  type="button"
-                  onClick={() => onNodeClick(node)}
-                  className={`
-                    w-[180px] rounded-xl border p-4
-                    transition-all duration-300
-                    ${
-                      activeNode?.id === node.id
-                        ? 'border-cyan-400 bg-cyan-500/15 shadow-lg shadow-cyan-500/10'
-                        : 'border-slate-700 bg-slate-900/90 hover:border-cyan-500/50 hover:bg-slate-900'
-                    }
-                  `}
-                >
-                  <div className="text-2xl">
-                    {node.icon}
-                  </div>
-
-                  <div className="mt-2 text-xs font-semibold text-slate-200">
-                    {node.title}
-                  </div>
-
-                  {node.children?.length ? (
-                    <div className="mt-2 flex items-center justify-center gap-1 text-[9px] text-slate-500">
-                      {expanded ? (
-                        <>
-                          <ChevronDown className="h-3 w-3 text-cyan-400" />
-                          Recolher
-                        </>
-                      ) : (
-                        <>
-                          <ChevronRight className="h-3 w-3" />
-                          Explorar
-                        </>
-                      )}
-                    </div>
-                  ) : null}
-                </button>
-
-                {/* SUBNÓS */}
-                {expanded && node.children && (
-                  <div className="mt-3 flex w-full flex-col gap-2">
-                    {node.children.map((child) => (
-                      <button
-                        key={child.id}
-                        type="button"
-                        onClick={() => onNodeClick(child)}
-                        className={`
-                          flex items-center gap-3 rounded-lg border p-3
-                          text-left transition-all
-                          ${
-                            activeNode?.id === child.id
-                              ? 'border-cyan-400/60 bg-cyan-500/10'
-                              : 'border-slate-800 bg-slate-950/80 hover:border-cyan-500/30'
-                          }
-                        `}
-                      >
-                        <span className="text-base">
-                          {child.icon}
-                        </span>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[10px] font-semibold text-slate-300">
-                            {child.title}
-                          </div>
-
-                          {child.value !== undefined && (
-                            <div className="mt-1 truncate font-mono text-[9px] text-cyan-400">
-                              {String(child.value)}
-                            </div>
-                          )}
-                        </div>
-
-                        {child.children?.length ? (
-                          <ChevronRight className="h-3 w-3 text-slate-600" />
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const TreeView: React.FC<RepositoryViewProps> = ({
-  nodes,
-  expandedNodes = [],
-  onNodeClick,
-}) => {
-  const renderNode = (
-    node: RepositoryExplorerNode,
-    level = 0
-  ): React.ReactNode => {
-    const expanded = expandedNodes.includes(node.id);
-    const hasChildren = Boolean(node.children?.length);
-
-    return (
-      <div key={node.id}>
-        <button
-          type="button"
-          onClick={() => onNodeClick(node)}
-          className="group flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition hover:bg-slate-900"
-          style={{
-            paddingLeft: `${level * 24 + 12}px`,
-          }}
-        >
-          {hasChildren ? (
-            expanded ? (
-              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
-            ) : (
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
-            )
-          ) : (
-            <span className="w-3.5 shrink-0" />
-          )}
-
-          <span className="text-base">
-            {node.icon}
-          </span>
-
-          <span className="text-xs font-medium text-slate-300 group-hover:text-white">
-            {node.title}
-          </span>
-
-          {node.value !== undefined && (
-            <span className="ml-auto max-w-[180px] truncate font-mono text-[9px] text-cyan-400">
-              {String(node.value)}
-            </span>
-          )}
-        </button>
-
-        {expanded &&
-          node.children?.map((child) =>
-            renderNode(child, level + 1)
-          )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="mx-auto max-w-3xl rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-      <div className="mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
-        <FolderTree className="h-4 w-4 text-cyan-400" />
-
-        <span className="text-xs font-bold text-slate-200">
-          Estrutura do repositório
-        </span>
-      </div>
-
-      {nodes.map((node) => renderNode(node))}
-    </div>
-  );
-};
-
-const RadialView: React.FC<RepositoryViewProps> = ({
-  nodes,
-  onNodeClick,
-}) => {
-  const repository = nodes[0];
-
-  if (!repository) return null;
-
-  const children = repository.children || [];
-
-  return (
-    <div className="flex min-h-[500px] items-center justify-center">
-      <div className="relative h-[440px] w-[440px]">
-
-        {/* NÓ CENTRAL */}
-        <button
-          type="button"
-          onClick={() => onNodeClick(repository)}
-          className="absolute left-1/2 top-1/2 z-20 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-cyan-400/40 bg-slate-900 shadow-xl shadow-cyan-500/10 transition hover:border-cyan-300"
-        >
-          <span className="text-3xl">
-            {repository.icon}
-          </span>
-
-          <span className="mt-2 max-w-[90px] truncate text-[10px] font-bold text-white">
-            {repository.title}
-          </span>
-
-          <span className="mt-1 text-[8px] uppercase tracking-widest text-cyan-400">
-            Repository
-          </span>
-        </button>
-
-        {/* NÓS EXTERNOS */}
-        {children.map((node, index) => {
-          const angle =
-            (index / Math.max(children.length, 1)) *
-              Math.PI *
-              2 -
-            Math.PI / 2;
-
-          const radius = 165;
-
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius;
-
-          return (
-            <button
-              key={node.id}
-              type="button"
-              onClick={() => onNodeClick(node)}
-              className="absolute left-1/2 top-1/2 flex w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl border border-slate-700 bg-slate-900/95 p-4 shadow-lg transition hover:border-cyan-400/50"
-              style={{
-                transform: `translate(
-                  calc(-50% + ${x}px),
-                  calc(-50% + ${y}px)
-                )`,
-              }}
-            >
-              <span className="text-2xl">
-                {node.icon}
-              </span>
-
-              <span className="mt-2 text-[10px] font-semibold text-slate-300">
-                {node.title}
-              </span>
-
-              {node.children?.length ? (
-                <span className="mt-1 text-[8px] text-slate-600">
-                  {node.children.length} informações
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const TimelineView: React.FC<RepositoryViewProps> = ({
-  nodes,
-  onNodeClick,
-}) => {
-  const repository = nodes[0];
-
-  if (!repository) return null;
-
-  const datesNode = repository.children?.find(
-    (node) => node.id === 'dates'
-  );
-
-  const dates = datesNode?.children || [];
-
-  return (
-    <div className="mx-auto max-w-2xl py-8">
-
-      {/* REPOSITÓRIO */}
-      <button
-        type="button"
-        onClick={() => onNodeClick(repository)}
-        className="mb-8 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-4 text-left"
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">
-            {repository.icon}
-          </span>
-
-          <div>
-            <div className="text-sm font-bold text-white">
+            <div className="mt-3 truncate text-base font-black text-white sm:text-lg">
               {repository.title}
             </div>
 
-            <div className="text-[9px] uppercase tracking-widest text-cyan-400">
-              Ciclo de vida
-            </div>
-          </div>
-        </div>
-      </button>
-
-      {/* TIMELINE */}
-      <div className="relative ml-5 border-l border-cyan-500/20 pl-8">
-        {dates.map((node, index) => (
-          <button
-            key={node.id}
-            type="button"
-            onClick={() => onNodeClick(node)}
-            className="relative mb-6 block w-full rounded-xl border border-slate-800 bg-slate-900/70 p-4 text-left transition hover:border-cyan-500/40"
-          >
-            <span className="absolute -left-[43px] top-5 flex h-5 w-5 items-center justify-center rounded-full border border-cyan-500/30 bg-slate-950">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  index === dates.length - 1
-                    ? 'bg-cyan-300'
-                    : 'bg-cyan-500'
-                }`}
-              />
-            </span>
-
-            <div className="flex items-center gap-2">
-              <span>{node.icon}</span>
-
-              <span className="text-xs font-semibold text-slate-200">
-                {node.title}
-              </span>
+            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
+              Análise técnica
             </div>
 
-            <div className="mt-2 font-mono text-[10px] text-cyan-400">
-              {String(node.value)}
+            {repository.description && (
+              <p className="mx-auto mt-3 max-w-[320px] text-[10px] leading-relaxed text-slate-400">
+                {repository.description}
+              </p>
+            )}
+
+            <div className="mt-4 text-[9px] text-slate-600">
+              Clique para visualizar detalhes
             </div>
           </button>
-        ))}
-      </div>
-    </div>
-  );
-};
 
-const ConstellationView: React.FC<RepositoryViewProps> = ({
-  nodes,
-  onNodeClick,
-}) => {
-  const repository = nodes[0];
+          {/* CONEXÃO CENTRAL */}
 
-  if (!repository) return null;
+          {children.length > 0 && (
+            <div className="h-12 w-px bg-gradient-to-b from-cyan-400/70 via-cyan-500/40 to-cyan-500/10" />
+          )}
 
-  const allNodes: RepositoryExplorerNode[] = [];
+          {/* CATEGORIAS */}
 
-  const collectNodes = (
-    node: RepositoryExplorerNode
-  ) => {
-    allNodes.push(node);
+          <div className="relative grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {children.map((node) => {
+              const expanded =
+                expandedNodes.includes(
+                  node.id
+                );
 
-    node.children?.forEach(collectNodes);
-  };
+              return (
+                <div
+                  key={node.id}
+                  className="flex flex-col"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onNodeClick(node)
+                    }
+                    className={`group relative min-h-[120px] rounded-2xl border p-4 text-left transition-all duration-300 ${
+                      activeNode?.id ===
+                      node.id
+                        ? 'border-cyan-400 bg-cyan-500/15 shadow-xl shadow-cyan-500/10'
+                        : 'border-slate-800 bg-slate-900/90 hover:border-cyan-500/40 hover:bg-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-2xl">
+                        {node.icon}
+                      </span>
 
-  collectNodes(repository);
+                      {node.children?.length ? (
+                        <span className="rounded-lg border border-slate-800 bg-slate-950 p-1 text-slate-500">
+                          {expanded ? (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          )}
+                        </span>
+                      ) : null}
+                    </div>
 
-  return (
-    <div className="mx-auto grid min-h-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {allNodes.map((node, index) => (
-        <button
-          key={node.id}
-          type="button"
-          onClick={() => onNodeClick(node)}
-          className={`
-            group relative min-h-[120px] overflow-hidden rounded-2xl
-            border p-4 text-left transition-all duration-300
-            ${
-              index === 0
-                ? 'border-cyan-500/40 bg-cyan-500/10'
-                : 'border-slate-800 bg-slate-900/70 hover:border-cyan-500/40 hover:bg-slate-900'
-            }
-          `}
-        >
-          {/* BRILHO */}
-          <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cyan-500/10 blur-2xl transition group-hover:bg-cyan-400/20" />
+                    <div className="mt-3 text-xs font-bold text-slate-200 group-hover:text-cyan-300">
+                      {node.title}
+                    </div>
 
-          <div className="relative flex items-center gap-3">
-            <span className="text-2xl">
-              {node.icon}
-            </span>
+                    {node.description && (
+                      <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-slate-500">
+                        {node.description}
+                      </p>
+                    )}
 
-            <span className="text-xs font-bold text-slate-200 group-hover:text-white">
-              {node.title}
-            </span>
+                    {node.children?.length ? (
+                      <div className="mt-3 text-[9px] font-mono text-cyan-500/70">
+                        {node.children.length}{' '}
+                        itens detectados
+                      </div>
+                    ) : null}
+                  </button>
+
+                  {/* FILHOS */}
+
+                  {expanded &&
+                    node.children &&
+                    node.children.length >
+                      0 && (
+                      <div className="mt-2 space-y-1 rounded-xl border border-slate-800/80 bg-slate-950/70 p-2">
+                        {node.children.map(
+                          (child) => (
+                            <button
+                              key={child.id}
+                              type="button"
+                              onClick={() =>
+                                onNodeClick(
+                                  child
+                                )
+                              }
+                              className={`flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 text-left transition ${
+                                activeNode?.id ===
+                                child.id
+                                  ? 'border-cyan-500/20 bg-cyan-500/10'
+                                  : 'hover:bg-slate-900'
+                              }`}
+                            >
+                              <span className="text-sm">
+                                {child.icon ||
+                                  '•'}
+                              </span>
+
+                              <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-slate-300">
+                                {child.title}
+                              </span>
+
+                              {child.value !==
+                                undefined && (
+                                <span className="max-w-[140px] truncate font-mono text-[8px] text-cyan-400">
+                                  {String(
+                                    child.value
+                                  )}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+                </div>
+              );
+            })}
           </div>
-
-          {node.description && (
-            <p className="relative mt-3 line-clamp-3 text-[10px] leading-relaxed text-slate-500">
-              {node.description}
-            </p>
-          )}
-
-          {node.value !== undefined && (
-            <p className="relative mt-3 truncate font-mono text-[10px] text-cyan-400">
-              {String(node.value)}
-            </p>
-          )}
-
-          {node.children?.length ? (
-            <div className="absolute bottom-3 right-3 text-[9px] text-slate-600">
-              {node.children.length} nós
-            </div>
-          ) : null}
-        </button>
-      ))}
+        </div>
+      </div>
     </div>
   );
 };
