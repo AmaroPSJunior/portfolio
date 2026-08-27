@@ -569,7 +569,7 @@ export const RepositoryExplorerModal: React.FC<
   const [error, setError] = useState('');
   const [activeNode, setActiveNode] = useState<RepositoryExplorerNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
-  const [mapStyle, setMapStyle] = useState<MindMapStyle>('radial');
+  const [mapStyle, setMapStyle] = useState<MindMapStyle>('bubble');
 
 
   useEffect(() => {
