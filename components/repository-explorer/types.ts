@@ -16,6 +16,12 @@ export interface MindMapProps {
   onNodeClick: (
     node: RepositoryExplorerNode
   ) => void;
+  onNodeMouseEnter?: (
+    node: RepositoryExplorerNode
+  ) => void;
+  onNodeMouseLeave?: (
+    node: RepositoryExplorerNode
+  ) => void;
 }
 
 export interface MindMapStyleOption {

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MindMapRenderer } from './repository-explorer/MindMapRenderer';
 import { MindMapStyle, MindMapStyleOption } from './repository-explorer/types';
 import { RepositoryExplorerModalProps, RepositoryExplorerNode } from '@/types';
-
+import { STATUS_OPTIONS } from '@/data/constants';
 import {
   X,
   Github,
@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   Orbit,
   BrainCircuit,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface TechnicalAnalysis {
@@ -439,12 +440,19 @@ function buildTechnicalNodes(
   return [
     {
       id: 'repository',
-      title: analysis.repository?.name || analysis.repository?.fullName?.split('/').pop() || 'repository',
+      title:
+        analysis.repository?.name ||
+        analysis.repository?.fullName?.split('/').pop() ||
+        'repository',
       type: 'repository',
       icon: '📦',
       description:
         analysis.repository?.description ||
         'Análise técnica dinâmica extraída do repositório GitHub.',
+      value:
+        analysis.repository?.fullName ||
+        analysis.repository?.name ||
+        'GitHub repository',
       children: [
         createCategoryNode(
           'architecture',
@@ -567,6 +575,8 @@ export const RepositoryExplorerModal: React.FC<
   const [error, setError] = useState('');
   const [activeNode, setActiveNode] = useState<RepositoryExplorerNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
+  const [hoveredNode, setHoveredNode] = useState<RepositoryExplorerNode | null>(null);
+
   const [mapStyle, setMapStyle] = useState<MindMapStyle>('bubble');
 
 
@@ -593,6 +603,7 @@ export const RepositoryExplorerModal: React.FC<
     setError('');
     setNodes([]);
     setActiveNode(null);
+    setHoveredNode(null);
     setExpandedNodes(['repository']);
 
     fetch(
@@ -619,13 +630,18 @@ export const RepositoryExplorerModal: React.FC<
           );
         }
 
-        setNodes(
-          buildTechnicalNodes(
-            data.analysis,
-            data.snapshot
-          )
+        const technicalNodes = buildTechnicalNodes(
+          data.analysis,
+          data.snapshot
         );
+
+        setNodes(technicalNodes);
+
+        // A bola principal do mapa representa o próprio repositório.
+        // Ela também alimenta automaticamente o painel da direita.
+        setActiveNode(technicalNodes[0] ?? null);
       })
+
       .catch((err) => {
         setError(
           err instanceof Error
@@ -682,6 +698,21 @@ export const RepositoryExplorerModal: React.FC<
         : [...current, node.id]
     );
   };
+
+  const handleNodeMouseEnter = (
+    node: RepositoryExplorerNode
+  ) => {
+    setHoveredNode(node);
+  };
+
+  const handleNodeMouseLeave = (
+    node: RepositoryExplorerNode
+  ) => {
+    setHoveredNode((current) =>
+      current?.id === node.id ? null : current
+    );
+  };
+
 
   if (!show || !task) {
     return null;
@@ -816,52 +847,233 @@ export const RepositoryExplorerModal: React.FC<
               expandedNodes={expandedNodes}
               activeNode={activeNode}
               onNodeClick={toggleNode}
+              onNodeMouseEnter={handleNodeMouseEnter}
+              onNodeMouseLeave={handleNodeMouseLeave}
             />
           )}
         </main>
 
-        {activeNode && (
-          <div className="absolute bottom-8 right-8 top-[125px] z-30 hidden w-[550px] overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-900/95 p-5 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl lg:block animate-[slideInRight_300ms_ease-out]">
-            <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveNode(null)}
-                className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-800 hover:text-white"
-                aria-label="Fechar detalhes"
-              >
-                <X className="h-4 w-4" />
-              </button>
+        {hoveredNode && (
+          <aside className="absolute bottom-8 right-8 top-[125px] z-30 hidden w-[550px] overflow-y-auto rounded-2xl border border-cyan-500/20 bg-slate-900/95 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl lg:block animate-[slideInRight_300ms_ease-out]">
+            <div className="p-5">
+              {hoveredNode.id === 'repository' ? (
+                <section className="space-y-5 pr-8">
+                  {/* =========================================================
+                      INFORMAÇÕES DO CARD DO PROJETO
+                      ========================================================= */}
 
-              <span className="text-xl">
-                {activeNode.icon || '◉'}
-              </span>
-              
-              <div className="min-w-0">
-                <h3 className="text-xs font-bold text-cyan-300">
-                  {activeNode.title}
-                </h3>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xl">
+                      {hoveredNode.icon || '📦'}
+                    </div>
 
-                {activeNode.description && (
-                  <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                    {activeNode.description}
-                  </p>
-                )}
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
+                        Projeto
+                      </span>
 
-                {activeNode.value !== undefined && (
-                  <p className="mt-2 break-all font-mono text-[10px] text-white">
-                    {String(activeNode.value)}
-                  </p>
-                )}
+                      <h3 className="mt-1 text-base font-black leading-tight text-white">
+                        {task.title}
+                      </h3>
+                    </div>
+                  </div>
 
-                {activeNode.children?.length ? (
-                  <p className="mt-2 text-[9px] text-slate-600">
-                    {activeNode.children.length}{' '}
-                    informações disponíveis
-                  </p>
-                ) : null}
-              </div>
+                  {/* Descrição */}
+                  {task.description && (
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                      <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Descrição
+                      </span>
+
+                      <p className="text-[11px] leading-relaxed text-slate-300">
+                        {task.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Badges */}
+                  {task.badges?.length > 0 && (
+                    <div>
+                      <span className="mb-2 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Categorias / Badges
+                      </span>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {task.badges.map((badge, index) => (
+                          <span
+                            key={`${badge}-${index}`}
+                            className="rounded border border-cyan-500/20 bg-slate-950 px-2 py-1 text-[9px] font-mono font-medium text-cyan-400"
+                          >
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* GitHub */}
+                  {(task.githubFullName ||
+                    task.githubName ||
+                    task.githubLanguage ||
+                    task.githubHtmlUrl) && (
+                    <div className="space-y-2">
+                      <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        <Github className="h-3 w-3" />
+                        Repositório GitHub
+                      </span>
+
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {(task.githubFullName || task.githubName) && (
+                          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                            <span className="block text-[9px] text-slate-600">
+                              Repositório
+                            </span>
+
+                            <span className="mt-1 block break-all font-mono text-[10px] text-slate-300">
+                              {task.githubFullName || task.githubName}
+                            </span>
+                          </div>
+                        )}
+
+                        {task.githubLanguage && (
+                          <div className="rounded-xl border border-cyan-500/20 bg-slate-950 p-3">
+                            <span className="block text-[9px] text-slate-600">
+                              Linguagem
+                            </span>
+
+                            <span className="mt-1 block text-[10px] font-semibold text-cyan-300">
+                              {task.githubLanguage}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {task.githubHtmlUrl && (
+                        <a
+                          href={task.githubHtmlUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-[10px] font-semibold text-slate-300 transition hover:border-cyan-500/40 hover:text-cyan-300"
+                        >
+                          <Github className="h-3.5 w-3.5" />
+                          Abrir repositório no GitHub
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Requisitos */}
+                  {task.requirements?.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                        Requisitos & Entregáveis
+                      </span>
+
+                      <div className="space-y-1.5">
+                        {task.requirements.map((requirement, index) => (
+                          <div
+                            key={`${requirement}-${index}`}
+                            className="flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2"
+                          >
+                            <span className="mt-0.5 shrink-0 text-emerald-400">
+                              ✓
+                            </span>
+
+                            <span className="text-[10px] leading-relaxed text-slate-300">
+                              {requirement}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <section className="space-y-5 pr-8">
+                  {/* =========================================================
+                      INFORMAÇÕES DA BOLA SELECIONADA
+                      ========================================================= */}
+
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xl">
+                      {hoveredNode.icon || '◉'}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
+                        {hoveredNode.type || 'Informação'}
+                      </span>
+
+                      <h3 className="mt-1 text-base font-black leading-tight text-white">
+                        {hoveredNode.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {hoveredNode.description && (
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                      <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Descrição
+                      </span>
+
+                      <p className="text-[11px] leading-relaxed text-slate-300">
+                        {hoveredNode.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {hoveredNode.value !== undefined && (
+                    <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                      <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Informação
+                      </span>
+
+                      <p className="break-all font-mono text-[10px] leading-relaxed text-cyan-300">
+                        {String(hoveredNode.value)}
+                      </p>
+                    </div>
+                  )}
+
+                  {Array.isArray(hoveredNode.children) &&
+                    hoveredNode.children.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                          Informações relacionadas
+                        </span>
+
+                        <div className="space-y-1.5">
+                          {hoveredNode.children.map((child) => (
+                            <button
+                              key={child.id}
+                              type="button"
+                              onClick={() => setActiveNode(child)}
+                              className="flex w-full items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-left transition hover:border-cyan-500/30 hover:bg-cyan-950/20"
+                            >
+                              <span className="text-sm">
+                                {child.icon || '•'}
+                              </span>
+
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-[10px] font-semibold text-slate-200">
+                                  {child.title}
+                                </span>
+
+                                {child.description && (
+                                  <span className="mt-0.5 block truncate text-[9px] text-slate-500">
+                                    {child.description}
+                                  </span>
+                                )}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                </section>
+              )}
             </div>
-          </div>
+          </aside>
         )}
       </div>
     </div>

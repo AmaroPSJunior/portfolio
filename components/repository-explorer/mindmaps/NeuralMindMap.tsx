@@ -10,6 +10,8 @@ export const NeuralMindMap: React.FC<
   repository,
   activeNode,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const children =
     repository.children || [];
@@ -32,6 +34,12 @@ export const NeuralMindMap: React.FC<
               }
               onClick={() =>
                 onNodeClick(repository)
+              }
+              onMouseEnter={() =>
+                onNodeMouseEnter?.(repository)
+              }
+              onMouseLeave={() =>
+                onNodeMouseLeave?.(repository)
               }
             />
           </div>

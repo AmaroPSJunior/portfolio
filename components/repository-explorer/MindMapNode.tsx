@@ -14,6 +14,8 @@ interface MindMapNodeProps {
   expanded?: boolean;
   compact?: boolean;
   onClick: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export const MindMapNode: React.FC<
@@ -24,6 +26,8 @@ export const MindMapNode: React.FC<
   expanded = false,
   compact = false,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const hasChildren =
     Boolean(node.children?.length);
@@ -32,6 +36,8 @@ export const MindMapNode: React.FC<
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={`
         group relative text-left
         transition-all duration-300

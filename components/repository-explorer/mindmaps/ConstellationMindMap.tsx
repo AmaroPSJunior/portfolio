@@ -10,6 +10,8 @@ export const ConstellationMindMap: React.FC<
   repository,
   activeNode,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const children =
     repository.children || [];
@@ -28,6 +30,14 @@ export const ConstellationMindMap: React.FC<
             onClick={() =>
               onNodeClick(repository)
             }
+            onMouseEnter={() =>
+              onNodeMouseEnter?.(repository)
+            }
+            onMouseLeave={() =>
+              onNodeMouseLeave?.(repository)
+            }
+
+
           />
         </div>
 
@@ -80,6 +90,12 @@ export const ConstellationMindMap: React.FC<
                   }
                   onClick={() =>
                     onNodeClick(node)
+                  }
+                  onMouseEnter={() =>
+                    onNodeMouseEnter?.(node)
+                  }
+                  onMouseLeave={() =>
+                    onNodeMouseLeave?.(node)
                   }
                 />
               </div>

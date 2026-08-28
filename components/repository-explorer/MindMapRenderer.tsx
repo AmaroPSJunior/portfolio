@@ -27,12 +27,16 @@ export const MindMapRenderer: React.FC<
   activeNode,
   expandedNodes,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const props: MindMapProps = {
     repository,
     activeNode,
     expandedNodes,
     onNodeClick,
+    onNodeMouseEnter,
+    onNodeMouseLeave,
   };
 
   switch (style) {

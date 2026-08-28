@@ -11,6 +11,8 @@ export const RadialMindMap: React.FC<
   activeNode,
   expandedNodes,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const children =
     repository.children || [];
@@ -32,6 +34,13 @@ export const RadialMindMap: React.FC<
             onClick={() =>
               onNodeClick(repository)
             }
+            onMouseEnter={() =>
+              onNodeMouseEnter?.(repository)
+            }
+            onMouseLeave={() =>
+              onNodeMouseLeave?.(repository)
+            }
+
           />
         </div>
 
@@ -86,6 +95,12 @@ export const RadialMindMap: React.FC<
                   expanded={expanded}
                   onClick={() =>
                     onNodeClick(node)
+                  }
+                  onMouseEnter={() =>
+                    onNodeMouseEnter?.(node)
+                  }
+                  onMouseLeave={() =>
+                    onNodeMouseLeave?.(node)
                   }
                 />
 

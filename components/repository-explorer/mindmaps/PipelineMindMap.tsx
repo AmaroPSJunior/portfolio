@@ -11,6 +11,8 @@ export const PipelineMindMap: React.FC<
   activeNode,
   expandedNodes,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const children =
     repository.children || [];
@@ -28,6 +30,12 @@ export const PipelineMindMap: React.FC<
             }
             onClick={() =>
               onNodeClick(repository)
+            }
+            onMouseEnter={() =>
+              onNodeMouseEnter?.(repository)
+            }
+            onMouseLeave={() =>
+              onNodeMouseLeave?.(repository)
             }
           />
         </div>

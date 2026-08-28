@@ -544,15 +544,6 @@ export const BubbleMindMap: React.FC<
                 {currentNode.title}
               </div>
 
-              {currentNode.value !==
-                undefined && (
-                <div className="mt-1 truncate font-mono text-[8px] text-cyan-400">
-                  {String(
-                    currentNode.value
-                  )}
-                </div>
-              )}
-
               <div className="mt-2 text-[7px] font-bold uppercase tracking-[0.18em] text-slate-600">
                 {children.length > 0
                   ? `${children.length} opções`
