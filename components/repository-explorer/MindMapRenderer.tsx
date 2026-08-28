@@ -70,6 +70,8 @@ export const MindMapRenderer: React.FC<
           repository={repository}
           activeNode={activeNode}
           onNodeClick={onNodeClick}
+          onNodeMouseEnter={onNodeMouseEnter}
+          onNodeMouseLeave={onNodeMouseLeave}
         />
       );
   }

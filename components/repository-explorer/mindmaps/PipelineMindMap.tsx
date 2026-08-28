@@ -76,6 +76,12 @@ export const PipelineMindMap: React.FC<
                           node
                         )
                       }
+                      onMouseEnter={() =>
+                        onNodeMouseEnter?.(node)
+                      }
+                      onMouseLeave={() =>
+                        onNodeMouseLeave?.(node)
+                      }
                     />
 
                     {expanded &&

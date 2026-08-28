@@ -21,6 +21,12 @@ interface BubbleMindMapProps {
   onNodeClick: (
     node: RepositoryExplorerNode
   ) => void;
+  onNodeMouseEnter?: (
+    node: RepositoryExplorerNode
+  ) => void;
+  onNodeMouseLeave?: (
+    node: RepositoryExplorerNode
+  ) => void;
 }
 
 export const BubbleMindMap: React.FC<
@@ -29,6 +35,8 @@ export const BubbleMindMap: React.FC<
   repository,
   activeNode,
   onNodeClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
 }) => {
   const [currentNode, setCurrentNode] =
     useState<RepositoryExplorerNode>(
@@ -447,15 +455,14 @@ export const BubbleMindMap: React.FC<
 
                   navigateTo(child);
                 }}
-
-                onMouseEnter={() =>
-                  setHoveredNode(
-                    child.id
-                  )
-                }
-                onMouseLeave={() =>
-                  setHoveredNode(null)
-                }
+                onMouseEnter={() => {
+                  setHoveredNode(child.id);
+                  onNodeMouseEnter?.(child);
+                }}
+                onMouseLeave={() => {
+                  setHoveredNode(null);
+                  onNodeMouseLeave?.(child);
+                }}
                 className={`group absolute left-1/2 top-1/2 z-10 flex h-[88px] w-[88px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border text-center transition-all duration-500 ${
                   hovered
                   ? 'scale-[1.34] border-cyan-300 bg-slate-900 opacity-100 shadow-[0_0_45px_rgba(34,211,238,0.25)]'
@@ -504,14 +511,14 @@ export const BubbleMindMap: React.FC<
 
         <div
           className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer select-none"
-          onMouseEnter={() =>
-            setHoveredNode(
-              currentNode.id
-            )
-          }
-          onMouseLeave={() =>
-            setHoveredNode(null)
-          }
+          onMouseEnter={() => {
+            setHoveredNode(currentNode.id);
+            onNodeMouseEnter?.(currentNode);
+          }}
+          onMouseLeave={() => {
+            setHoveredNode(null);
+            onNodeMouseLeave?.(currentNode);
+          }}
           onDoubleClick={goBack}
           title={
             history.length > 0

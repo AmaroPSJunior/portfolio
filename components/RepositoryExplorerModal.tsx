@@ -574,9 +574,8 @@ export const RepositoryExplorerModal: React.FC<
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeNode, setActiveNode] = useState<RepositoryExplorerNode | null>(null);
-  const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
   const [hoveredNode, setHoveredNode] = useState<RepositoryExplorerNode | null>(null);
-
+  const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
   const [mapStyle, setMapStyle] = useState<MindMapStyle>('bubble');
 
 
@@ -636,6 +635,8 @@ export const RepositoryExplorerModal: React.FC<
         );
 
         setNodes(technicalNodes);
+        setActiveNode(technicalNodes[0] ?? null);
+        setHoveredNode(null);
 
         // A bola principal do mapa representa o próprio repositório.
         // Ela também alimenta automaticamente o painel da direita.
@@ -681,6 +682,8 @@ export const RepositoryExplorerModal: React.FC<
     [nodes]
   );
 
+  const displayNode = hoveredNode ?? repository;
+
   const toggleNode = (
     node: RepositoryExplorerNode
   ) => {
@@ -705,14 +708,9 @@ export const RepositoryExplorerModal: React.FC<
     setHoveredNode(node);
   };
 
-  const handleNodeMouseLeave = (
-    node: RepositoryExplorerNode
-  ) => {
-    setHoveredNode((current) =>
-      current?.id === node.id ? null : current
-    );
+  const handleNodeMouseLeave = () => {
+    setHoveredNode(null);
   };
-
 
   if (!show || !task) {
     return null;
@@ -802,7 +800,7 @@ export const RepositoryExplorerModal: React.FC<
 
         <main className={
           `min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.08),transparent_55%)] transition-all duration-500 ${
-            activeNode ? 'pr-0 lg:pr-[580px]' : 'pr-0'
+            repository ? 'pr-0 lg:pr-[580px]' : 'pr-0'
           }
         `}>
           {loading && (
@@ -842,21 +840,22 @@ export const RepositoryExplorerModal: React.FC<
             !error &&
             repository && (
               <MindMapRenderer
-              style={mapStyle}
-              repository={repository}
-              expandedNodes={expandedNodes}
-              activeNode={activeNode}
-              onNodeClick={toggleNode}
-              onNodeMouseEnter={handleNodeMouseEnter}
-              onNodeMouseLeave={handleNodeMouseLeave}
-            />
-          )}
+                style={mapStyle}
+                repository={repository}
+                expandedNodes={expandedNodes}
+                activeNode={activeNode}
+                onNodeClick={toggleNode}
+                onNodeMouseEnter={handleNodeMouseEnter}
+                onNodeMouseLeave={handleNodeMouseLeave}
+              />
+            )
+          }
         </main>
 
-        {hoveredNode && (
+        {displayNode && (
           <aside className="absolute bottom-8 right-8 top-[125px] z-30 hidden w-[550px] overflow-y-auto rounded-2xl border border-cyan-500/20 bg-slate-900/95 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl lg:block animate-[slideInRight_300ms_ease-out]">
             <div className="p-5">
-              {hoveredNode.id === 'repository' ? (
+              {displayNode.id === 'repository' ? (
                 <section className="space-y-5 pr-8">
                   {/* =========================================================
                       INFORMAÇÕES DO CARD DO PROJETO
@@ -864,7 +863,7 @@ export const RepositoryExplorerModal: React.FC<
 
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xl">
-                      {hoveredNode.icon || '📦'}
+                      {displayNode.icon || '📦'}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -997,53 +996,53 @@ export const RepositoryExplorerModal: React.FC<
 
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xl">
-                      {hoveredNode.icon || '◉'}
+                      {displayNode.icon || '◉'}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
-                        {hoveredNode.type || 'Informação'}
+                        {displayNode.type || 'Informação'}
                       </span>
 
                       <h3 className="mt-1 text-base font-black leading-tight text-white">
-                        {hoveredNode.title}
+                        {displayNode.title}
                       </h3>
                     </div>
                   </div>
 
-                  {hoveredNode.description && (
+                  {displayNode.description && (
                     <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
                       <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
                         Descrição
                       </span>
 
                       <p className="text-[11px] leading-relaxed text-slate-300">
-                        {hoveredNode.description}
+                        {displayNode.description}
                       </p>
                     </div>
                   )}
 
-                  {hoveredNode.value !== undefined && (
+                  {displayNode.value !== undefined && (
                     <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                       <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wider text-slate-500">
                         Informação
                       </span>
 
                       <p className="break-all font-mono text-[10px] leading-relaxed text-cyan-300">
-                        {String(hoveredNode.value)}
+                        {String(displayNode.value)}
                       </p>
                     </div>
                   )}
 
-                  {Array.isArray(hoveredNode.children) &&
-                    hoveredNode.children.length > 0 && (
+                  {Array.isArray(displayNode.children) &&
+                    displayNode.children.length > 0 && (
                       <div className="space-y-2">
                         <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
                           Informações relacionadas
                         </span>
 
                         <div className="space-y-1.5">
-                          {hoveredNode.children.map((child) => (
+                          {displayNode.children.map((child) => (
                             <button
                               key={child.id}
                               type="button"
