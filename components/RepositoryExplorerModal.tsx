@@ -738,16 +738,9 @@ export const RepositoryExplorerModal: React.FC<
   };
 
   const handleNodeMouseLeave = () => {
-    setHoveredNode((current) => {
-      if (!current) {
-        return null;
-      }
-
-      playRepositoryReturnSound();
-
-      return null;
-    });
+    setHoveredNode(null);
   };
+
 
   if (!show || !task) {
     return null;

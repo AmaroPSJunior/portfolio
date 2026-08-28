@@ -95,13 +95,17 @@ export function playRepositorySelectSound() {
 }
 
 export function playRepositoryReturnSound() {
-  // Retorno: som próprio, grave e suave.
-  // Não é uma variação do hover.
-  playTone(260, 0.10, 0.025, 'sine');
+  // Retorno de nível:
+  // som curto, grave e presente, com queda progressiva.
+  playTone(520, 0.07, 0.080, 'sine');
 
   setTimeout(() => {
-    playTone(180, 0.14, 0.02, 'triangle');
-  }, 70);
+    playTone(360, 0.10, 0.055, 'triangle');
+  }, 55);
+
+  setTimeout(() => {
+    playTone(240, 0.15, 0.050, 'sine');
+  }, 115);
 }
 
 export function playRepositoryMapChangeSound() {

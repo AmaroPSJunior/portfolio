@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { RepositoryExplorerNode } from '@/types';
+import { playRepositoryReturnSound } from '@/lib/repository-explorer/sounds';
 
 interface BubbleMindMapProps {
   repository: RepositoryExplorerNode;
@@ -95,8 +96,6 @@ export const BubbleMindMap: React.FC<
 
     setCurrentNode(previousNode);
     setHoveredNode(null);
-
-    onNodeClick(previousNode);
 
     window.setTimeout(() => {
       setIsAnimating(false);
@@ -497,7 +496,10 @@ export const BubbleMindMap: React.FC<
             setHoveredNode(null);
             onNodeMouseLeave?.(currentNode);
           }}
-          onDoubleClick={goBack}
+          onDoubleClick={() => {
+            playRepositoryReturnSound();
+            goBack();
+          }}
           title={
             history.length > 0
               ? 'Duplo clique para voltar'
