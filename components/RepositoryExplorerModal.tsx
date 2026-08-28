@@ -1,10 +1,19 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MindMapRenderer } from './repository-explorer/MindMapRenderer';
 import { MindMapStyle, MindMapStyleOption } from './repository-explorer/types';
 import { RepositoryExplorerModalProps, RepositoryExplorerNode } from '@/types';
-import { STATUS_OPTIONS } from '@/data/constants';
+import { playRepositoryOpenSound } from '@/lib/repository-explorer/sounds';
+import {
+  getRepositoryExplorerVolume,
+  playRepositoryHoverSound,
+  playRepositoryMapChangeSound,
+  playRepositoryReturnSound,
+  playRepositorySelectSound,
+  playRepositoryCloseSound,
+  setRepositoryExplorerVolume,
+} from '@/lib/repository-explorer/sounds';
 import {
   X,
   Github,
@@ -28,6 +37,8 @@ import {
   Orbit,
   BrainCircuit,
   CheckCircle2,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface TechnicalAnalysis {
@@ -577,14 +588,16 @@ export const RepositoryExplorerModal: React.FC<
   const [hoveredNode, setHoveredNode] = useState<RepositoryExplorerNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<string[]>(['repository']);
   const [mapStyle, setMapStyle] = useState<MindMapStyle>('bubble');
-
+  const [volume, setVolume] = useState(getRepositoryExplorerVolume());
+  const [previousVolume, setPreviousVolume] = useState(volume > 0 ? volume : 1);
+  const openingSoundPlayedRef = useRef(false);
 
   useEffect(() => {
     if (!show || !task) return;
 
     const repository =
       task.githubFullName ||
-      task.githubName;
+      task.githubName;   
 
     if (!repository) {
       setError('Este projeto não possui um repositório GitHub associado.');
@@ -638,9 +651,15 @@ export const RepositoryExplorerModal: React.FC<
         setActiveNode(technicalNodes[0] ?? null);
         setHoveredNode(null);
 
-        // A bola principal do mapa representa o próprio repositório.
-        // Ela também alimenta automaticamente o painel da direita.
-        setActiveNode(technicalNodes[0] ?? null);
+        // Toca o som somente quando as informações
+        // do repositório estiverem disponíveis pela primeira vez.
+        if (
+          technicalNodes.length > 0 &&
+          !openingSoundPlayedRef.current
+        ) {
+          openingSoundPlayedRef.current = true;
+          playRepositoryOpenSound();
+        }
       })
 
       .catch((err) => {
@@ -657,6 +676,7 @@ export const RepositoryExplorerModal: React.FC<
 
   useEffect(() => {
     if (!show) return;
+    openingSoundPlayedRef.current = false;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -687,6 +707,7 @@ export const RepositoryExplorerModal: React.FC<
   const toggleNode = (
     node: RepositoryExplorerNode
   ) => {
+    playRepositorySelectSound();
     setActiveNode(node);
 
     if (!node.children?.length) {
@@ -705,11 +726,36 @@ export const RepositoryExplorerModal: React.FC<
   const handleNodeMouseEnter = (
     node: RepositoryExplorerNode
   ) => {
-    setHoveredNode(node);
+    setHoveredNode((current) => {
+      if (current?.id === node.id) {
+        return current;
+      }
+
+      playRepositoryHoverSound();
+
+      return node;
+    });
   };
 
   const handleNodeMouseLeave = () => {
-    setHoveredNode(null);
+    setHoveredNode((current) => {
+      if (!current) {
+        return null;
+      }
+
+      playRepositoryReturnSound();
+
+      return null;
+    });
+  };
+
+  if (!show || !task) {
+    return null;
+  }
+
+  const handleClose = () => {
+    playRepositoryCloseSound();
+    onClose();
   };
 
   if (!show || !task) {
@@ -720,13 +766,12 @@ export const RepositoryExplorerModal: React.FC<
     <div
       className="fixed inset-0 z-[95] flex items-center justify-center bg-black/75 p-2 backdrop-blur-md sm:p-4"
       onMouseDown={(event) => {
-        if (
-          event.target ===
-          event.currentTarget
-        ) {
-          onClose();
+        if (event.target === event.currentTarget) {
+          handleClose();
         }
       }}
+
+
     >
       <div
         className="relative flex h-[94vh] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 shadow-2xl shadow-cyan-950/40"
@@ -765,9 +810,10 @@ export const RepositoryExplorerModal: React.FC<
                 <button
                   key={style.id}
                   type="button"
-                  onClick={() =>
-                    setMapStyle(style.id)
-                  }
+                  onClick={() => {
+                    if (mapStyle !== style.id) { playRepositoryMapChangeSound(); }
+                    setMapStyle(style.id);
+                  }}
                   title={style.description}
                   className={`
                     flex shrink-0 items-center gap-2
@@ -789,7 +835,7 @@ export const RepositoryExplorerModal: React.FC<
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
               aria-label="Fechar explorador"
             >
@@ -851,6 +897,76 @@ export const RepositoryExplorerModal: React.FC<
             )
           }
         </main>
+
+      <div className="group absolute bottom-4 left-4 z-50 hidden flex-col items-center gap-1.5 rounded-xl border border-slate-800/30 bg-slate-950/20 px-1.5 py-2 opacity-40 shadow-lg shadow-black/10 backdrop-blur-sm transition-all duration-200 hover:border-cyan-500/30 hover:bg-slate-950/90 hover:opacity-100 hover:shadow-cyan-950/20 sm:flex">
+        <button
+          type="button"
+          onClick={() => {
+            if (volume > 0) {
+              setPreviousVolume(volume);
+              setVolume(0);
+              setRepositoryExplorerVolume(0);
+            } else {
+              const restoredVolume =
+                previousVolume > 0
+                  ? previousVolume
+                  : 0.5;
+
+              setVolume(restoredVolume);
+              setRepositoryExplorerVolume(
+                restoredVolume
+              );
+            }
+          }}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700/30 bg-slate-900/20 text-slate-500 transition hover:border-cyan-500/40 hover:bg-cyan-950/40 hover:text-cyan-300"
+          aria-label={
+            volume === 0
+              ? 'Ativar som'
+              : 'Silenciar'
+          }
+          title={
+            volume === 0
+              ? 'Ativar som'
+              : 'Silenciar'
+          }
+        >
+          {volume === 0 ? (
+            <VolumeX className="h-3.5 w-3.5" />
+          ) : (
+            <Volume2 className="h-3.5 w-3.5" />
+          )}
+        </button>
+
+        <div className="flex h-24 w-5 items-center justify-center overflow-visible">
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={(event) => {
+              const nextVolume = Number(
+                event.target.value
+              );
+
+              setVolume(nextVolume);
+              setRepositoryExplorerVolume(
+                nextVolume
+              );
+
+              if (nextVolume > 0) {
+                setPreviousVolume(nextVolume);
+              }
+            }}
+            className="h-1 w-20 rotate-[-90deg] cursor-pointer accent-cyan-400"
+            aria-label="Volume dos efeitos sonoros"
+          />
+        </div>
+
+        <span className="font-mono text-[7px] font-bold text-cyan-400">
+          {Math.round(volume * 100)}%
+        </span>
+      </div>
 
         {displayNode && (
           <aside className="absolute bottom-8 right-8 top-[125px] z-30 hidden w-[550px] overflow-y-auto rounded-2xl border border-cyan-500/20 bg-slate-900/95 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl lg:block animate-[slideInRight_300ms_ease-out]">

@@ -1,19 +1,8 @@
 'use client';
 
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-
-import {
-  ArrowLeft,
-  Home,
-} from 'lucide-react';
-
-import {
-  RepositoryExplorerNode,
-} from '@/types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Home } from 'lucide-react';
+import { RepositoryExplorerNode } from '@/types';
 
 interface BubbleMindMapProps {
   repository: RepositoryExplorerNode;
@@ -47,21 +36,10 @@ export const BubbleMindMap: React.FC<
     RepositoryExplorerNode[]
   >([]);
 
-  const [hoveredNode, setHoveredNode] =
-    useState<string | null>(null);
-
-  const [keyboardNode, setKeyboardNode] =
-    useState<string | null>(null);
-
-
-  const [isAnimating, setIsAnimating] =
-    useState(false);
-
-  const children = useMemo(
-    () =>
-      currentNode.children ?? [],
-    [currentNode]
-  );
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [keyboardNode, setKeyboardNode] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const children = useMemo(() => currentNode.children ?? [], [currentNode]);
 
   useEffect(() => {
     setCurrentNode(repository);
