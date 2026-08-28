@@ -439,9 +439,7 @@ function buildTechnicalNodes(
   return [
     {
       id: 'repository',
-      title:
-        analysis.repository?.fullName ||
-        `${analysis.repository?.owner || 'GitHub'}/${analysis.repository?.name || 'repository'}`,
+      title: analysis.repository?.name || analysis.repository?.fullName?.split('/').pop() || 'repository',
       type: 'repository',
       icon: '📦',
       description:
