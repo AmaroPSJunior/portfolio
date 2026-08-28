@@ -42,6 +42,10 @@ export const BubbleMindMap: React.FC<
   const [hoveredNode, setHoveredNode] =
     useState<string | null>(null);
 
+  const [keyboardNode, setKeyboardNode] =
+    useState<string | null>(null);
+
+
   const [isAnimating, setIsAnimating] =
     useState(false);
 
@@ -61,6 +65,11 @@ export const BubbleMindMap: React.FC<
     node: RepositoryExplorerNode
   ) => {
     if (isAnimating) {
+      return;
+    }
+
+    if (activeNode?.id === node.id) {
+      onNodeClick(node);
       return;
     }
 
@@ -107,6 +116,108 @@ export const BubbleMindMap: React.FC<
       setIsAnimating(false);
     }, 350);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (
+      event: KeyboardEvent
+    ) => {
+      // BACKSPACE SEMPRE VOLTA UM NÍVEL
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        goBack();
+        return;
+      }
+
+      // ESCAPE LIMPA A SELEÇÃO
+      if (event.key === 'Escape') {
+        setKeyboardNode(null);
+        setHoveredNode(null);
+        return;
+      }
+
+      // ENTER ENTRA NA BOLA SELECIONADA
+      if (
+        event.key === 'Enter' &&
+        keyboardNode
+      ) {
+        const selectedNode =
+          children.find(
+            (child) =>
+              child.id === keyboardNode
+          );
+
+        if (selectedNode) {
+          navigateTo(selectedNode);
+        }
+
+        return;
+      }
+
+      // SEM BOLAS, NÃO EXISTE NAVEGAÇÃO POR SETAS
+      if (children.length === 0) {
+        return;
+      }
+
+      // SETAS CONTROLAM A SELEÇÃO
+      if (
+        event.key === 'ArrowUp' ||
+        event.key === 'ArrowDown' ||
+        event.key === 'ArrowLeft' ||
+        event.key === 'ArrowRight'
+      ) {
+        event.preventDefault();
+
+        setKeyboardNode((currentId) => {
+          const currentIndex =
+            children.findIndex(
+              (child) =>
+                child.id === currentId
+            );
+
+          let nextIndex = 0;
+
+          if (currentIndex >= 0) {
+            const forward =
+              event.key === 'ArrowRight' ||
+              event.key === 'ArrowDown';
+
+            nextIndex = forward
+              ? (currentIndex + 1) %
+                children.length
+              : (currentIndex - 1 +
+                  children.length) %
+                children.length;
+          }
+
+          const nextNode =
+            children[nextIndex];
+
+          setHoveredNode(nextNode.id);
+
+          return nextNode.id;
+        });
+      }
+    };
+
+    window.addEventListener(
+      'keydown',
+      handleKeyDown
+    );
+
+    return () => {
+      window.removeEventListener(
+        'keydown',
+        handleKeyDown
+      );
+    };
+  }, [
+    children,
+    keyboardNode,
+    goBack,
+    navigateTo,
+  ]);
+
+
 
   const goHome = () => {
     if (isAnimating) {
@@ -253,13 +364,12 @@ export const BubbleMindMap: React.FC<
       >
 
         {/* CONEXÕES */}
-
         <svg
           className="pointer-events-none absolute inset-0 z-0 h-full w-full"
           viewBox="0 0 760 620"
+          preserveAspectRatio="none"
         >
           <defs>
-
             <linearGradient
               id="bubble-gradient"
               x1="0%"
@@ -270,57 +380,44 @@ export const BubbleMindMap: React.FC<
               <stop
                 offset="0%"
                 stopColor="#22d3ee"
-                stopOpacity="0.45"
+                stopOpacity="0.65"
               />
 
               <stop
                 offset="100%"
                 stopColor="#0891b2"
-                stopOpacity="0.03"
+                stopOpacity="0.12"
               />
-
             </linearGradient>
-
           </defs>
 
-          {children.map(
-            (child, index) => {
-              const position =
-                getBubblePosition(
-                  index,
-                  children.length
-                );
+          {children.map((child, index) => {
+            const position = getBubblePosition(
+              index,
+              children.length
+            );
 
-              const x =
-                380 + position.x;
-
-              const y =
-                310 + position.y;
-
-              return (
-                <line
-                  key={`connection-${child.id}`}
-                  x1="380"
-                  y1="310"
-                  x2={x}
-                  y2={y}
-                  stroke="url(#bubble-gradient)"
-                  strokeWidth={
-                    hoveredNode ===
-                    child.id
-                      ? 2
-                      : 1
-                  }
-                  className="transition-all duration-300"
-                />
-              );
-            }
-          )}
-
+            return (
+              <line
+                key={`connection-${currentNode.id}-${child.id}`}
+                x1="380"
+                y1="310"
+                x2={380 + position.x}
+                y2={310 + position.y}
+                stroke="url(#bubble-gradient)"
+                strokeWidth={
+                  hoveredNode === child.id
+                    ? 2.5
+                    : 1.5
+                }
+                strokeLinecap="round"
+                className="transition-all duration-300"
+              />
+            );
+          })}
         </svg>
 
         {/* BOLHAS */}
-
         {children.map(
           (child, index) => {
             const position =
@@ -342,9 +439,15 @@ export const BubbleMindMap: React.FC<
               <button
                 key={child.id}
                 type="button"
-                onClick={() =>
-                  navigateTo(child)
-                }
+                onClick={() => {
+                  if (activeNode?.id === child.id) {
+                    onNodeClick(child);
+                    return;
+                  }
+
+                  navigateTo(child);
+                }}
+
                 onMouseEnter={() =>
                   setHoveredNode(
                     child.id
@@ -353,10 +456,10 @@ export const BubbleMindMap: React.FC<
                 onMouseLeave={() =>
                   setHoveredNode(null)
                 }
-                className={`group absolute left-1/2 top-1/2 z-10 flex h-[118px] w-[118px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border text-center transition-all duration-500 ${
+                className={`group absolute left-1/2 top-1/2 z-10 flex h-[88px] w-[88px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border text-center transition-all duration-500 ${
                   hovered
-                    ? 'scale-125 border-cyan-300 bg-cyan-500/15 shadow-[0_0_45px_rgba(34,211,238,0.25)]'
-                    : 'border-slate-700 bg-slate-900/95 hover:border-cyan-500/50'
+                  ? 'scale-[1.34] border-cyan-300 bg-slate-900 opacity-100 shadow-[0_0_45px_rgba(34,211,238,0.25)]'
+                  : 'border-slate-700 bg-slate-900/60 opacity-60 hover:border-cyan-500/50 hover:opacity-100'
                 }`}
                 style={{
                   marginLeft:
@@ -400,7 +503,7 @@ export const BubbleMindMap: React.FC<
         {/* CENTRO */}
 
         <div
-          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
+          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer select-none"
           onMouseEnter={() =>
             setHoveredNode(
               currentNode.id
@@ -409,13 +512,19 @@ export const BubbleMindMap: React.FC<
           onMouseLeave={() =>
             setHoveredNode(null)
           }
+          onDoubleClick={goBack}
+          title={
+            history.length > 0
+              ? 'Duplo clique para voltar'
+              : 'Você está no início'
+          }
         >
 
           <div
             className={`relative flex h-[180px] w-[180px] items-center justify-center rounded-full border transition-all duration-500 ${
               hoveredNode ===
               currentNode.id
-                ? 'scale-105 border-cyan-300 bg-cyan-500/15 shadow-[0_0_80px_rgba(34,211,238,0.25)]'
+                ? 'scale-105 border-cyan-300 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.25)]'
                 : 'border-cyan-400/40 bg-slate-950 shadow-[0_0_55px_rgba(34,211,238,0.12)]'
             }`}
           >
