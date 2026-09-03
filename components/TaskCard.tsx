@@ -1,84 +1,68 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Task, GithubConfig, WorkStatus } from '@/types';
-import { STATUS_OPTIONS } from '@/data/constants';
+import React from 'react';
 import {
-  CheckCircle2,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
   ExternalLink,
-  Code2,
-  CheckSquare,
-  Pencil,
-  GitBranch,
-  CalendarDays,
   Github,
   Network,
+  Pencil,
+  Trash2,
+  CheckCircle2,
 } from 'lucide-react';
+import { Task, GithubConfig, WorkStatus } from '@/types';
 
 interface TaskCardProps {
   task: Task;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  onToggleComplete: () => void;
+
+  // Mantidos para compatibilidade com RoadmapTab
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+
+  onToggleComplete?: () => void;
   onEdit?: () => void;
   onDelete: () => void;
-  
+
   onStatusChange?: (
     status: WorkStatus,
     statusReason: string
   ) => void;
-  
+
   onNavigateToPhase?: (phaseId: number) => void;
-  
+
   onOpenRepositoryExplorer?: (task: Task) => void;
-  
+
   githubConfig?: GithubConfig;
+
   showPhaseBadge?: boolean;
   phaseLabel?: string;
   phaseIcon?: string;
   phaseId?: number;
+
   totalPhases?: number;
   phaseIndex?: number;
   phaseProgress?: number;
-  phases?: Array<{ id: number; title: string; icon?: string; }>;
+
+  phases?: Array<{
+    id: number;
+    title: string;
+    icon?: string;
+  }>;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
-  isExpanded,
-  onToggleExpand,
-  onToggleComplete,
   onEdit,
   onDelete,
-  onStatusChange,
   onNavigateToPhase,
+  onOpenRepositoryExplorer,
   githubConfig,
-  showPhaseBadge = false,
   phaseLabel,
   phaseIcon,
-  phaseId,
   totalPhases = 0,
   phaseIndex = 0,
   phaseProgress = 0,
   phases = [],
-  onOpenRepositoryExplorer,
 }) => {
-  const status =
-    task.status ||
-    (task.completed ? 'completed' : 'pending');
-
-  const [statusReason, setStatusReason] = useState(
-    task.statusReason || ''
-  );
-
-  useEffect(() => {
-    setStatusReason(task.statusReason || '');
-  }, [task.statusReason]);
-
   const hasGithubRepository =
     Boolean(task.githubHtmlUrl) ||
     Boolean(task.githubFullName) ||
@@ -87,106 +71,118 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const githubRepository =
     task.githubFullName ||
     task.githubName ||
-    (githubConfig
+    (githubConfig?.owner && githubConfig?.repo
       ? `${githubConfig.owner}/${githubConfig.repo}`
       : '');
 
   const githubUrl =
     task.githubHtmlUrl ||
-    (githubConfig
+    (githubConfig?.owner && githubConfig?.repo
       ? `https://github.com/${githubConfig.owner}/${githubConfig.repo}`
       : '');
 
-  const formatGithubDate = (value?: string) => {
-    if (!value) return null;
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return null;
-    }
-
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date);
-  };
-
-  const pushedDate = formatGithubDate(
-    task.githubPushedAt
+  const progress = Math.min(
+    100,
+    Math.max(0, Math.round(phaseProgress))
   );
 
   const isFinished =
     task.completed || task.status === 'completed';
 
-  const progress = Math.min(
-    100,
-    Math.max(
-      0,
-      Math.round(
-        (phaseIndex / Math.max(totalPhases, 1)) * 100
-      )
-    )
-  );
-
   return (
-    <div
+    <article
       id={`project-card-${task.id}`}
-      className={`bg-slate-900 border ${
-        isFinished
-          ? 'border-emerald-500/40 bg-emerald-950/10'
-          : 'border-slate-800'
-      } rounded-2xl p-5 space-y-4 shadow-xl hover:border-slate-700 transition-all flex flex-col min-h-[390px] group`}
+      className={`
+        group relative overflow-hidden
+        rounded-2xl
+        border
+        bg-slate-950/90
+        shadow-xl
+        transition-all duration-300
+        hover:-translate-y-0.5
+        ${
+          isFinished
+            ? 'border-emerald-500/30 hover:border-emerald-400/50'
+            : 'border-slate-800 hover:border-cyan-500/40'
+        }
+      `}
     >
-      {/* Cabeçalho / conteúdo principal */}
-      <div className="space-y-3 flex-grow min-h-0">
+      {/* Linha de destaque superior */}
+      <div
+        className={`
+          absolute inset-x-0 top-0 h-px
+          ${
+            isFinished
+              ? 'bg-gradient-to-r from-transparent via-emerald-400 to-transparent'
+              : 'bg-gradient-to-r from-transparent via-cyan-400 to-transparent'
+          }
+        `}
+      />
 
-        {/* Cabeçalho do projeto */}
+      <div className="p-5">
+        {/* ============================================================
+            HEADER
+        ============================================================ */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2.5 flex-1 min-w-0">
-            <div className="min-w-0 flex-1">
-              <h3
-                onClick={onToggleExpand}
-                className={`text-base font-extrabold leading-tight cursor-pointer transition-colors ${
-                  task.completed
-                    ? 'text-slate-400 line-through'
-                    : 'text-slate-100 group-hover:text-cyan-400'
-                }`}
-              >
+          <button
+            type="button"
+            onClick={() => {
+              if (onNavigateToPhase && task.phase) {
+                onNavigateToPhase(task.phase);
+              }
+            }}
+            className="flex min-w-0 items-center gap-3 text-left"
+            title={
+              phaseLabel
+                ? `Ir para ${phaseLabel}`
+                : 'Ir para a fase do projeto'
+            }
+          >
+            <div
+              className={`
+                flex h-11 w-11 shrink-0 items-center justify-center
+                rounded-xl border
+                text-lg
+                shadow-inner
+                transition-all
+                ${
+                  isFinished
+                    ? 'border-emerald-500/30 bg-emerald-500/10'
+                    : 'border-cyan-500/20 bg-cyan-500/10'
+                }
+              `}
+            >
+              {phaseIcon || '📦'}
+            </div>
+
+            <div className="min-w-0">
+              <div className="mb-1 flex items-center gap-2">
+                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Projeto
+                </span>
+
+                {isFinished && (
+                  <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Concluído
+                  </span>
+                )}
+              </div>
+
+              <h3 className="truncate text-sm font-black text-white transition-colors group-hover:text-cyan-300 sm:text-base">
                 {task.title}
               </h3>
-            </div>
-          </div>
 
-          {/* Ações */}
-          <div className="flex items-center gap-1 shrink-0">
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleExpand();
-              }}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-              title={
-                isExpanded
-                  ? 'Recolher projeto'
-                  : 'Expandir projeto'
-              }
-              aria-label={
-                isExpanded
-                  ? 'Recolher projeto'
-                  : 'Expandir projeto'
-              }
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4 text-cyan-400" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
+              {phaseLabel && (
+                <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                  {phaseLabel}
+                </p>
               )}
-            </button>
+            </div>
+          </button>
 
+          {/* Ações administrativas discretas */}
+          <div className="flex shrink-0 items-center gap-1">
             {onEdit && (
               <button
                 type="button"
@@ -194,11 +190,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   event.stopPropagation();
                   onEdit();
                 }}
-                className="p-1.5 text-slate-500 hover:text-cyan-400 rounded-lg hover:bg-cyan-500/10 transition-colors"
+                className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-cyan-500/10 hover:text-cyan-400"
                 title="Editar projeto"
                 aria-label={`Editar projeto ${task.title}`}
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             )}
 
@@ -208,158 +204,211 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 event.stopPropagation();
                 onDelete();
               }}
-              className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+              className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
               title="Excluir projeto"
               aria-label={`Excluir projeto ${task.title}`}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Descrição */}
-        <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed min-h-[42px]">
-          {task.description}
-        </p>
+        {/* ============================================================
+            EXPLORADOR — CTA PRINCIPAL
+        ============================================================ */}
+        <div className="mt-5">
+          {onOpenRepositoryExplorer ? (
+            <button
+              type="button"
+              disabled={!hasGithubRepository}
+              onClick={(event) => {
+                event.stopPropagation();
 
-        {/* Badges */}
-        {task.badges && task.badges.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {task.badges.map((badge, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 bg-slate-950 text-cyan-400 border border-cyan-500/20 rounded text-[9px] font-mono font-medium"
-              >
-                {badge}
-              </span>
-            ))}
-          </div>
-        )}
+                if (!hasGithubRepository) return;
 
-        {/* Status - Informativo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
-          <div className="flex items-center gap-2 bg-slate-950 border border-cyan-500/20 rounded px-2 py-1">
-            <span className="text-cyan-300 font-semibold shrink-0">
-              Status:
-            </span>
+                onOpenRepositoryExplorer(task);
+              }}
+              className={`
+                group/explorer
+                relative w-full overflow-hidden
+                rounded-2xl
+                border
+                p-4
+                text-left
+                transition-all duration-300
+                ${
+                  hasGithubRepository
+                    ? 'border-cyan-400/30 bg-gradient-to-br from-cyan-500/15 via-cyan-950/30 to-slate-950 hover:border-cyan-300/60 hover:from-cyan-400/20 hover:via-cyan-950/50 hover:shadow-lg hover:shadow-cyan-950/40'
+                    : 'cursor-not-allowed border-slate-800 bg-slate-900/50 opacity-50'
+                }
+              `}
+              title={
+                hasGithubRepository
+                  ? 'Abrir Explorador Técnico do projeto'
+                  : 'Este projeto não possui repositório GitHub associado'
+              }
+              aria-label={`Explorar tecnicamente ${task.title}`}
+            >
+              {/* Glow */}
+              {hasGithubRepository && (
+                <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-400/10 blur-2xl transition-all duration-500 group-hover/explorer:bg-cyan-400/20" />
+              )}
 
-            <span className="text-slate-200 truncate">
-              {STATUS_OPTIONS.find(
-                (option) => option.value === status
-              )?.label || 'Pendente'}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded px-2 py-1 min-w-0">
-            <span className="text-slate-500 font-semibold shrink-0">
-              Motivo:
-            </span>
-
-            <span className="text-slate-300 truncate">
-              {statusReason || 'Sem justificativa'}
-            </span>
-          </div>
-        </div>
-
-        {/* GitHub */}
-        <div className="flex items-center gap-1.5 pt-1 w-full min-w-0">
-          {hasGithubRepository ? (
-            <>
-              <a
-                href={githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => event.stopPropagation()}
-                className="flex items-center gap-1 px-2 py-1 flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-                title={`Abrir ${githubRepository} no GitHub`}
-              >
-                <Github className="w-3 h-3 text-slate-400 shrink-0" />
-                <span className="truncate">{task.title}</span>
-                <ExternalLink className="w-3 h-3 text-slate-500 shrink-0 ml-auto" />
-              </a>
-
-              {onOpenRepositoryExplorer && (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onOpenRepositoryExplorer(task);
-                  }}
-                  className="flex items-center justify-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400/40 transition-all"
-                  title="Explorar arquitetura do repositório"
-                  aria-label={`Explorar repositório ${task.title}`}
+              <div className="relative flex items-center gap-4">
+                <div
+                  className={`
+                    flex h-12 w-12 shrink-0 items-center justify-center
+                    rounded-xl border
+                    ${
+                      hasGithubRepository
+                        ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-300'
+                        : 'border-slate-700 bg-slate-900 text-slate-600'
+                    }
+                  `}
                 >
-                  <Network className="w-3 h-3" />
-                  <span className="hidden xl:inline">Explorar</span>
-                </button>
-              )}
+                  <Network className="h-6 w-6 transition-transform duration-300 group-hover/explorer:scale-110" />
+                </div>
 
-              {task.githubLanguage && (
-                <span className="flex items-center gap-1 px-2 py-1 bg-cyan-950/40 border border-cyan-500/20 rounded-lg text-[10px] text-cyan-300 shrink-0">
-                  <Code2 className="w-3 h-3" />
-                  {task.githubLanguage}
-                </span>
-              )}
-            </>
+                <div className="min-w-0 flex-1">
+                 
+                  <p
+                    className={`
+                      mt-1 text-sm font-black
+                      ${
+                        hasGithubRepository
+                          ? 'text-white group-hover/explorer:text-cyan-200'
+                          : 'text-slate-600'
+                      }
+                    `}
+                  >
+                    Explorar este projeto
+                  </p>
+
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500">
+                    Arquitetura, tecnologias, arquivos, testes, APIs,
+                    banco de dados e CI/CD.
+                  </p>
+                </div>
+              </div>
+            </button>
           ) : (
-            <span className="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px] text-slate-600">
-              Sem repositório GitHub associado
-            </span>
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+              <div className="flex items-center gap-3">
+                <Network className="h-5 w-5 text-slate-600" />
+                <span className="text-xs text-slate-600">
+                  Explorador técnico indisponível
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
-      </div>
-
-      {/* Progresso das fases */}
-      {totalPhases > 0 && (
-        <div className="space-y-2 pt-2">
-
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              Progresso
-            </span>
-
-            <span
-              className={`font-mono text-xs font-black ${
-                progress === 100
-                  ? 'text-emerald-400'
-                  : 'text-cyan-400'
-              }`}
+        {/* ============================================================
+            REPOSITÓRIO
+        ============================================================ */}
+        <div className="mt-3">
+          {hasGithubRepository ? (
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="flex w-full items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2.5 transition-all hover:border-slate-700 hover:bg-slate-900"
+              title={`Abrir ${githubRepository} no GitHub`}
             >
-              {progress}%
-            </span>
-          </div>
+              <Github className="h-3.5 w-3.5 shrink-0 text-slate-400" />
 
-          {/* Barra */}
-          <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/70">
-            <div
-              className={`h-full transition-all duration-700 ${
-                progress === 100
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                  : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500'
-              }`}
-              style={{
-                width: `${progress}%`,
-              }}
-            />
-          </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">
+                  Repositório
+                </span>
 
-          {/* Timeline das fases */}
-          <div className="flex items-center justify-between pt-1">
-            {Array.from({ length: totalPhases }).map((_, index) => {
-              const currentPhase = index + 1;
-              const isCurrent = currentPhase === phaseIndex;
-              const isCompletedPhase =
-                currentPhase < phaseIndex ||
-                (currentPhase === phaseIndex && isFinished);
+                <span className="block truncate font-mono text-[10px] text-slate-400">
+                  {githubRepository || task.title}
+                </span>
+              </div>
 
-              const phase = phases[index];
+              <ExternalLink className="h-3 w-3 shrink-0 text-slate-600" />
+            </a>
+          ) : (
+            <div className="flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900/30 px-3 py-2.5">
+              <Github className="h-3.5 w-3.5 text-slate-700" />
 
-              const phaseTitle =
-                phase?.title || `Fase ${currentPhase}`;
+              <span className="text-[10px] text-slate-600">
+                Sem repositório GitHub associado
+              </span>
+            </div>
+          )}
+        </div>
 
-              const phaseIconValue =
-                phase?.icon || '📌';
+        {/* ============================================================
+            PROGRESSO
+        ============================================================ */}
+        {totalPhases > 0 && (
+          <div className="mt-5 border-t border-slate-800/70 pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-600">
+                  Evolução
+                </span>
+
+                <span className="ml-2 text-[9px] text-slate-600">
+                  Fase {phaseIndex || 1}/{totalPhases}
+                </span>
+              </div>
+
+              <span
+                className={`
+                  font-mono text-xs font-black
+                  ${
+                    progress === 100
+                      ? 'text-emerald-400'
+                      : 'text-cyan-400'
+                  }
+                `}
+              >
+                {progress}%
+              </span>
+            </div>
+
+            {/* Barra principal */}
+            <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800 bg-slate-950">
+              <div
+                className={`
+                  h-full rounded-full transition-all duration-700
+                  ${
+                    progress === 100
+                      ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300'
+                      : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500'
+                  }
+                `}
+                style={{
+                  width: `${progress}%`,
+                }}
+              />
+            </div>
+
+            {/* ========================================================
+                TIMELINE DAS FASES
+            ======================================================== */}
+            <div className="mt-4 flex items-center">
+              {Array.from({ length: totalPhases }).map((_, index) => {
+                const currentPhase = index + 1;
+                const isCurrent =
+                  currentPhase === phaseIndex;
+
+                const isCompletedPhase =
+                  currentPhase < phaseIndex ||
+                  (currentPhase === phaseIndex && isFinished);
+
+                const phase = phases[index];
+
+                const phaseTitle =
+                  phase?.title ||
+                  `Fase ${currentPhase}`;
+
+                const phaseIconValue =
+                  phase?.icon || '•';
 
               return (
                 <React.Fragment key={currentPhase}>
@@ -399,148 +448,44 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
                   {currentPhase < totalPhases && (
                     <div
-                      className={`h-px flex-1 mx-1 transition-all ${
-                        currentPhase < phaseIndex ||
-                        (currentPhase === phaseIndex && isFinished)
-                          ? 'bg-emerald-500/60'
-                          : 'bg-slate-800'
-                      }`}
+                      className={`
+                        h-px min-w-2 flex-1
+                        ${
+                          currentPhase < phaseIndex ||
+                          (currentPhase === phaseIndex &&
+                            isFinished)
+                            ? 'bg-emerald-500/50'
+                            : 'bg-slate-800'
+                        }
+                      `}
                     />
                   )}
                 </React.Fragment>
               );
-            })}
-          </div>
 
-          <div className="flex items-center justify-between text-[9px]">
-            <span className="text-slate-500">
-              Fase atual: {phaseIndex || 1}/{totalPhases}
-            </span>
+              })}
 
-            <span
-              className={
-                progress === 100
-                  ? 'text-emerald-400 font-semibold'
-                  : 'text-slate-500'
-              }
-            >
-              {progress === 100
-                ? '✓ Todas as etapas concluídas'
-                : 'Em evolução'}
-            </span>
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* Detalhes expandidos */}
-      {isExpanded && (
-        <div className="pt-3 space-y-3 animate-fadeIn text-xs">
 
-          {/* GitHub Repository Details */}
-          {hasGithubRepository && (
-            <div className="space-y-2">
 
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <Github className="w-3 h-3 text-slate-400" />
-                Repositório GitHub
+
+            <div className="mt-2 flex items-center justify-between text-[8px]">
+              <span className="text-slate-600">
+                {isFinished
+                  ? '✓ Projeto concluído'
+                  : 'Projeto em evolução'}
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-
-                {task.githubFullName && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
-                    <span className="text-[9px] text-slate-600 block uppercase">
-                      Repositório
-                    </span>
-
-                    <span className="text-[10px] text-slate-300 font-mono break-all">
-                      {task.githubFullName}
-                    </span>
-                  </div>
-                )}
-
-                {task.githubLanguage && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
-                    <span className="text-[9px] text-slate-600 block uppercase">
-                      Linguagem
-                    </span>
-
-                    <span className="text-[10px] text-cyan-300">
-                      {task.githubLanguage}
-                    </span>
-                  </div>
-                )}
-
-                {pushedDate && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
-                    <span className="text-[9px] text-slate-600 block uppercase">
-                      Último Push
-                    </span>
-
-                    <span className="flex items-center gap-1 text-[10px] text-slate-300">
-                      <GitBranch className="w-3 h-3 text-emerald-400" />
-                      {pushedDate}
-                    </span>
-                  </div>
-                )}
-
-                {task.githubUpdatedAt && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2">
-                    <span className="text-[9px] text-slate-600 block uppercase">
-                      Atualizado
-                    </span>
-
-                    <span className="flex items-center gap-1 text-[10px] text-slate-300">
-                      <CalendarDays className="w-3 h-3 text-cyan-400" />
-
-                      {formatGithubDate(
-                        task.githubUpdatedAt
-                      )}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {task.githubDescription && (
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  {task.githubDescription}
-                </p>
+              {phaseLabel && (
+                <span className="max-w-[55%] truncate text-slate-600">
+                  {phaseLabel}
+                </span>
               )}
             </div>
-          )}
-
-          {/* Requisitos */}
-          {task.requirements &&
-            task.requirements.length > 0 && (
-              <div className="space-y-1.5">
-
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                  <CheckSquare className="w-3 h-3 text-emerald-400" />
-                  Requisitos & Entregáveis:
-                </span>
-
-                <ul className="space-y-1 pl-1">
-                  {task.requirements.map(
-                    (req, idx) => (
-                      <li
-                        key={idx}
-                        className="text-slate-300 flex items-start gap-1.5 text-[11px]"
-                      >
-                        <span className="text-emerald-400 shrink-0">
-                          ✓
-                        </span>
-
-                        <span className="leading-tight">
-                          {req}
-                        </span>
-                      </li>
-                    )
-                  )}
-                </ul>
-              </div>
-            )}
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
+    </article>
   );
 };

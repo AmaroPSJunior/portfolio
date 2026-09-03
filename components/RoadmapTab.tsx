@@ -28,6 +28,7 @@ import {
   Github,
   Code2,
   CalendarDays,
+  Network,
 } from 'lucide-react';
 
 type ViewMode = 'phases' | 'projects';
@@ -1084,64 +1085,70 @@ export const RoadmapTab: React.FC<RoadmapTabProps> = ({
                 </div>
               </div>
 
-                            {sortedProjectTasks.length === 0 ? (
-                <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
-                  <Info className="w-8 h-8 text-slate-500 mx-auto mb-3" />
+              <div className="relative overflow-hidden p-5 bg-gradient-to-r from-cyan-950/50 via-slate-900 to-slate-950 border border-cyan-500/25 rounded-2xl shadow-lg shadow-cyan-950/10">
+                <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
 
-                  <h3 className="text-sm font-bold text-white">Nenhum projeto encontrado</h3>
+               
 
-                  <p className="text-xs text-slate-500 max-w-md mx-auto mt-2">
-                    Não existem projetos correspondentes aos filtros ou à busca atual.
-                  </p>
+                {sortedProjectTasks.length === 0 ? (
+                  <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
+                    <Info className="w-8 h-8 text-slate-500 mx-auto mb-3" />
 
-                  {hasActiveFilters && (
-                    <button
-                      type="button"
-                      onClick={clearFilters}
-                      className="mt-4 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs transition-colors"
-                    >
-                      Limpar Filtros
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-                  {sortedProjectTasks.map((task) => {
-                    const phase = getPhase(task.phase);
-                    const phaseIndex = phases.findIndex(p => p.id === task.phase) + 1;
+                    <h3 className="text-sm font-bold text-white">Nenhum projeto encontrado</h3>
 
-                    return (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        isExpanded={expandedCards.includes(task.id)}
-                        onToggleExpand={() => toggleCard(task.id)}
-                        onToggleComplete={() => toggleTask(task.id)}
-                        onEdit={() => onEditTask?.(task)}
-                        onDelete={() => setProjectToDelete(task)}
-                        onStatusChange={(status, statusReason) =>
-                          onStatusChange?.(task.id, status, statusReason)
-                        }
-                        githubConfig={githubConfig}
-                        phases={phases}
-                        onNavigateToPhase={handleNavigateToPhase}
-                        onOpenRepositoryExplorer={onOpenRepositoryExplorer}
-                        totalPhases={phases.length}
-                        phaseIndex={
-                          phases.findIndex(
-                            (phaseItem) => phaseItem.id === task.phase
-                          ) + 1
-                        }
-                        phaseProgress={getTaskProgress(task)}
-                        showPhaseBadge
-                        phaseLabel={phase?.title}
-                        phaseIcon={phase?.icon}
-                      />
-                    );
-                  })}
-                </div>
-              )}
+                    <p className="text-xs text-slate-500 max-w-md mx-auto mt-2">
+                      Não existem projetos correspondentes aos filtros ou à busca atual.
+                    </p>
 
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="mt-4 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs transition-colors"
+                      >
+                        Limpar Filtros
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                    {sortedProjectTasks.map((task) => {
+                      const phase = getPhase(task.phase);
+                      const phaseIndex = phases.findIndex(p => p.id === task.phase) + 1;
+
+                      return (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          isExpanded={expandedCards.includes(task.id)}
+                          onToggleExpand={() => toggleCard(task.id)}
+                          onToggleComplete={() => toggleTask(task.id)}
+                          onEdit={() => onEditTask?.(task)}
+                          onDelete={() => setProjectToDelete(task)}
+                          onStatusChange={(status, statusReason) =>
+                            onStatusChange?.(task.id, status, statusReason)
+                          }
+                          githubConfig={githubConfig}
+                          phases={phases}
+                          onNavigateToPhase={handleNavigateToPhase}
+                          onOpenRepositoryExplorer={onOpenRepositoryExplorer}
+                          totalPhases={phases.length}
+                          phaseIndex={
+                            phases.findIndex(
+                              (phaseItem) => phaseItem.id === task.phase
+                            ) + 1
+                          }
+                          phaseProgress={getTaskProgress(task)}
+                          showPhaseBadge
+                          phaseLabel={phase?.title}
+                          phaseIcon={phase?.icon}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+              </div>
             </div>
           )}
         </>
