@@ -3,6 +3,7 @@ import { AppLogger } from '@/lib/logger';
 import { handleApiError, NetworkError } from '@/lib/errorHandler';
 import { getTechnicalRepositorySnapshot } from '@/lib/technical-project-explorer/github';
 import { analyzeRepository } from '@/lib/technical-project-explorer/analyzer';
+import { enrichTechnologyNames } from '@/lib/technology-metadata';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,55 @@ export async function GET(request: NextRequest) {
           snapshot
         );
 
+      const technologyNames = [
+        ...(analysis.frameworks ?? []).map(
+          (framework) => framework.name
+        ),
+        ...(analysis.database?.technologies ?? []),
+        ...(analysis.cicd?.provider
+          ? [analysis.cicd.provider]
+          : []),
+      ];
+
+      const technologyMetadata =
+        await enrichTechnologyNames(
+          technologyNames
+        );
+
+      const enrichedAnalysis = {
+        ...analysis,
+
+        frameworks: (analysis.frameworks ?? []).map(
+          (framework) => ({
+            ...framework,
+            iconUrl:
+              technologyMetadata[framework.name]
+                ?.iconUrl,
+            description:
+              technologyMetadata[framework.name]
+                ?.description,
+          })
+        ),
+
+        database: analysis.database
+          ? {
+              ...analysis.database,
+              technologies:
+                analysis.database.technologies,
+              technologyMetadata:
+                Object.fromEntries(
+                  analysis.database.technologies.map(
+                    (technology) => [
+                      technology,
+                      technologyMetadata[technology],
+                    ]
+                  )
+                ),
+            }
+          : analysis.database,
+      };
+
+
       return NextResponse.json({
         repository: {
           owner,
@@ -45,7 +95,7 @@ export async function GET(request: NextRequest) {
           truncated:
             snapshot.truncated,
         },
-        analysis,
+        analysis: enrichedAnalysis,
       });
     } catch (error) {
       AppLogger.warn(

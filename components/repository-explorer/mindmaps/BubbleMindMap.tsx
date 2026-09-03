@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { RepositoryExplorerNode } from '@/types';
 import { playRepositoryReturnSound } from '@/lib/repository-explorer/sounds';
+import { NodeIcon } from '../NodeIcon';
 
 interface BubbleMindMapProps {
   repository: RepositoryExplorerNode;
@@ -453,9 +454,13 @@ export const BubbleMindMap: React.FC<
                 }}
               >
 
-                <span className="text-2xl transition-transform duration-300 group-hover:scale-110">
-                  {child.icon ||
-                    '○'}
+                <span className="flex h-8 w-8 items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110">
+                  <NodeIcon
+                    icon={child.icon}
+                    iconUrl={child.iconUrl}
+                    size="md"
+                    alt={child.title}
+                  />
                 </span>
 
                 <span className="mt-1 max-w-[82px] truncate text-[9px] font-bold text-slate-300 group-hover:text-cyan-300">
@@ -522,9 +527,13 @@ export const BubbleMindMap: React.FC<
 
             <div className="relative max-w-[130px] text-center">
 
-              <div className="text-4xl">
-                {currentNode.icon ||
-                  '◉'}
+              <div className="flex h-12 items-center justify-center text-4xl">
+                <NodeIcon
+                  icon={currentNode.icon}
+                  iconUrl={currentNode.iconUrl}
+                  size="lg"
+                  alt={currentNode.title}
+                />
               </div>
 
               <div className="mt-2 line-clamp-2 text-sm font-black text-white">

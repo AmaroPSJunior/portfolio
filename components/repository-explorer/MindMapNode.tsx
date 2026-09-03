@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import { RepositoryExplorerNode } from '@/types';
+import { NodeIcon } from './NodeIcon';
 
 interface MindMapNodeProps {
   node: RepositoryExplorerNode;
@@ -62,7 +63,12 @@ export const MindMapNode: React.FC<
               : 'text-2xl'
           }
         >
-          {node.icon || '◉'}
+          <NodeIcon
+            icon={node.icon}
+            iconUrl={node.iconUrl}
+            size={compact ? 'md' : 'lg'}
+            alt={node.title}
+          />
         </span>
 
         {hasChildren && (

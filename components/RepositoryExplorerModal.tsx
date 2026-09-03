@@ -5,6 +5,7 @@ import { MindMapRenderer } from './repository-explorer/MindMapRenderer';
 import { MindMapStyle, MindMapStyleOption } from './repository-explorer/types';
 import { RepositoryExplorerModalProps, RepositoryExplorerNode } from '@/types';
 import { playRepositoryOpenSound } from '@/lib/repository-explorer/sounds';
+import { NodeIcon } from './repository-explorer/NodeIcon';
 import {
   getRepositoryExplorerVolume,
   playRepositoryHoverSound,
@@ -78,6 +79,8 @@ interface TechnicalAnalysis {
     name: string;
     version?: string;
     category?: string;
+    iconUrl?: string;
+    description?: string;
   }>;
 
   tests?: {
@@ -102,6 +105,13 @@ interface TechnicalAnalysis {
     migrations?: string[];
     schemas?: string[];
     tables?: string[];
+    technologyMetadata?: Record<
+      string,
+      {
+        iconUrl?: string;
+        description?: string;
+      }
+    >;
   };
 
   apis?: Array<{
@@ -277,13 +287,43 @@ function buildTechnicalNodes(
   ].filter(Boolean) as RepositoryExplorerNode[];
 
   const technologyChildren = [
-    ...((analysis.frameworks ?? []).slice(0, 12).map((framework) => ({
-      id: `framework-${framework.name}`,
-      title: framework.name,
-      type: 'technology',
-      icon: '⚛️',
-      value: framework.version || 'detectado',
-    }))),
+    ...((analysis.frameworks ?? [])
+      .slice(0, 12)
+      .map((framework) => ({
+        id: `framework-${framework.name}`,
+        title: framework.name,
+        type: 'technology',
+        icon: framework.iconUrl,
+        iconUrl: framework.iconUrl,
+        iconSource: 'Iconify',
+        value:
+          framework.version ||
+          'detectado',
+        description:
+          framework.description ||
+          `Tecnologia ${framework.name} detectada no projeto.`,
+      }))),
+
+    ...((analysis.database?.technologies ?? [])
+      .map((technology) => {
+        const metadata =
+          analysis.database
+            ?.technologyMetadata?.[
+              technology
+            ];
+
+        return {
+          id: `database-technology-${technology}`,
+          title: technology,
+          type: 'technology',
+          icon: metadata?.iconUrl,
+          iconUrl: metadata?.iconUrl,
+          iconSource: 'Iconify',
+          description:
+            metadata?.description ||
+            `Tecnologia de banco de dados ${technology} detectada no projeto.`,
+        };
+      })),
 
     createValueNode(
       'dependencies-count',
@@ -1105,8 +1145,14 @@ export const RepositoryExplorerModal: React.FC<
 
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xl">
-                      {displayNode.icon || '◉'}
+                      <NodeIcon
+                        icon={displayNode.icon}
+                        iconUrl={displayNode.iconUrl}
+                        size="lg"
+                        alt={displayNode.title}
+                      />
                     </div>
+
 
                     <div className="min-w-0 flex-1">
                       <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-cyan-400">
@@ -1158,9 +1204,15 @@ export const RepositoryExplorerModal: React.FC<
                               onClick={() => setActiveNode(child)}
                               className="flex w-full items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-left transition hover:border-cyan-500/30 hover:bg-cyan-950/20"
                             >
-                              <span className="text-sm">
-                                {child.icon || '•'}
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                                <NodeIcon
+                                  icon={child.icon}
+                                  iconUrl={child.iconUrl}
+                                  size="sm"
+                                  alt={child.title}
+                                />
                               </span>
+
 
                               <span className="min-w-0 flex-1">
                                 <span className="block truncate text-[10px] font-semibold text-slate-200">

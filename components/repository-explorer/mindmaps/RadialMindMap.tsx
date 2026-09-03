@@ -3,6 +3,7 @@
 import React from 'react';
 import { MindMapProps } from '../types';
 import { MindMapNode } from '../MindMapNode';
+import { NodeIcon } from '../NodeIcon';
 
 export const RadialMindMap: React.FC<
   MindMapProps
@@ -115,6 +116,7 @@ export const RadialMindMap: React.FC<
                             key={
                               child.id
                             }
+
                             type="button"
                             onClick={() =>
                               onNodeClick(
@@ -123,8 +125,13 @@ export const RadialMindMap: React.FC<
                             }
                             className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[9px] text-slate-400 hover:bg-slate-900 hover:text-cyan-300"
                           >
-                            <span>
-                              {child.icon}
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                              <NodeIcon
+                                icon={child.icon}
+                                iconUrl={child.iconUrl}
+                                size="sm"
+                                alt={child.title}
+                              />
                             </span>
 
                             <span className="min-w-0 flex-1 truncate">

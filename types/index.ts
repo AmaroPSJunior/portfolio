@@ -137,6 +137,8 @@ export interface RepositoryExplorerNode {
   description?: string;
   value?: string | number;
   icon?: string;
+  iconUrl?: string;
+  iconSource?: string;
   children?: RepositoryExplorerNode[];
 }
 
